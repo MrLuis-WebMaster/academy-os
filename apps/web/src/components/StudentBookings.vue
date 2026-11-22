@@ -1,9 +1,14 @@
 <script setup lang="ts">
 import { apiJson, workspacePath } from '../shared/api-client';
 import {onMounted,ref,watch} from 'vue';
-import {CalendarCheck,CheckCircle2} from 'lucide-vue-next';
+import {CalendarCheck,CheckCircle2,CalendarClock} from 'lucide-vue-next';
+import {UiAlert} from '@academy-os/ui';
 type ClassSession={id:string;title:string;startsAt:string};
-type Booking={id:string;sessionId:string;status:'BOOKED'|'CANCELLED';bookedAt:string};
+type Booking={id:string;sessionId:string;status:'BOOKED'|'CANCELLED';bookedAt:string;
+ session:{title:string;status:string;startsAt:string;changes:Array<{
+  id:string;changedAt:string;reason:string;oldStartsAt:string;newStartsAt:string;
+ }>};
+};
 const props=defineProps<{workspaceId:string;sessions:ClassSession[]}>();
 const mine=ref<Booking[]>([]),loading=ref(false),busy=ref(''),error=ref(''),notice=ref('');
 async function request<T>(path:string,method='GET',body?:unknown):Promise<T>{
@@ -39,6 +44,15 @@ onMounted(load);
  <p v-if="error" role="alert" class="mt-4 rounded-xl bg-danger-soft p-3 text-xs text-danger">{{ error }}</p>
  <p v-if="notice" role="status" class="mt-4 flex items-center gap-2 rounded-xl bg-success-soft p-3 text-xs text-success"><CheckCircle2 :size="15"/>{{ notice }}</p>
  <p v-if="loading" class="mt-4 text-xs text-muted">Consultando tus reservas...</p>
+ <div v-if="!loading" class="mt-4 space-y-2">
+  <UiAlert v-for="booking in mine.filter(b=>b.status==='BOOKED'&&(b.session.status==='CANCELLED'||b.session.changes.length>0))" :key="booking.id" tone="warning">
+   <strong>{{ booking.session.title }}:</strong>
+   <template v-if="booking.session.status==='CANCELLED'"> esta clase fue cancelada. Consulta con tu academia para reorganizarla.</template>
+   <template v-else> el horario fue modificado. Nuevo inicio: {{new Date(booking.session.startsAt).toLocaleString('es-CO')}}.
+    <span v-if="booking.session.changes[0]?.reason"> Motivo: {{booking.session.changes[0].reason}}.</span>
+   </template>
+  </UiAlert>
+ </div>
  <div class="mt-4 space-y-2">
   <div v-for="session in sessions.filter(s=>new Date(s.startsAt)>new Date())" :key="session.id" class="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-outline p-4">
    <div><p class="text-sm font-bold">{{ session.title }}</p><p class="mt-1 text-xs text-muted">{{ new Date(session.startsAt).toLocaleString('es-CO') }}</p></div>

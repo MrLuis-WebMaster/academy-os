@@ -15,7 +15,7 @@ export class BookingsController {
     await requireMembership(workspaceId,userId,['STUDENT']);
     return prisma.classBooking.findMany({
       where:{workspaceId,userId},
-      select:{id:true,status:true,sessionId:true,bookedAt:true,session:{select:{title:true,startsAt:true,mode:true,location:true}}},
+      select:{id:true,status:true,sessionId:true,bookedAt:true,session:{select:{title:true,startsAt:true,mode:true,location:true,status:true,changes:{orderBy:{changedAt:'desc'},take:3,select:{id:true,changedAt:true,reason:true,oldStartsAt:true,newStartsAt:true}}}}},
       orderBy:{bookedAt:'desc'},
     });
   }
