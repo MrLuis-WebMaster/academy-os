@@ -37,6 +37,8 @@ Google sign-in also requires `BETTER_AUTH_SECRET`, `GOOGLE_CLIENT_ID`, `GOOGLE_C
 - First-login three-step onboarding creates `Workspace` + `OWNER` + initial teacher profile and optional subjects transactionally.
 - Workspace-scoped subject and course creation/listing; manual online, onsite and hybrid class scheduling with basic teacher-overlap prevention.
 - A separate **Operations** screen shows real data; its predecessor dashboard remains explicitly labeled as a mock-only preview.
+- One-use invitation links (7 days, SHA-256 token only in DB) add teachers, students or approved workspace admins after Google account verification.
+- Course enrolments are saved in PostgreSQL; enrolled students receive an Aula Digital with course details, approved materials and class sessions.
 
 ## Features demonstrated
 
