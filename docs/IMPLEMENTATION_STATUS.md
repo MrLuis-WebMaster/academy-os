@@ -5,6 +5,7 @@
 - Implemented in code: Better Auth 1.7.27 (Google SSO), Prisma 7 storage model and sessions; NestJS global authenticated guard, public health/auth config endpoints; workspace provisioning transaction creates OWNER, optional subjects, request idempotency and tenant authorization; Vue three-step guided onboarding, optional demo screen and workspace switching.
 - External configuration required: Google Cloud OAuth client/secret; BETTER_AUTH_SECRET; running PostgreSQL; first Prisma migration. Google identity only; Drive and Calendar scopes are **not** obtained at login.
 - Authenticated dashboard after onboarding still displays **mock schedules, people and course cards**. They are not persistent and must not be confused with real data. **Operations** UI now connects to real workspace-scoped subject, course, teacher and manually linked session endpoints. The original prototype remains separate and uses mock data.
+- Teacher/student/admin invitation links, invitation acceptance with email matching and token replay protection, course enrolment, student classroom scope and PostgreSQL migrations have been added; the live Google OAuth flow is still untested without external credentials.
 - Dedicated-instance one-time bootstrap (separate from multi-tenant self-service sign-up) is still planned, not implemented.
 - Not finished: session cancellations, attendance, payments, recording consent, OAuth integrations, Class Alive, Learning Passport, Profe SOS, Profe Studio commerce, branded subdomains, production tenancy integrity and migration testing.
 
