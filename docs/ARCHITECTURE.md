@@ -20,6 +20,13 @@ One user may have several memberships and teach multiple subjects across differe
 | Profe Studio | courses/services/booking storefront, pricing | brand preview |
 | Integrations | Google/Zoom/Drive adapters with OAuth | planning UI |
 
+## Identity and onboarding decisions
+
+- Proposed: self-hosted Better Auth + Google for sign-in, Prisma v7/PostgreSQL for persistence, NestJS server-side integration, Vue client. See [Authentication and workspace onboarding RFC](AUTH_AND_ONBOARDING.md).
+- Google login is not equivalent to permission to access Drive, Calendar or Meet; connect those separately with scoped consent.
+- Identity (`User`/auth sessions) is global while `Workspace` and membership roles are tenant-scoped. Never confuse a Better Auth platform admin with an academy owner.
+- Initial setup for a dedicated deployment requires an explicit one-use bootstrap invitation bound to the intended owner, not granting OWNER to the first anonymous visitor.
+
 ## Tenant model
 
 Membership with role OWNER / ADMIN / TEACHER / STUDENT / GUARDIAN. All server queries and mutations in the production implementation must be scoped by authenticated workspace membership and resource owner. A plain `workspaceId` request field must never be treated as authority. The Prisma schema currently defines relations; same-workspace constraints and authorization guards still need implementing.

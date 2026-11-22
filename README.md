@@ -65,6 +65,10 @@ The canonical home is [MrLuis-WebMaster/academy-os](https://github.com/MrLuis-We
 
 The web workspace pins TypeScript 6.0.3 and vue-tsc 3.3.13 because vue-tsc 3.3.x cannot run with TypeScript 7's removed `typescript/lib/tsc` export. The NestJS API separately uses TypeScript 7.0.2. Upgrade only after upstream compatibility is verified and CI passes.
 
+## Authentication and initial setup proposal
+
+For the first production-capable iteration, use self-hosted Better Auth with Google sign-in and a short, skippable setup wizard that creates the first workspace OWNER. For dedicated branded deployments require a one-time setup invitation instead of trusting the first visitor. Details and acceptance criteria: [docs/AUTH_AND_ONBOARDING.md](docs/AUTH_AND_ONBOARDING.md). **This flow is specified but NOT implemented yet.**
+
 ## Limits and next steps
 
-Read [product roadmap](docs/ROADMAP.md), [architecture](docs/ARCHITECTURE.md) and [integration plan](docs/INTEGRATIONS.md). This foundation must be installed and built from an online environment to validate package compatibility, because this authoring runtime did not have access to npm registries.
+Read [product roadmap](docs/ROADMAP.md), [architecture](docs/ARCHITECTURE.md) and [integration plan](docs/INTEGRATIONS.md). GitHub Actions has successfully installed dependencies, typechecked, tested, and built the foundation on `main` (see Actions history). Authentication, persistence and OAuth integration remain outstanding.

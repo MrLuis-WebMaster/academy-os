@@ -6,11 +6,12 @@
 - [x] NestJS API health + capabilities + session validation
 - [x] Multi-tenant domain schema, Prisma v7 config, Docker Compose for PostgreSQL 19
 - [x] CI pipeline template, unit tests for scheduling validation
-- [ ] Publish to new GitHub private repository
-- [ ] Install dependencies and verify build/CI against npm registry
+- [x] Publish to independent `MrLuis-WebMaster/academy-os` repository on `main` (currently public, not private)
+- [x] Install dependencies and verify typecheck/tests/build in GitHub Actions (green run confirmed)
+- [ ] Commit reproducible pnpm lockfile and deploy preview
 
 ## Phase 1 — sellable MVP
-- [ ] Auth, sessions, onboarding, workspace isolation, RBAC
+- [ ] **FIRST PRIORITY:** Better Auth self-hosted + Google sign-in; sessions; secure tenant bootstrap; guided first OWNER setup; workspace isolation and RBAC (details in [AUTH_AND_ONBOARDING.md](AUTH_AND_ONBOARDING.md))
 - [ ] Teacher/student CRUD; subjects, courses, topics; multiple teachers per course
 - [ ] Availability, booking collision checks, instructor/location constraints, cancellation
 - [ ] Online/onsite/hybrid sessions with manual video links and location
