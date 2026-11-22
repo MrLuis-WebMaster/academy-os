@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { onMounted, ref, computed, watch } from 'vue';
 import { UiBadge, UiButton, UiField, UiInput, UiThemeSwitcher, UiBrand } from '@academy-os/ui';
-import { ArrowLeft, ArrowRight, BookOpen, Check, GraduationCap, School, ShieldCheck, Sparkles, UserRound, LoaderCircle } from 'lucide-vue-next';
+import { ArrowLeft, ArrowRight, BookOpen, CalendarDays, Check, GraduationCap, School, ShieldCheck, Sparkles, UserRound, LoaderCircle } from 'lucide-vue-next';
 import { authClient } from '../auth-client';
 import App from '../App.vue';
 import OperationsPanel from './OperationsPanel.vue';
@@ -109,6 +109,13 @@ onMounted(()=>{
         <div class="flex flex-wrap items-center gap-2"><span class="font-extrabold text-brand">AcademyOS</span><span v-if="demo" class="rounded-full bg-amber-100 px-2 py-1 text-amber-800">Vista de demostración · sin datos reales</span><span v-else class="rounded-full bg-emerald-100 px-2 py-1 text-success">Sesión iniciada · {{ selected?.name }}</span></div>
         <div class="flex items-center gap-2">
           <NotificationCenter v-if="!demo && selected" :workspace-id="selected.id" />
+          <a v-if="!demo && selected && currentRole!=='GUARDIAN'"
+             :href="'/api/v1/workspaces/'+encodeURIComponent(selected.id)+'/calendar.ics'"
+             class="inline-flex min-h-10 items-center justify-center gap-2 rounded-xl border border-outline bg-surface px-3 text-xs font-bold text-ink hover:bg-surface-muted"
+             aria-label="Descargar mis clases en formato calendario" title="Descargar clases para Apple Calendar, Outlook o Google Calendar">
+            <CalendarDays :size="17" aria-hidden="true"/>
+            <span class="hidden lg:inline">Mi calendario</span>
+          </a>
           <UiThemeSwitcher />
           <select v-if="!demo && memberships.length>1" aria-label="Elegir academia" class="rounded-lg border border-outline px-2 py-1 text-xs" :value="selected?.id" @change="selected=memberships.find(m=>m.workspace.id===($event.target as HTMLSelectElement).value)?.workspace || null"><option v-for="m in memberships" :key="m.workspace.id" :value="m.workspace.id">{{ m.workspace.name }}</option></select>
           <button v-if="!demo" class="rounded-lg border border-outline px-3 py-2 font-bold text-muted" @click="newWorkspace">Nueva academia</button>
