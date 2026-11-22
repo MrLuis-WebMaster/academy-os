@@ -89,6 +89,7 @@ model User {
   bookings ClassBooking[]
   studentReceipts PaymentReceipt[] @relation("StudentPayment")
   recordedReceipts PaymentReceipt[] @relation("RecordedPayment")
+  sessionChanges SessionChange[]
   memberships WorkspaceMember[]
   teaching    TeacherProfile[]
   enrollments Enrollment[]
@@ -227,6 +228,7 @@ model ClassSession {
   course      Course?       @relation(fields: [courseId], references: [id])
   teacher     TeacherProfile? @relation(fields: [teacherProfileId], references: [id])
   bookings ClassBooking[]
+  changes SessionChange[]
   reflection  ClassReflection?
   resources   Resource[]
   @@index([workspaceId, startsAt])
@@ -427,4 +429,19 @@ model PaymentReceipt {
   student User @relation("StudentPayment",fields:[studentUserId],references:[id])
   recorder User @relation("RecordedPayment",fields:[recordedByUserId],references:[id])
   @@index([workspaceId,receivedAt])
+}
+
+model SessionChange {
+  id String @id @default(cuid())
+  sessionId String
+  actorUserId String
+  reason String
+  oldStartsAt DateTime
+  oldEndsAt DateTime
+  newStartsAt DateTime
+  newEndsAt DateTime
+  changedAt DateTime @default(now())
+  session ClassSession @relation(fields:[sessionId],references:[id],onDelete:Cascade)
+  actor User @relation(fields:[actorUserId],references:[id])
+  @@index([sessionId,changedAt])
 }
