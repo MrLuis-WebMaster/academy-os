@@ -11,11 +11,11 @@
 - [ ] Commit reproducible pnpm lockfile and deploy preview
 
 ## Phase 1 — sellable MVP
-- [ ] **FIRST PRIORITY:** Better Auth self-hosted + Google sign-in; sessions; secure tenant bootstrap; guided first OWNER setup; workspace isolation and RBAC (details in [AUTH_AND_ONBOARDING.md](AUTH_AND_ONBOARDING.md))
-- [~] Subject/course creation and listing implemented; teacher/student invitations, topics and multi-teacher assignment pending
-- [ ] Availability, booking collision checks, instructor/location constraints, cancellation
-- [~] Online/onsite/hybrid manual URL/location sessions saved to DB; rebooking, cancellation, reminders pending
-- [ ] Digital Classroom: files, assignments, attendance, messages
+- [~] **FIRST PRIORITY:** Better Auth self-hosted + Google sign-in, session guard, multi-tenant 3-step OWNER setup implemented; live Google OAuth, dedicated bootstrap, full tenant audit and E2E verification pending (details in [AUTH_AND_ONBOARDING.md](AUTH_AND_ONBOARDING.md))
+- [~] Subject/course creation and listing implemented; teacher/student invitations and course enrolments implemented; topic CRUD and multi-teacher assignment pending
+- [~] Teacher overlap checks and authorized cancellation implemented; availability rules, physical resources, rescheduling and notifications pending
+- [~] Online/onsite/hybrid manual URL/location sessions saved to DB; rebooking, reminders and external calendar sync pending
+- [~] Student Digital Classroom with course enrolment, sessions and published HTTPS materials implemented; uploads/assignments/attendance/messages pending
 - [ ] Branded profile/storefront, plan packages, payments, basic reporting
 - [ ] Accessibility, privacy and E2E tests
 
@@ -23,7 +23,7 @@
 - [ ] Google Calendar / Meet OAuth
 - [ ] Zoom OAuth + meetings
 - [ ] Drive Picker and resource authorization
-- [ ] Class Alive: teacher reflection -> content draft -> approval -> student practice
+- [~] Class Alive teacher notes -> draft -> manual approval -> student-visible recap implemented; AI activity generation and student practice pending
 - [ ] Passport: evidence-based progress, mastery recommendations
 - [ ] Profe SOS: configurable tutor assistants per subject
 - [ ] AI usage quotas, provider monitoring and cost controls
