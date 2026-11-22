@@ -5,7 +5,7 @@ const props = defineProps<{ workspace: { id: string; name: string; type: 'SOLO'|
 type Subject = { id:string; name:string };
 type Course = { id:string; title:string; summary:string|null; subjectId:string|null };
 type Teacher = { id:string; userId:string; user:{name:string} };
-type Lesson = { id:string; title:string; startsAt:string; endsAt:string; mode:'ONLINE'|'ONSITE'|'HYBRID'; status:string; location:string|null };
+type Lesson = { id:string;courseId:string|null; title:string; startsAt:string; endsAt:string; mode:'ONLINE'|'ONSITE'|'HYBRID'; status:string; location:string|null };
 const subjects=ref<Subject[]>([]), courses=ref<Course[]>([]), teachers=ref<Teacher[]>([]), sessions=ref<Lesson[]>([]);
 type Member={role:string;user:{id:string;name:string;email:string}};
 const members=ref<Member[]>([]);
@@ -28,7 +28,7 @@ async function addSession(){busy.value=true;message.value='';error.value='';try{
   if(Number.isNaN(startsAt.getTime()) || Number.isNaN(endsAt.getTime()))throw Error('Elige una fecha y un horario válido.');
   await request('/sessions',{method:'POST',body:JSON.stringify({title:sessionTitle.value,teacherProfileId:sessionTeacherId.value,courseId:sessionCourseId.value||undefined,mode:mode.value,startsAt:startsAt.toISOString(),endsAt:endsAt.toISOString(),capacity:1,location:mode.value==='ONLINE'?undefined:location.value,meetingUrl:mode.value==='ONSITE'?undefined:meetingUrl.value})});sessionTitle.value='';await refresh();message.value='Clase guardada en la agenda.';
 }catch(e){error.value=e instanceof Error?e.message:'No se pudo agendar la clase';}finally{busy.value=false;}}
-watch(()=>props.workspace.id,async()=>{await refresh();await loadMaterials();});
+watch(()=>props.workspace.id,async()=>{await refresh();await loadMaterials();await loadReflections();});
 onMounted(async()=>{await refresh();await loadMaterials();});
 async function enroll(){busy.value=true;error.value='';message.value='';try{await request('/enrollments',{method:'POST',body:JSON.stringify({courseId:enrollmentCourse.value,studentUserId:enrollmentStudent.value})});message.value='Alumno inscrito correctamente.';}catch(e){error.value=e instanceof Error?e.message:'No se pudo inscribir';}finally{busy.value=false;}}
 async function cancelSession(session:Lesson){
@@ -56,6 +56,26 @@ async function addMaterial(){
     await loadMaterials();
     message.value='Recurso guardado correctamente.';
   }catch(e){error.value=e instanceof Error?e.message:'No se pudo añadir el material';}
+  finally{busy.value=false;}
+}
+type Reflection={id:string;sessionId:string;status:'DRAFT'|'REVIEW'|'PUBLISHED';notes:string};
+const reflections=ref<Reflection[]>([]);
+const reflectSessionId=ref(''),reflectNotes=ref('');
+async function loadReflections(){
+  try{reflections.value=await request<Reflection[]>('/class-alive/notes');}
+  catch(e){error.value=e instanceof Error?e.message:'No se pudieron cargar las notas de Clase Viva';}
+}
+async function saveReflection(){
+  busy.value=true;error.value='';message.value='';
+  try{await request('/class-alive/sessions/'+reflectSessionId.value+'/notes',{method:'POST',body:JSON.stringify({notes:reflectNotes.value})});await loadReflections();message.value='Borrador guardado. Revísalo antes de publicarlo.';}
+  catch(e){error.value=e instanceof Error?e.message:'No se pudieron guardar las notas';}
+  finally{busy.value=false;}
+}
+async function publishReflection(){
+  if(!window.confirm('¿Publicar estas notas para los alumnos inscritos en el curso?'))return;
+  busy.value=true;error.value='';message.value='';
+  try{await request('/class-alive/sessions/'+reflectSessionId.value+'/publish',{method:'POST'});await loadReflections();message.value='Clase Viva publicada para los alumnos inscritos.';}
+  catch(e){error.value=e instanceof Error?e.message:'No se pudo publicar';}
   finally{busy.value=false;}
 }
 const input='mt-2 w-full rounded-xl border border-outline bg-white p-3 text-sm outline-brand';
@@ -93,6 +113,20 @@ const input='mt-2 w-full rounded-xl border border-outline bg-white p-3 text-sm o
         <button :disabled="busy || !courses.length" class="rounded-xl bg-brand px-5 py-3 text-xs font-bold text-white disabled:opacity-60">Añadir material</button>
       </form>
       <div class="mt-5 space-y-2"><div v-for="material in materials" :key="material.id" class="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-outline p-3 text-sm"><div><p class="font-semibold">{{ material.title }}</p><p class="text-xs text-muted">{{ courses.find(c=>c.id===material.courseId)?.title || 'Curso' }}</p></div><span :class="material.published?'text-emerald-700':'text-amber-700'" class="text-xs font-bold">{{ material.published?'Publicado':'Borrador' }}</span></div></div>
+    </section>
+    <section v-if="status==='ready'" class="mt-6 rounded-2xl border border-outline bg-white p-6">
+      <h2 class="flex items-center gap-2 text-lg font-extrabold"><GraduationCap :size="20" class="text-brand"/> Clase Viva · notas del docente</h2>
+      <p class="mt-2 text-xs text-muted">Registra lo aprendido y las dificultades de la clase. Primero se guarda como borrador; luego podrás aprobarlo y publicarlo a los alumnos inscritos. La generación automática con IA está pendiente.</p>
+      <form class="mt-5 grid gap-3" @submit.prevent="saveReflection">
+        <label class="text-xs font-semibold">Clase asociada a un curso<select v-model="reflectSessionId" required :class="input" @change="reflectNotes=reflections.find(x=>x.sessionId===reflectSessionId)?.notes||''">
+          <option value="">Selecciona una clase</option>
+          <option v-for="session in sessions.filter(x=>x.courseId)" :key="session.id" :value="session.id">{{ session.title }}</option>
+        </select></label>
+        <label class="text-xs font-semibold">Observaciones de la clase<textarea v-model="reflectNotes" minlength="10" maxlength="12000" required rows="4" :class="input" placeholder="Hoy trabajamos... al alumno le costó... el próximo paso es..."></textarea></label>
+        <div class="flex flex-wrap gap-2"><button :disabled="busy||!reflectSessionId||reflections.some(x=>x.sessionId===reflectSessionId&&x.status==='PUBLISHED')" class="rounded-xl bg-brand px-5 py-3 text-xs font-bold text-white disabled:opacity-40">Guardar borrador</button>
+        <button v-if="reflections.some(x=>x.sessionId===reflectSessionId&&x.status!=='PUBLISHED')" type="button" :disabled="busy" class="rounded-xl border border-emerald-300 px-5 py-3 text-xs font-bold text-emerald-700 disabled:opacity-40" @click="publishReflection">Aprobar y publicar</button></div>
+      </form>
+      <div class="mt-5 space-y-2"><div v-for="item in reflections" :key="item.id" class="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-outline p-3"><span class="text-sm font-semibold">{{ sessions.find(x=>x.id===item.sessionId)?.title||'Clase' }}</span><span class="text-xs font-semibold" :class="item.status==='PUBLISHED'?'text-emerald-700':'text-amber-700'">{{ item.status==='PUBLISHED'?'Publicado':'Borrador' }}</span></div></div>
     </section>
     <section v-if="status==='ready'" class="mt-6 rounded-2xl border border-outline bg-white p-6"><div class="flex items-center gap-2"><CalendarDays :size="21" class="text-brand"/><h2 class="text-lg font-extrabold">Agenda real</h2></div><p class="mt-2 text-xs text-muted">Clases presenciales, virtuales o híbridas. Hasta conectar Google/Zoom, pega un enlace HTTPS creado en tu plataforma de videollamadas.</p><form class="mt-6 grid gap-4 md:grid-cols-3" @submit.prevent="addSession"><label class="text-xs font-semibold">Título<input v-model="sessionTitle" required minlength="3" placeholder="Ej. Clase de refuerzo" :class="input"/></label><label class="text-xs font-semibold">Profesor<select v-model="sessionTeacherId" required :class="input"><option v-for="teacher in teachers" :key="teacher.id" :value="teacher.id">{{ teacher.user.name }}</option></select></label><label class="text-xs font-semibold">Curso<select v-model="sessionCourseId" :class="input"><option value="">Sin curso asociado</option><option v-for="course in courses" :key="course.id" :value="course.id">{{ course.title }}</option></select></label><label class="text-xs font-semibold">Fecha<input v-model="sessionDate" required type="date" :class="input"/></label><label class="text-xs font-semibold">Desde<input v-model="startTime" required type="time" :class="input"/></label><label class="text-xs font-semibold">Hasta<input v-model="endTime" required type="time" :class="input"/></label><label class="text-xs font-semibold">Modalidad<select v-model="mode" :class="input"><option value="ONLINE">Virtual</option><option value="ONSITE">Presencial</option><option value="HYBRID">Híbrida</option></select></label><label v-if="mode!=='ONSITE'" class="text-xs font-semibold"><span class="flex gap-1"><Video :size="13"/> Enlace HTTPS</span><input v-model="meetingUrl" required type="url" placeholder="https://meet.google.com/..." :class="input"/></label><label v-if="mode!=='ONLINE'" class="text-xs font-semibold"><span class="flex gap-1"><MapPin :size="13"/> Dirección o sede</span><input v-model="location" required placeholder="Sede Centro, Aula 2" :class="input"/></label><div class="flex items-end"><button :disabled="busy||!teachers.length" class="w-full rounded-xl bg-brand px-5 py-3 text-xs font-bold text-white disabled:opacity-60">{{ busy?'Guardando...':'Agendar clase' }}</button></div></form>
       <div class="mt-7 divide-y divide-outline"><div v-for="session in sessions" :key="session.id" class="flex flex-wrap items-center justify-between gap-3 py-4"><div><p class="text-sm font-bold">{{ session.title }}</p><p class="mt-1 text-xs text-muted">{{ new Date(session.startsAt).toLocaleString('es-CO') }} · {{ session.mode==='ONLINE'?'Virtual':session.mode==='ONSITE'?'Presencial':'Híbrida' }}</p></div><div class="flex items-center gap-3"><span class="rounded-full px-3 py-1 text-xs font-bold" :class="session.status==='CANCELLED'?'bg-slate-100 text-slate-600':'bg-emerald-50 text-emerald-700'">{{ session.status }}</span><button v-if="session.status==='CONFIRMED'" :disabled="busy" class="rounded-lg border border-rose-200 px-3 py-1 text-xs font-bold text-rose-600 disabled:opacity-40" @click="cancelSession(session)">Cancelar</button></div></div><p v-if="!sessions.length" class="py-5 text-sm text-muted">Todavía no hay clases programadas.</p></div>
