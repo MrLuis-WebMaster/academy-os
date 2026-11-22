@@ -2,6 +2,7 @@
 import { onMounted, ref, watch } from 'vue';
 import PracticeTeacher from './PracticeTeacher.vue';
 import StudioEditor from './StudioEditor.vue';
+import StaffAttendance from './StaffAttendance.vue';
 import { BookOpen, CalendarDays, GraduationCap, Plus, RefreshCcw, Users, Video, MapPin, CheckCircle2 } from 'lucide-vue-next';
 const props = defineProps<{ workspace: { id: string; name: string; type: 'SOLO'|'ACADEMY' }; role: string }>();
 type Subject = { id:string; name:string };
@@ -135,5 +136,6 @@ const input='mt-2 w-full rounded-xl border border-outline bg-white p-3 text-sm o
     </section>
   <PracticeTeacher v-if="status==='ready'" :workspace-id="workspace.id" :sessions="sessions" />
     <StudioEditor v-if="status==='ready' && ['OWNER','ADMIN'].includes(role)" :workspace="workspace" :courses="courses" />
+    <StaffAttendance v-if="status==='ready'" :workspace-id="workspace.id" />
   </main>
 </template>
