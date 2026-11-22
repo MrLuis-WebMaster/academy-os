@@ -15,6 +15,8 @@ import {notifyBookedStudents} from '../modules/notifications/infrastructure/sess
 import {NotificationUseCases} from '../modules/notifications/application/notification-use-cases.js';
 import {PrismaNotificationMailbox} from '../modules/notifications/infrastructure/prisma-notification-mailbox.js';
 import {NotificationsController} from '../modules/notifications/presentation/notifications.controller.js';
+import {ExportCalendarUseCase,CalendarAccessDenied} from '../modules/calendar/application/export-calendar-use-case.js';
+import {PrismaCalendarReadRepository} from '../modules/calendar/infrastructure/prisma-calendar-read-repository.js';
 import {FinanceController} from '../finance/controller.js';
 import type {AuthenticatedRequest} from '../auth/session.guard.js';
 
@@ -92,6 +94,14 @@ test('PostgreSQL multi-tenant guards and booking capacity',async()=>{
     await assert.rejects(()=>notices.read(request(notBooked),b.id,myInbox.items[0]!.id),NotFoundException);
     await notices.read(request(recipient.userId),b.id,myInbox.items[0]!.id);
     assert.equal((await notices.list(request(recipient.userId),b.id)).unreadCount,0);
+    // Real DB access: a student only exports sessions they personally booked.
+    const calendar=new ExportCalendarUseCase(new PrismaCalendarReadRepository());
+    const bookedCalendar=await calendar.execute(b.id,recipient.userId);
+    const otherCalendar=await calendar.execute(b.id,notBooked);
+    assert.match(bookedCalendar,/SUMMARY:Taller 1/);
+    assert.equal(otherCalendar.includes('SUMMARY:Taller 1'),false);
+    await assert.rejects(()=>calendar.execute(b.id,owner.id),CalendarAccessDenied);
+
 
     await assert.rejects(()=>bookingActions.reserve(request(owner.id),b.id,{sessionId:session.id}),ForbiddenException);
   }finally{
