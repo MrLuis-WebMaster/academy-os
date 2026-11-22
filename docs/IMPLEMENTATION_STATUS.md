@@ -51,7 +51,7 @@
 - Migraciones PostgreSQL `11_teacher_time_off` y `12_weekly_series`; `ClassSeries` conserva las relaciones de cada sesión, sin impedir su cancelación individual.
 - Creación de la serie en una **única transacción** con el mismo bloqueo de profesor utilizado por sesiones sueltas y ausencias; conflictos de horario, clase existente o vacaciones revierten todos los cambios.
 - Gestión real incluye selector de repetición y pantalla de vacaciones. Las series aparecen identificadas en el listado de clases y sus ocurrencias se exportan a ICS.
-- No existe aún edición/eliminación masiva de una serie, generación automática de festivos según país ni invitaciones recurrentes de videollamada.
+- Hay cancelación masiva de próximas sesiones de una serie, con notificación privada por reserva y preservación de sesiones anteriores o completadas; no existe aún edición masiva, generación automática de festivos según país ni invitaciones recurrentes de videollamada.
 
 ## Límites no resueltos
 - OAuth Google en entorno real, test del callback, cookies, sesiones y logout end-to-end.

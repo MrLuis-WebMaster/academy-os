@@ -42,7 +42,7 @@ Cada marca `[x]` indica funcionalidad codificada en el repo, **no un lanzamiento
 
 ## Etapa 3 — academia y white-label avanzados
 - [ ] Roles de acudientes verificados, privacidad para menores y reportes familiares.
-- [~] Series semanales de clases, todas o ninguna, con validación DST y conflictos; falta edición/cancelación masiva y reservas recurrentes de estudiantes.
+- [~] Series semanales de clases, todas o ninguna, con validación DST y conflictos; cancelación masiva de futuras sesiones con avisos in-app, sin alterar clases anteriores. Falta edición masiva y reservas recurrentes de estudiantes.
 - [ ] Sedes/aulas, docentes sustitutos y recursos compartidos.
 - [ ] Dominios personalizados, branding completo, multimoneda y planes comerciales.
 - [ ] OneDrive, Dropbox, Outlook/Teams y más conectores.

@@ -11,7 +11,8 @@
 - [ ] Migrar componentes de negocio restantes a los primitives reutilizables de `@academy-os/ui`.
 - [ ] Mantener dashboard demo separado y no poner datos ficticios ante clientes.
 - [ ] Pruebas de regresión de series semanales, DST, feriados, huecos de agenda y cambios de hora por zona real.
-- [ ] Definir edición/cancelación masiva de series y notificaciones para alumnos ya inscritos.
+- [x] Cancelación masiva de sesiones semanales futuras, transaccional y con avisos internos por reserva.
+- [ ] Definir edición masiva de series, invitaciones recurrentes y pruebas de comunicación externa.
 
 ## Seguridad funcional
 - [ ] E2E real de Google OAuth, primera academia, alternar espacios, invitaciones, revocación.
