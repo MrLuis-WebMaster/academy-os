@@ -2,7 +2,7 @@
 
 ## Estado
 
-El backend se está migrando **por verticales funcionales**, sin romper endpoints ya existentes. Las verticales migradas incluyen `academics/subjects`, `academics/courses`, `academics/enrollments`, `scheduling/bookings`, `scheduling/reschedule`, `scheduling/availability`, `scheduling/time-off`, `scheduling/weekly-series` los casos iniciales de IA en `learning`, la bandeja en `notifications` y la exportación privada en `calendar`. Los otros controladores aún son legado y están pendientes de refactor; no se deben presentar como DDD completos.
+El backend se está migrando **por verticales funcionales**, sin romper endpoints ya existentes. Las verticales migradas incluyen `academics/subjects`, `academics/courses`, `academics/enrollments`, `scheduling/bookings`, `scheduling/reschedule`, `scheduling/availability`, `scheduling/time-off`, `scheduling/weekly-series` los casos iniciales de IA en `learning`, la bandeja en `notifications` y la exportación privada en `calendar`, los recibos manuales en `finance` y la asistencia en `attendance`. Los otros controladores aún son legado y están pendientes de refactor; no se deben presentar como DDD completos.
 
 ## Dependencias y capas
 
@@ -63,4 +63,8 @@ La creación de excepciones y series semanales comparte la llave de advisory loc
 
 ## Próximas extracciones
 
-Scheduling asistencia y excepciones de disponibilidad → Learning publicación de actividades y evidencia → Tenancy provisioning/invitations → Finance → Integrations. Cada extracción conserva la ruta HTTP y va acompañada de pruebas de regresión.
+Scheduling creación/cancelación de sesiones → Learning publicación de actividades y evidencia → Tenancy provisioning/invitations → Profe Studio/Commerce → Integrations. Cada extracción conserva la ruta HTTP y va acompañada de pruebas de regresión.
+
+## Asistencia aislada entre academias
+
+La lectura `GET /bookings/staff` y la escritura `PATCH /bookings/:bookingId/attendance` se mantienen compatibles tras extraer `modules/attendance`. La aplicación valida el rol, el adaptador filtra por academia y profesor, y la escritura vuelve a comprobar permisos y cancelación dentro de una transacción PostgreSQL. Usa el mismo advisory lock de la sesión que las cancelaciones. Los alumnos no consultan listas de asistencia del personal.
