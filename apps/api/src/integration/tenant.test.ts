@@ -87,12 +87,17 @@ test('PostgreSQL multi-tenant guards and booking capacity',async()=>{
       new NotificationUseCases(new PrismaNotificationMailbox(),new PrismaMembershipAdapter()),
     );
     const myInbox=await notices.list(request(recipient.userId),b.id);
-    assert.equal(myInbox.unreadCount,1);
-    assert.equal(myInbox.items.length,1);
+    assert.equal(myInbox.unreadCount,2); // booking confirmation and class change
+    assert.equal(myInbox.items.length,2);
     assert.equal((await notices.list(request(notBooked),b.id)).items.length,0);
     await assert.rejects(()=>notices.list(request(owner.id),b.id),ForbiddenException);
-    await assert.rejects(()=>notices.read(request(notBooked),b.id,myInbox.items[0]!.id),NotFoundException);
-    await notices.read(request(recipient.userId),b.id,myInbox.items[0]!.id);
+    const changed=myInbox.items.find(n=>n.kind==='SESSION_RESCHEDULED');
+    const bookedNotice=myInbox.items.find(n=>n.kind==='BOOKING_CONFIRMED');
+    assert.ok(changed&&bookedNotice);
+    await assert.rejects(()=>notices.read(request(notBooked),b.id,changed!.id),NotFoundException);
+    await notices.read(request(recipient.userId),b.id,changed!.id);
+    assert.equal((await notices.list(request(recipient.userId),b.id)).unreadCount,1);
+    await notices.readAll(request(recipient.userId),b.id);
     assert.equal((await notices.list(request(recipient.userId),b.id)).unreadCount,0);
     // Real DB access: a student only exports sessions they personally booked.
     const calendar=new ExportCalendarUseCase(new PrismaCalendarReadRepository());

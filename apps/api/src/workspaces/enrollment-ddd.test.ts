@@ -14,7 +14,7 @@ function harness(allowed:boolean) {
   const repository:EnrollmentRepository={
     courseExists:async(workspace,course)=>workspace==='my-academy'&&course==='course-1',
     studentIsMember:async(workspace,student)=>workspace==='my-academy'&&student==='student-1',
-    async add(courseId,userId) {
+    async add(_workspace,courseId,userId) {
       const key=courseId+':'+userId;
       if(rows.has(key))throw new EnrollmentExists();
       rows.add(key);

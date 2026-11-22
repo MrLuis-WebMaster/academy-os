@@ -2,6 +2,8 @@ import {prisma} from '../../../lib/prisma.js';
 import type {BookingReservationPort} from '../application/booking-ports.js';
 import {BookingPolicyViolation,ensureReservable,ensureCancellable} from '../domain/booking-policy.js';
 import {BookingCourseNotAllowed,BookingMissing,BookingCapacityConflict} from '../application/booking-use-cases.js';
+import {bookingNotice} from '../../notifications/domain/notification.js';
+import {notifyUser} from '../../notifications/infrastructure/personal-notice-publisher.js';
 
 export class PrismaBookingRepository implements BookingReservationPort {
   async reserve(workspaceId:string,sessionId:string,userId:string){
@@ -9,7 +11,7 @@ export class PrismaBookingRepository implements BookingReservationPort {
       await tx.$queryRaw`SELECT pg_advisory_xact_lock(hashtext(${'academy-os:booking:'+sessionId}))::text AS lock_acquired`;
       const session=await tx.classSession.findFirst({
         where:{id:sessionId,workspaceId},
-        select:{id:true,courseId:true,capacity:true,status:true,startsAt:true},
+        select:{id:true,title:true,courseId:true,capacity:true,status:true,startsAt:true},
       });
       if(!session)throw new BookingMissing();
       // An existing booking must be idempotent even when all seats are now occupied.
@@ -28,13 +30,24 @@ export class PrismaBookingRepository implements BookingReservationPort {
       try{ensureReservable({...session,occupied});}
       catch(error){if(error instanceof BookingPolicyViolation)throw new BookingCapacityConflict(error.message);throw error;}
       if(previous){
+        const at=new Date();
         await tx.classBooking.update({
-          where:{id:previous.id},data:{status:'BOOKED',bookedAt:new Date(),cancelledAt:null},
+          where:{id:previous.id},data:{status:'BOOKED',bookedAt:at,cancelledAt:null},
+        });
+        await notifyUser(tx,{
+          workspaceId,userId,sessionId,kind:'BOOKING_CONFIRMED',
+          eventKey:'booking:'+previous.id+':'+at.toISOString(),
+          ...bookingNotice(session.title),
         });
         return {id:previous.id,sessionId,status:'BOOKED' as const,alreadyBooked:false};
       }
       const created=await tx.classBooking.create({
-        data:{workspaceId,sessionId,userId},select:{id:true,sessionId:true,status:true},
+        data:{workspaceId,sessionId,userId},select:{id:true,sessionId:true,bookedAt:true,status:true},
+      });
+      await notifyUser(tx,{
+        workspaceId,userId,sessionId,kind:'BOOKING_CONFIRMED',
+        eventKey:'booking:'+created.id+':'+created.bookedAt.toISOString(),
+        ...bookingNotice(session.title),
       });
       return {id:created.id,sessionId:created.sessionId,status:'BOOKED' as const,alreadyBooked:false};
     });

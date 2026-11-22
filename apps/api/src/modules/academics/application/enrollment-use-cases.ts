@@ -31,7 +31,7 @@ export class EnrollmentUseCases {
     await this.authorize(workspaceId,actorId);
     const {courseId,studentUserId}=enrollmentCommand(raw);
     await this.requireScope(workspaceId,courseId,studentUserId);
-    return this.repository.add(courseId,studentUserId);
+    return this.repository.add(workspaceId,courseId,studentUserId);
   }
   async unenroll(workspaceId:string,actorId:string,raw:unknown) {
     await this.authorize(workspaceId,actorId);
