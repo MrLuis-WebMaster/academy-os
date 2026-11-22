@@ -76,6 +76,11 @@ export class SchedulingController {
         });
         if(!withinWeeklyAvailability(regularHours,startsAt,endsAt,academy.timezone))
           throw new ConflictException('Class is outside this teacher\'s configured weekly availability');
+        const blocked=await tx.teacherTimeOff.findFirst({
+          where:{workspaceId,teacherProfileId:teacher.id,startsAt:{lt:endsAt},endsAt:{gt:startsAt}},
+          select:{id:true},
+        });
+        if(blocked)throw new ConflictException('Teacher is unavailable during this period');
         const conflict=await tx.classSession.findFirst({where:{workspaceId,teacherProfileId:teacher.id,status:'CONFIRMED',startsAt:{lt:endsAt},endsAt:{gt:startsAt}}});
         if(conflict) throw new ConflictException('Teacher already has a class during this period');
         return tx.classSession.create({data:{workspaceId,teacherProfileId:teacher.id,courseId:data.courseId,title:data.title,mode:data.mode,status:'CONFIRMED',startsAt,endsAt,timezone:academy.timezone,capacity:data.capacity,location:data.location,meetingUrl:data.meetingUrl,provider:data.meetingUrl?'CUSTOM':undefined},select:{id:true,title:true,mode:true,startsAt:true,endsAt:true,status:true}});

@@ -41,3 +41,10 @@ export function withinWeeklyAvailability(slots:readonly WeeklySlotValue[],
   return slots.some(slot=>slot.dayOfWeek===start.weekday
     &&start.minute>=slot.startMinute&&end.minute<=slot.endMinute);
 }
+
+/** Throws no exceptions: class interval overlaps any dated absence. */
+export function overlapsTimeOff(
+  timeOff:readonly {startsAt:Date;endsAt:Date}[],startsAt:Date,endsAt:Date,
+):boolean {
+  return timeOff.some(x=>x.startsAt<endsAt&&startsAt<x.endsAt);
+}

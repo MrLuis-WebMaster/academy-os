@@ -31,6 +31,14 @@ export class PrismaSessionRescheduleRepository implements SessionRescheduleRepos
       });
       if(!academy||!withinWeeklyAvailability(regularHours,plan.startsAt,plan.endsAt,academy.timezone))
         throw new SessionRescheduleConflict('Requested time is outside the teacher\'s regular availability');
+      const blocked=await tx.teacherTimeOff.findFirst({
+        where:{
+          workspaceId,teacherProfileId:session.teacherProfileId,
+          startsAt:{lt:plan.endsAt},endsAt:{gt:plan.startsAt},
+        },
+        select:{id:true},
+      });
+      if(blocked)throw new SessionRescheduleConflict('Teacher is unavailable during this period');
       const overlapping=await tx.classSession.findFirst({
         where:{
           workspaceId,teacherProfileId:session.teacherProfileId,id:{not:sessionId},
