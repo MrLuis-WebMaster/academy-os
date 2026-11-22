@@ -20,7 +20,10 @@ import {PrismaCalendarReadRepository} from '../modules/calendar/infrastructure/p
 import {EnrollmentsController} from '../modules/academics/presentation/enrollments.controller.js';
 import {EnrollmentUseCases} from '../modules/academics/application/enrollment-use-cases.js';
 import {PrismaEnrollmentRepository} from '../modules/academics/infrastructure/prisma-enrollment-repository.js';
-import {FinanceController} from '../finance/controller.js';
+import {FinanceController} from '../modules/finance/presentation/finance.controller.js';
+import {FinanceUseCases} from '../modules/finance/application/finance-use-cases.js';
+import {PrismaFinanceRepository} from '../modules/finance/infrastructure/prisma-finance-repository.js';
+import {BadRequestException} from '@nestjs/common';
 import type {AuthenticatedRequest} from '../auth/session.guard.js';
 
 function request(userId:string){
@@ -49,7 +52,10 @@ test('PostgreSQL multi-tenant guards and booking capacity',async()=>{
     ids.push(b.id);
     await assert.rejects(()=>requireMembership(b.id,owner.id),ForbiddenException);
     await assert.rejects(()=>new CoursesController(new CourseUseCases(new PrismaCourseRepository(),new PrismaMembershipAdapter())).list(request(owner.id),b.id),ForbiddenException);
-    await assert.rejects(()=>new FinanceController().receipts(request(student1.id),b.id),ForbiddenException);
+    const finance=new FinanceController(
+      new FinanceUseCases(new PrismaFinanceRepository(),new PrismaMembershipAdapter()),
+    );
+    await assert.rejects(()=>finance.receipts(request(student1.id),b.id),ForbiddenException);
     const course=await prisma.course.create({data:{workspaceId:b.id,title:'Curso práctico'}});
     const subject=await prisma.subject.findFirstOrThrow({where:{workspaceId:b.id}});
     assert.equal(subject.name,'Math');
@@ -121,6 +127,27 @@ test('PostgreSQL multi-tenant guards and booking capacity',async()=>{
     await enrollments.enroll(request(owner.id),a.id,{
       courseId:courseA.id,studentUserId:student1.id,
     });
+    // Real PostgreSQL: financial receipts cannot link a student to a course of
+    // another academy, even if the same student is a member of both academies.
+    await assert.rejects(()=>finance.record(request(owner.id),a.id,{
+      studentUserId:student1.id,courseId:course.id,amountCOP:42000,method:'CASH',
+    }),BadRequestException);
+    assert.equal(await prisma.paymentReceipt.count({where:{workspaceId:a.id}}),0);
+    const payment=await finance.record(request(owner.id),a.id,{
+      studentUserId:student1.id,courseId:courseA.id,amountCOP:42000,method:'CASH',
+    });
+    assert.equal(payment.amountCOP,42000);
+    assert.equal((await finance.summary(request(owner.id),a.id)).totalReceivedCOP,42000);
+    await assert.rejects(()=>finance.voidReceipt(request(student1.id),a.id,payment.id,{
+      reason:'Pago duplicado',
+    }),ForbiddenException);
+    await assert.rejects(()=>finance.voidReceipt(request(owner.id),b.id,payment.id,{
+      reason:'Pago duplicado',
+    }),ForbiddenException);
+    await finance.voidReceipt(request(owner.id),a.id,payment.id,{reason:'Pago duplicado'});
+    assert.equal((await finance.summary(request(owner.id),a.id)).totalReceivedCOP,0);
+    assert.equal(await prisma.paymentReceipt.count({where:{workspaceId:b.id}}),0);
+
     const studentAInbox=await notices.list(request(student1.id),a.id);
     assert.equal(studentAInbox.items.length,1);
     assert.equal(studentAInbox.items[0]!.kind,'COURSE_ENROLLED');
