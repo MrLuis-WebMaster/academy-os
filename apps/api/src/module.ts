@@ -16,10 +16,11 @@ import { FinanceController } from './finance/controller.js';
 import { CurriculumController } from './workspaces/curriculum.controller.js';
 import { AcademicsModule } from './modules/academics/academics.module.js';
 import {SchedulingModule} from './modules/scheduling/scheduling.module.js';
+import {NotificationsModule} from './modules/notifications/notifications.module.js';
 import {LearningModule} from './modules/learning/learning.module.js';
 
 @Module({
-  imports: [AcademicsModule,SchedulingModule,LearningModule],
+  imports: [AcademicsModule,SchedulingModule,LearningModule,NotificationsModule],
   controllers: [DemoController, MeController, WorkspaceController, CatalogController, SchedulingController, InvitationsController, MaterialsController, ClassAliveController, PracticeController, StudioController, BookingsController, FinanceController, CurriculumController],
   providers: [{ provide: APP_GUARD, useClass: SessionGuard }],
 })

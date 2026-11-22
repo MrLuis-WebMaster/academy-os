@@ -90,6 +90,7 @@ model User {
   studentReceipts PaymentReceipt[] @relation("StudentPayment")
   recordedReceipts PaymentReceipt[] @relation("RecordedPayment")
   sessionChanges SessionChange[]
+  notifications Notification[]
   aiGenerations AiGeneration[]
   memberships WorkspaceMember[]
   teaching    TeacherProfile[]
@@ -123,6 +124,7 @@ model Workspace {
   offerings Offering[]
   bookings ClassBooking[]
   paymentReceipts PaymentReceipt[]
+  notifications Notification[]
   availabilitySlots WeeklyAvailability[]
   aiGenerations AiGeneration[]
 }
@@ -478,4 +480,22 @@ model WeeklyAvailability {
   workspace Workspace @relation(fields:[workspaceId],references:[id],onDelete:Cascade)
   teacher TeacherProfile @relation(fields:[teacherProfileId],references:[id],onDelete:Cascade)
   @@index([workspaceId,teacherProfileId,dayOfWeek])
+}
+
+model Notification {
+  id String @id @default(cuid())
+  workspaceId String
+  userId String
+  sessionId String?
+  eventKey String
+  kind String
+  title String
+  body String
+  createdAt DateTime @default(now())
+  readAt DateTime?
+  workspace Workspace @relation(fields:[workspaceId],references:[id],onDelete:Cascade)
+  user User @relation(fields:[userId],references:[id],onDelete:Cascade)
+  @@unique([workspaceId,userId,eventKey])
+  @@index([workspaceId,userId,createdAt])
+  @@index([workspaceId,userId,readAt])
 }
