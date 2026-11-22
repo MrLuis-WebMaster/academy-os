@@ -3,7 +3,9 @@
   "private": true,
   "version": "0.1.0",
   "packageManager": "pnpm@10.30.3",
-  "engines": { "node": ">=26.0.0" },
+  "engines": {
+    "node": ">=26.0.0"
+  },
   "scripts": {
     "dev": "pnpm --parallel --filter @academy-os/web --filter @academy-os/api dev",
     "build": "pnpm --filter @academy-os/api build && pnpm --filter @academy-os/web build",
@@ -11,6 +13,7 @@
     "test": "pnpm --filter @academy-os/api test",
     "db:generate": "pnpm --filter @academy-os/api db:generate",
     "db:validate": "pnpm --filter @academy-os/api db:validate",
-    "db:migrate": "pnpm --filter @academy-os/api db:migrate"
+    "db:migrate": "pnpm --filter @academy-os/api db:migrate",
+    "arch:check": "node scripts/check-architecture.mjs"
   }
 }

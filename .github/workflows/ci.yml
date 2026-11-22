@@ -37,6 +37,7 @@ jobs:
         run: pnpm --filter @academy-os/api exec prisma migrate deploy
       - name: Verify migrations status
         run: pnpm --filter @academy-os/api exec prisma migrate status
+      - run: pnpm arch:check
       - run: pnpm typecheck
       - run: pnpm test
       - run: pnpm build
