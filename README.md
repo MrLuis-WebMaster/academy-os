@@ -6,7 +6,7 @@
 
 ## Stack (stable releases chosen November 2026)
 
-- **Web:** Vue 3.5, TypeScript 7, Tailwind CSS 4.3 with `@tailwindcss/vite`, Vite 8, Pinia 4, TanStack Vue Query.
+- **Web:** Vue 3.5, TypeScript 6 (required for vue-tsc compatibility), Tailwind CSS 4.3 with `@tailwindcss/vite`, Vite 8, Pinia 4, TanStack Vue Query.
 - **API:** NestJS 12, TypeScript 7, Zod 4.
 - **Database:** PostgreSQL 19 + Prisma ORM 7.10 (schema + migration configuration only; runtime persistence not connected).
 - **Runtime:** Node.js 26 LTS, pnpm workspaces.
@@ -60,6 +60,10 @@ academy-os/
 The canonical home is [MrLuis-WebMaster/academy-os](https://github.com/MrLuis-WebMaster/academy-os), branch `main`. GitHub connection can push code to the existing repository. Follow the repository's permission and protection settings.
 
 **Visibility:** the repository was public when this starter was imported. If this project should be private, change visibility in GitHub Settings > General > Danger Zone.
+
+## TypeScript compatibility
+
+The web workspace pins TypeScript 6.0.3 and vue-tsc 3.3.13 because vue-tsc 3.3.x cannot run with TypeScript 7's removed `typescript/lib/tsc` export. The NestJS API separately uses TypeScript 7.0.2. Upgrade only after upstream compatibility is verified and CI passes.
 
 ## Limits and next steps
 
