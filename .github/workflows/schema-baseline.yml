@@ -1,0 +1,25 @@
+name: Generate database baseline preview
+on:
+  push:
+    paths:
+      - "apps/api/prisma/schema.prisma"
+      - ".github/workflows/schema-baseline.yml"
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '26'
+      - uses: pnpm/action-setup@v4
+      - run: pnpm install --no-frozen-lockfile
+      - name: Print proposed Prisma migration SQL for review
+        env:
+          DATABASE_URL: postgresql://academy:academy_local@localhost:5432/academy_os?schema=public
+        shell: bash
+        run: |
+          pnpm --filter @academy-os/api exec prisma migrate diff --from-empty --to-schema prisma/schema.prisma --script > ./migration-preview.sql
+          echo 'ACADEMYOS_MIGRATION_START'
+          cat ./migration-preview.sql
+          echo 'ACADEMYOS_MIGRATION_END'
