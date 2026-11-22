@@ -3,6 +3,7 @@ import type { AuthenticatedRequest } from '../auth/session.guard.js';
 import { prisma } from '../lib/prisma.js';
 import { requireMembership } from '../workspaces/access.js';
 import { bookingInput } from './input.js';
+import {withinWeeklyAvailability} from '../modules/scheduling/domain/weekly-availability.js';
 
 @Controller('workspaces/:workspaceId/sessions')
 export class SchedulingController {
@@ -53,14 +54,22 @@ export class SchedulingController {
     }
     if(data.courseId){const course=await prisma.course.findFirst({where:{id:data.courseId,workspaceId}});if(!course)throw new BadRequestException('Course does not belong to this workspace');}
     const startsAt = new Date(data.startsAt), endsAt = new Date(data.endsAt);
+    const academy=await prisma.workspace.findUnique({where:{id:workspaceId},select:{timezone:true}});
+    if(!academy)throw new BadRequestException('Workspace does not exist');
     if (endsAt.getTime()-startsAt.getTime()>12*60*60*1000) throw new BadRequestException('A session cannot exceed 12 hours');
     try {
       return await prisma.$transaction(async tx => {
         // Same teacher concurrent submissions serialize via a transaction-scoped Postgres advisory lock.
         await tx.$queryRaw`SELECT pg_advisory_xact_lock(hashtext(${`academy-os:teacher:${teacher.id}`}))::text AS lock_acquired`;
+        const regularHours=await tx.weeklyAvailability.findMany({
+          where:{workspaceId,teacherProfileId:teacher.id},
+          select:{dayOfWeek:true,startMinute:true,endMinute:true},
+        });
+        if(!withinWeeklyAvailability(regularHours,startsAt,endsAt,academy.timezone))
+          throw new ConflictException('Class is outside this teacher\'s configured weekly availability');
         const conflict=await tx.classSession.findFirst({where:{workspaceId,teacherProfileId:teacher.id,status:'CONFIRMED',startsAt:{lt:endsAt},endsAt:{gt:startsAt}}});
         if(conflict) throw new ConflictException('Teacher already has a class during this period');
-        return tx.classSession.create({data:{workspaceId,teacherProfileId:teacher.id,courseId:data.courseId,title:data.title,mode:data.mode,status:'CONFIRMED',startsAt,endsAt,timezone:'UTC',capacity:data.capacity,location:data.location,meetingUrl:data.meetingUrl,provider:data.meetingUrl?'CUSTOM':undefined},select:{id:true,title:true,mode:true,startsAt:true,endsAt:true,status:true}});
+        return tx.classSession.create({data:{workspaceId,teacherProfileId:teacher.id,courseId:data.courseId,title:data.title,mode:data.mode,status:'CONFIRMED',startsAt,endsAt,timezone:academy.timezone,capacity:data.capacity,location:data.location,meetingUrl:data.meetingUrl,provider:data.meetingUrl?'CUSTOM':undefined},select:{id:true,title:true,mode:true,startsAt:true,endsAt:true,status:true}});
       });
     } catch(e){if(e instanceof ConflictException)throw e;throw e;}
   }

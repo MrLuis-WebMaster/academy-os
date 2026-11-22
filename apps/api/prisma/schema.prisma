@@ -123,6 +123,7 @@ model Workspace {
   offerings Offering[]
   bookings ClassBooking[]
   paymentReceipts PaymentReceipt[]
+  availabilitySlots WeeklyAvailability[]
   aiGenerations AiGeneration[]
 }
 
@@ -147,6 +148,7 @@ model TeacherProfile {
   user        User            @relation(fields: [userId], references: [id], onDelete: Cascade)
   courses     CourseTeacher[]
   sessions    ClassSession[]
+  availabilitySlots WeeklyAvailability[]
   @@unique([workspaceId, userId])
 }
 
@@ -464,4 +466,16 @@ model AiGeneration {
   session ClassSession @relation(fields:[sessionId],references:[id],onDelete:Cascade)
   activity Activity? @relation(fields:[activityId],references:[id],onDelete:SetNull)
   @@index([workspaceId,createdAt])
+}
+
+model WeeklyAvailability {
+  id String @id @default(cuid())
+  workspaceId String
+  teacherProfileId String
+  dayOfWeek Int
+  startMinute Int
+  endMinute Int
+  workspace Workspace @relation(fields:[workspaceId],references:[id],onDelete:Cascade)
+  teacher TeacherProfile @relation(fields:[teacherProfileId],references:[id],onDelete:Cascade)
+  @@index([workspaceId,teacherProfileId,dayOfWeek])
 }
