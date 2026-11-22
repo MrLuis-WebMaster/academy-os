@@ -12,9 +12,9 @@
 
 ## Phase 1 — sellable MVP
 - [ ] **FIRST PRIORITY:** Better Auth self-hosted + Google sign-in; sessions; secure tenant bootstrap; guided first OWNER setup; workspace isolation and RBAC (details in [AUTH_AND_ONBOARDING.md](AUTH_AND_ONBOARDING.md))
-- [ ] Teacher/student CRUD; subjects, courses, topics; multiple teachers per course
+- [~] Subject/course creation and listing implemented; teacher/student invitations, topics and multi-teacher assignment pending
 - [ ] Availability, booking collision checks, instructor/location constraints, cancellation
-- [ ] Online/onsite/hybrid sessions with manual video links and location
+- [~] Online/onsite/hybrid manual URL/location sessions saved to DB; rebooking, cancellation, reminders pending
 - [ ] Digital Classroom: files, assignments, attendance, messages
 - [ ] Branded profile/storefront, plan packages, payments, basic reporting
 - [ ] Accessibility, privacy and E2E tests
