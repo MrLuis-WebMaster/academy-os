@@ -1,0 +1,19 @@
+name: academy-os
+services:
+  postgres:
+    image: postgres:19-alpine
+    environment:
+      POSTGRES_DB: academy_os
+      POSTGRES_USER: academy
+      POSTGRES_PASSWORD: academy_local
+    ports:
+      - "127.0.0.1:5432:5432"
+    volumes:
+      - academy_pg:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U academy -d academy_os"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+volumes:
+  academy_pg:

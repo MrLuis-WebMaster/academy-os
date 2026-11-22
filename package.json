@@ -1,0 +1,16 @@
+{
+  "name": "academy-os",
+  "private": true,
+  "version": "0.1.0",
+  "packageManager": "pnpm@10.30.3",
+  "engines": { "node": ">=26.0.0" },
+  "scripts": {
+    "dev": "pnpm --parallel --filter @academy-os/web --filter @academy-os/api dev",
+    "build": "pnpm --filter @academy-os/api build && pnpm --filter @academy-os/web build",
+    "typecheck": "pnpm --filter @academy-os/api typecheck && pnpm --filter @academy-os/web typecheck",
+    "test": "pnpm --filter @academy-os/api test",
+    "db:generate": "pnpm --filter @academy-os/api db:generate",
+    "db:validate": "pnpm --filter @academy-os/api db:validate",
+    "db:migrate": "pnpm --filter @academy-os/api db:migrate"
+  }
+}

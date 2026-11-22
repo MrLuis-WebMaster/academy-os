@@ -1,5 +1,67 @@
 # AcademyOS
 
-White-label education SaaS for independent teachers and multi-teacher academies.
+**Your academy. Your way.** A white-label learning operations SaaS designed for independent teachers and multi-teacher academies, including those teaching multiple subjects.
 
-> Work in progress. This repository is being initialized with Vue 3, Tailwind CSS 4, NestJS and Prisma.
+> **Development foundation / interactive demo — NOT production software.** The web panel uses mock data and local state. The API exposes safe demo endpoints only. PostgreSQL schema is a design proposal; auth, persistence, payment gateways, AI and OAuth integrations have not been implemented.
+
+## Stack (stable releases chosen November 2026)
+
+- **Web:** Vue 3.5, TypeScript 7, Tailwind CSS 4.3 with `@tailwindcss/vite`, Vite 8, Pinia 4, TanStack Vue Query.
+- **API:** NestJS 12, TypeScript 7, Zod 4.
+- **Database:** PostgreSQL 19 + Prisma ORM 7.10 (schema + migration configuration only; runtime persistence not connected).
+- **Runtime:** Node.js 26 LTS, pnpm workspaces.
+- **Testing:** `node:test` via `tsx`; GitHub Actions CI template.
+
+## Getting started
+
+```bash
+corepack enable
+pnpm install
+cp .env.example apps/api/.env
+docker compose up -d
+pnpm db:validate
+pnpm dev
+```
+
+Web: http://localhost:5173 · API: http://localhost:3001/api/v1/health
+
+For a future real database implementation:
+
+```bash
+pnpm db:generate
+pnpm db:migrate
+```
+
+**Do not run a migration against production yet.** The schema needs stricter cross-tenant consistency checks and a privacy/security review before connecting real data.
+
+## Features demonstrated
+
+- Dashboard and workspace-type switch between teacher and academy.
+- Multiple subjects per educator; teacher / student / course preview.
+- Sessions of type virtual, onsite and hybrid with local scheduling form.
+- Class Alive (Clase Viva), Learning Passport (Pasaporte), Profe SOS and Profe Studio concept screens.
+- Google Meet, Zoom, Google Calendar, Google Drive, OneDrive, Dropbox: planned integrations displayed as NOT CONNECTED.
+- White-label brand color and name preview.
+- Responsive sidebar and functional local navigation.
+
+## Source map
+
+```text
+academy-os/
+  apps/
+    web/      Vue + Tailwind 4 dashboard demo
+    api/      NestJS + session validation + Prisma v7 schema
+  docs/       architecture, product flows, rollout and security
+  scripts/    GitHub publication helper
+  .github/    CI workflow
+```
+
+## GitHub repository
+
+The canonical home is [MrLuis-WebMaster/academy-os](https://github.com/MrLuis-WebMaster/academy-os), branch `main`. GitHub connection can push code to the existing repository. Follow the repository's permission and protection settings.
+
+**Visibility:** the repository was public when this starter was imported. If this project should be private, change visibility in GitHub Settings > General > Danger Zone.
+
+## Limits and next steps
+
+Read [product roadmap](docs/ROADMAP.md), [architecture](docs/ARCHITECTURE.md) and [integration plan](docs/INTEGRATIONS.md). This foundation must be installed and built from an online environment to validate package compatibility, because this authoring runtime did not have access to npm registries.
