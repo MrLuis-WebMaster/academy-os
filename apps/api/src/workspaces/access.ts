@@ -1,8 +1,8 @@
 import { ForbiddenException } from '@nestjs/common';
 import { prisma } from '../lib/prisma.js';
 
-type ManagerRole = 'OWNER' | 'ADMIN' | 'TEACHER';
-export async function requireMembership(workspaceId: string, userId: string, roles?: ManagerRole[]) {
+type WorkspaceRole = 'OWNER' | 'ADMIN' | 'TEACHER' | 'STUDENT' | 'GUARDIAN';
+export async function requireMembership(workspaceId: string, userId: string, roles?: WorkspaceRole[]) {
   const membership = await prisma.workspaceMember.findFirst({
     where: { workspaceId, userId, ...(roles ? { role: { in: roles } } : {}) },
   });
