@@ -38,13 +38,25 @@ En producción usa migraciones revisadas con `prisma migrate deploy`, HTTPS y co
 - **HTTP compartido:** `apps/web/src/shared/api-client.ts` centraliza transporte, errores y rutas por workspace, evitando implementaciones duplicadas en las pantallas.
 - **Reglas obligatorias en CI:** `pnpm arch:check` evita dependencias de NestJS/Prisma en los módulos de dominio/aplicación nuevos y acoplamientos entre `@academy-os/ui` y las apps.
 
+## Entregas recientes — DDD y aprendizaje
+
+- **Academics/Enrollment** ahora tiene dominio, caso de uso, puertos y repositorio Prisma; la baja de un alumno cancela sus reservas futuras sin borrar historial.
+- **Scheduling/Reschedule y Booking** tienen reglas de dominio, casos de uso y adaptadores transaccionales. La reprogramación conserva reservas y graba el historial; si hay alumnos reservados, se muestra un aviso de notificación manual.
+- **Grupos:** el formulario de clases acepta de 1 a 500 cupos, no solo sesiones individuales.
+- **Clase Viva con IA (opt-in):** el profesor solicita una práctica a partir de sus notas, revisa cada respuesta, edita el borrador y lo publica explícitamente. El proveedor de OpenAI está desactivado por defecto.
+- **Profe SOS (opt-in):** un tutor utiliza únicamente notas aprobadas del curso en el que está inscrito el alumno y devuelve las clases consultadas; sin proveedor configurado no responde.
+- **Cuotas:** hasta diez solicitudes de IA por academia y día (Clase Viva + Profe SOS en conjunto). No se almacena historial de chat de estudiantes.
+- **Avisos en el Aula:** las reservas muestran cancelaciones y reprogramaciones dentro de la aplicación. **No** se han conectado notificaciones por correo, push ni WhatsApp.
+
+Guía técnica y privacidad: [Configuración de IA](docs/AI_PROVIDER_SETUP.md).
+
 ## Funciones presentes en código
 
 - **Identidad y espacios:** Google/Better Auth alojado en el propio servidor, setup guiado de tres pasos, rol OWNER, múltiples workspaces, permisos y enlaces de invitación de un solo uso.
 - **Gestión académica:** docentes, alumnos invitados, inscripciones, materias, cursos, subtemas y profesores asignados.
 - **Agenda:** clases virtuales, presenciales e híbridas con enlace HTTPS manual; conflictos del docente, cancelación, reservas de alumnos con cupos transaccionales y asistencia.
 - **Aula Digital:** clases, recursos HTTPS aprobados por el profesor, notas de Clase Viva, actividades prácticas con corrección y Pasaporte por resultados de ejercicios.
-- **Clase Viva:** observaciones de clase y publicación revisada por el docente. Los ejercicios son **redactados manualmente**; la generación con IA sigue pendiente.
+- **Clase Viva:** observaciones de clase y publicación revisada por el docente. Los ejercicios pueden redactarse manualmente o sugerirse por IA cuando se configure el proveedor; **siempre requieren revisión y publicación del profesor**.
 - **Profe Studio:** servicios con precio COP, duración y modalidad; página pública de marca activable por el propietario y URL de contacto externa. **No procesa pagos ni reservas públicas todavía.**
 - **Finanzas:** registro **manual** de cobros ya recibidos, con anulación auditada; **no** emite facturas ni envía dinero.
 - **Demostración:** el panel original sigue disponible como un prototipo con datos ficticios; no debe confundirse con la gestión real.
@@ -85,4 +97,4 @@ GitHub Actions ejecuta migraciones en PostgreSQL temporal, pruebas de reglas de 
 - [Integraciones externas](docs/INTEGRATIONS.md)
 - [Seguridad y privacidad](docs/SECURITY.md)
 
-**No completado:** OAuth y sincronización de Google Meet/Calendar, Zoom o Drive; generación de Clase Viva con IA, Profe SOS, procesamiento de pagos, recordatorios automáticos, acceso por dominio propio, recuperación de cuentas e instalación dedicada por token. Estas capacidades requieren código adicional, verificación con proveedores y en algunos casos credenciales privadas.
+**No completado:** OAuth y sincronización de Google Meet/Calendar, Zoom o Drive; verificación con credenciales reales de Clase Viva con IA y Profe SOS; procesamiento de pagos, recordatorios automáticos, acceso por dominio propio, recuperación de cuentas e instalación dedicada por token. Estas capacidades requieren código adicional, verificación con proveedores y en algunos casos credenciales privadas.

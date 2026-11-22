@@ -2,7 +2,7 @@
 
 ## Estado
 
-El backend se está migrando **por verticales funcionales**, sin romper endpoints ya existentes. Las primeras dos verticales migradas son `academics/subjects` y `academics/courses`. Los otros controladores aún son legado y están pendientes de refactor; no se deben presentar como DDD completos.
+El backend se está migrando **por verticales funcionales**, sin romper endpoints ya existentes. Las verticales migradas incluyen `academics/subjects`, `academics/courses`, `academics/enrollments`, `scheduling/bookings`, `scheduling/reschedule` y los casos iniciales de IA en `learning`. Los otros controladores aún son legado y están pendientes de refactor; no se deben presentar como DDD completos.
 
 ## Dependencias y capas
 
@@ -53,4 +53,4 @@ Los contextos se relacionan a través de casos de uso, puertos y eventos; **no**
 
 ## Próximas extracciones
 
-Academics enrollment → Scheduling reservations/availability → Learning activities → Tenancy provisioning/invitations → Finance → Integrations. Cada extracción conserva la ruta HTTP y va acompañada de pruebas de regresión.
+Scheduling disponibilidad recurrente y asistencia → Learning publicación de actividades y evidencia → Tenancy provisioning/invitations → Finance → Integrations. Cada extracción conserva la ruta HTTP y va acompañada de pruebas de regresión.

@@ -6,9 +6,9 @@ Cada marca `[x]` indica funcionalidad codificada en el repo, **no un lanzamiento
 - [x] Repositorio independiente y monorepo pnpm (Vue 3, NestJS, Tailwind 4, Prisma 7).
 - [x] Paquete `@academy-os/ui`: 14 primitivas, estilos semánticos, tema claro/oscuro/sistema, galería en desarrollo.
 - [x] Normalización compartida de slug y cliente HTTP único usado por varias pantallas.
-- [x] DDD/hexagonal en Academics: materias y cursos; pruebas con puertos fake.
+- [x] DDD/hexagonal en Academics (materias, cursos, inscripciones), Scheduling (reservas, reprogramaciones) y Learning (IA, tutor); pruebas con puertos fake.
 - [x] Control de fronteras arquitectónicas en CI (`pnpm arch:check`).
-- [ ] Migrar los demás contextos (tenancy, scheduling, learning, commerce) sin cambiar el contrato HTTP existente.
+- [~] Migrar el resto de los contextos (tenancy, disponibilidad recurrente, asistencia, commerce, publishing) sin cambiar contratos HTTP.
 - [x] Migraciones versionadas y validación con PostgreSQL 19 en CI.
 - [x] PWA estática con fallback offline sin caché de información privada.
 - [~] Pruebas de aislamiento en PostgreSQL y sobrecupo concurrente (verificar CI más reciente).
@@ -23,7 +23,7 @@ Cada marca `[x]` indica funcionalidad codificada en el repo, **no un lanzamiento
 - [x] Registro manual de cobros; no captura pagos externos.
 - [x] Profe Studio con catálogo público, precio COP y contacto externo, desactivado por defecto.
 - [ ] E2E de Google OAuth con credenciales reales y despliegue staging.
-- [ ] Gestión completa de disponibilidad recurrente, reprogramaciones, sedes/aulas, notificaciones y calendario de grupos.
+- [~] Reprogramación con auditoría, reservas existentes y aviso manual de cambios; faltan disponibilidad recurrente, sedes/aulas, notificaciones automáticas y calendario de grupos.
 - [ ] Checkout con pasarela, conciliación, reembolsos y facturación.
 - [ ] E2E de flujos, privacidad/menores y auditoría multi-tenant integral.
 
@@ -31,8 +31,8 @@ Cada marca `[x]` indica funcionalidad codificada en el repo, **no un lanzamiento
 - [x] Clase Viva: observaciones y publicación de notas bajo supervisión humana.
 - [x] Prácticas redactadas por profesores, corrección automática y hasta tres intentos.
 - [x] Pasaporte inicial: media de resultados reales de prácticas por curso (no inferir dominio integral).
-- [ ] IA para sugerir ejercicios y resúmenes (opt-in, revisión docente, cuotas).
-- [ ] Profe SOS basado en materiales autorizados y con derivación al profesor.
+- [~] Generación de **prácticas** con OpenAI Responses API, opt-in y revisión/edición docente, diez usos diarios compartidos por academia; pendiente validar con API key real. Resúmenes generados automáticamente aún no implementados.
+- [~] Profe SOS con acceso limitado a **notas publicadas** de cursos inscritos, referencias a las clases y derivación al profesor; pendiente probar API externa y añadir otros materiales autorizados.
 - [ ] OAuth Meet/Calendar, Zoom y Google Drive con lifecycle, revocación y tests.
 - [ ] Almacenamiento propio y revisión de seguridad de recursos.
 - [ ] Notificaciones y recordatorios automáticos, consentimiento explícito.

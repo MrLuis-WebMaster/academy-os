@@ -23,7 +23,9 @@
 - [ ] Zoom OAuth, host/plan restrictions, lifecycle y cancelación.
 - [ ] Google Drive Picker, access revocation y protección de documentos.
 - [ ] Envío real de confirmaciones y recordatorios por email.
-- [ ] Proveedor de IA seleccionado + cuotas de costos, revisión humana y consentimiento.
+- [x] Código de generador de borradores de IA, proveedor adaptable, consentimiento por acción, revisión docente y tope de diez solicitudes/día/academia.
+- [ ] Verificar OpenAI Responses API con una clave y facturación reales, políticas de datos, monitoreo de costes y logs redactados.
+- [ ] Revisar cumplimiento para menores y políticas de privacidad antes de habilitar IA en producción.
 - [ ] Pasarela de pagos: webhooks firmados, idempotencia, reembolsos, conciliación e impuestos.
 - [ ] Condiciones comerciales y privacidad revisadas para las regiones de lanzamiento.
 

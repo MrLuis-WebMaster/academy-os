@@ -20,10 +20,21 @@
 - DDD/hexagonal implementado en Academics para subjects/courses con valor de dominio, aplicación independiente, puertos, adaptadores Prisma y controladores NestJS; el resto del backend sigue en proceso de migración.
 - GitHub CI ahora ejecuta un verificador de límites arquitectónicos y tests de resolución de preferencias de tema.
 
+## Últimas implementaciones (misma fecha)
+
+- Academics/Enrollment separado por DDD/hexagonal: alta y baja de matrícula, y liberación de cupos futuros.
+- Scheduling/Booking y Reschedule separados en dominio, aplicación y adaptadores; historial de cambios de clases y avisos en el portal del alumno.
+- El formulario de clases ya acepta cupos 1–500 para clases grupales.
+- Nuevo módulo Learning basado en puertos: generación opcional de ejercicios mediante OpenAI Responses API (Structured Outputs), siempre en borrador editable y con publicación docente.
+- Tutor Profe SOS sin historial de conversaciones, solo con notas aprobadas por el profesor y acceso por matrícula, validación de citas y derivación si faltan pruebas.
+- Proveedor IA desactivado por defecto, aprobación expresa del docente/alumno y límite de 10 intentos por academia y día.
+- Migraciones PostgreSQL `7_session_reschedule` y `8_ai_generation`.
+- Cliente HTTP compartido ahora completa encabezados de JSON omitidos por pantallas antiguas.
+
 ## Límites no resueltos
 - OAuth Google en entorno real, test del callback, cookies, sesiones y logout end-to-end.
 - Meet/Zoom/Drive, correo transaccional, sync calendario, app almacenamiento no conectado.
-- Clase Viva IA y Profe SOS no implementados; ejercicios actuales son del profesor.
+- Clase Viva IA y Profe SOS implementados en código pero **sin credenciales externas ni pruebas de un proveedor real**; faltan resúmenes IA, fuentes Drive y gestión robusta de datos de menores.
 - Checkout, cobros reales, facturación y reembolsos no implementados.
 - Dedicado bootstrap OWNER, acudientes, recuperación de cuenta, consentimientos para menores y grabaciones.
 - Auditoría/observabilidad/backup, publicación por dominios y pruebas de seguridad profundas.
