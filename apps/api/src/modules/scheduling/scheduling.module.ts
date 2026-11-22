@@ -12,10 +12,16 @@ import {PrismaAvailabilityRepository} from './infrastructure/prisma-availability
 import {TeacherTimeOffController} from './presentation/teacher-time-off.controller.js';
 import {ManageTimeOffUseCase} from './application/manage-time-off-use-case.js';
 import {PrismaTeacherTimeOffRepository} from './infrastructure/prisma-teacher-time-off-repository.js';
+import {WeeklySeriesController} from './presentation/weekly-series.controller.js';
+import {CreateWeeklySeriesUseCase} from './application/create-weekly-series-use-case.js';
+import {PrismaWeeklySeriesRepository} from './infrastructure/prisma-weekly-series-repository.js';
 
 @Module({
-  controllers:[RescheduleController,BookingActionsController,AvailabilityController,TeacherTimeOffController],
+  controllers:[RescheduleController,BookingActionsController,AvailabilityController,TeacherTimeOffController,WeeklySeriesController],
   providers:[{
+    provide:CreateWeeklySeriesUseCase,
+    useFactory:()=>new CreateWeeklySeriesUseCase(new PrismaWeeklySeriesRepository(),new PrismaMembershipAdapter()),
+  },{
     provide:ManageTimeOffUseCase,
     useFactory:()=>new ManageTimeOffUseCase(new PrismaTeacherTimeOffRepository(),new PrismaMembershipAdapter()),
   },{

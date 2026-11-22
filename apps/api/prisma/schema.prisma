@@ -127,6 +127,7 @@ model Workspace {
   notifications Notification[]
   availabilitySlots WeeklyAvailability[]
   timeOffPeriods TeacherTimeOff[]
+  classSeries ClassSeries[]
   aiGenerations AiGeneration[]
 }
 
@@ -153,6 +154,7 @@ model TeacherProfile {
   sessions    ClassSession[]
   availabilitySlots WeeklyAvailability[]
   timeOffPeriods TeacherTimeOff[]
+  classSeries ClassSeries[]
   @@unique([workspaceId, userId])
 }
 
@@ -238,9 +240,13 @@ model ClassSession {
   bookings ClassBooking[]
   changes SessionChange[]
   aiGenerations AiGeneration[]
+  seriesId String?
+  seriesIndex Int?
+  series ClassSeries? @relation(fields:[seriesId],references:[id],onDelete:SetNull)
   reflection  ClassReflection?
   resources   Resource[]
   @@index([workspaceId, startsAt])
+  @@index([seriesId])
 }
 
 model ClassReflection {
@@ -514,4 +520,19 @@ model TeacherTimeOff {
   workspace Workspace @relation(fields:[workspaceId],references:[id],onDelete:Cascade)
   teacher TeacherProfile @relation(fields:[teacherProfileId],references:[id],onDelete:Cascade)
   @@index([workspaceId,teacherProfileId,startsAt,endsAt])
+}
+
+model ClassSeries {
+  id String @id @default(cuid())
+  workspaceId String
+  teacherProfileId String
+  createdByUserId String
+  firstStartsAt DateTime
+  repeatWeeks Int
+  timezone String
+  createdAt DateTime @default(now())
+  workspace Workspace @relation(fields:[workspaceId],references:[id],onDelete:Cascade)
+  teacher TeacherProfile @relation(fields:[teacherProfileId],references:[id],onDelete:Cascade)
+  sessions ClassSession[]
+  @@index([workspaceId,teacherProfileId,firstStartsAt])
 }
