@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { onMounted, ref, watch } from 'vue';
 import PracticeTeacher from './PracticeTeacher.vue';
+import StudioEditor from './StudioEditor.vue';
 import { BookOpen, CalendarDays, GraduationCap, Plus, RefreshCcw, Users, Video, MapPin, CheckCircle2 } from 'lucide-vue-next';
 const props = defineProps<{ workspace: { id: string; name: string; type: 'SOLO'|'ACADEMY' }; role: string }>();
 type Subject = { id:string; name:string };
@@ -133,5 +134,6 @@ const input='mt-2 w-full rounded-xl border border-outline bg-white p-3 text-sm o
       <div class="mt-7 divide-y divide-outline"><div v-for="session in sessions" :key="session.id" class="flex flex-wrap items-center justify-between gap-3 py-4"><div><p class="text-sm font-bold">{{ session.title }}</p><p class="mt-1 text-xs text-muted">{{ new Date(session.startsAt).toLocaleString('es-CO') }} · {{ session.mode==='ONLINE'?'Virtual':session.mode==='ONSITE'?'Presencial':'Híbrida' }}</p></div><div class="flex items-center gap-3"><span class="rounded-full px-3 py-1 text-xs font-bold" :class="session.status==='CANCELLED'?'bg-slate-100 text-slate-600':'bg-emerald-50 text-emerald-700'">{{ session.status }}</span><button v-if="session.status==='CONFIRMED'" :disabled="busy" class="rounded-lg border border-rose-200 px-3 py-1 text-xs font-bold text-rose-600 disabled:opacity-40" @click="cancelSession(session)">Cancelar</button></div></div><p v-if="!sessions.length" class="py-5 text-sm text-muted">Todavía no hay clases programadas.</p></div>
     </section>
   <PracticeTeacher v-if="status==='ready'" :workspace-id="workspace.id" :sessions="sessions" />
+    <StudioEditor v-if="status==='ready' && ['OWNER','ADMIN'].includes(role)" :workspace="workspace" :courses="courses" />
   </main>
 </template>
