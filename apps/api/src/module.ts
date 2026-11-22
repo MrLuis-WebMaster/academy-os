@@ -8,9 +8,10 @@ import { CatalogController } from './workspaces/catalog.controller.js';
 import { SchedulingController } from './scheduling/controller.js';
 import { InvitationsController } from './workspaces/invitations.controller.js';
 import { MaterialsController } from './workspaces/materials.controller.js';
+import { ClassAliveController } from './learning/class-alive.controller.js';
 
 @Module({
-  controllers: [DemoController, MeController, WorkspaceController, CatalogController, SchedulingController, InvitationsController, MaterialsController],
+  controllers: [DemoController, MeController, WorkspaceController, CatalogController, SchedulingController, InvitationsController, MaterialsController, ClassAliveController],
   providers: [{ provide: APP_GUARD, useClass: SessionGuard }],
 })
 export class AppModule {}
