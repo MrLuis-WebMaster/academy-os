@@ -42,7 +42,7 @@ Los contextos se relacionan a través de casos de uso, puertos y eventos; **no**
 
 ### Entrega de notificaciones sin eventos huérfanos
 
-El adaptador de calendario y el de avisos respetan el alcance del usuario autenticado. Los avisos por cambio de clase se insertan mediante `notifyBookedStudents(tx, event)` dentro de la transacción PostgreSQL que cancela o reprograma la sesión. Una restricción única por `(workspaceId,userId,eventKey)` protege contra duplicados. Ese puente reside **solo en infraestructura**; dominio y aplicación no importan Prisma. No hay aún una cola de entrega externa, outbox ni worker de correo.
+El adaptador de calendario y el de avisos respetan el alcance del usuario autenticado. Los avisos por cambio de clase se insertan mediante `notifyBookedStudents(tx, event)` dentro de la transacción PostgreSQL que cancela o reprograma la sesión. Una restricción única por `(workspaceId,userId,eventKey)` protege contra duplicados. La confirmación de matrículas y reservas usa además el mismo adaptador `notifyUser(tx,event)` para evitar lógica repetida. Ese puente reside **solo en infraestructura**; dominio y aplicación no importan Prisma. No hay aún una cola de entrega externa, outbox ni worker de correo.
 
 ## Calidad y reglas de evolución
 

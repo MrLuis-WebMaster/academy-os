@@ -37,7 +37,7 @@ Cada marca `[x]` indica funcionalidad codificada en el repo, **no un lanzamiento
 - [x] Exportación privada de calendario `.ics` filtrada por rol (importación manual, sin OAuth).
 - [ ] OAuth Meet/Calendar, Zoom y Google Drive con lifecycle, revocación y tests.
 - [ ] Almacenamiento propio y revisión de seguridad de recursos.
-- [x] Bandeja in-app con leído/no leído y notificaciones de cambios en clases reservadas, sin envíos externos.
+- [x] Bandeja in-app con leído/no leído y notificaciones de matrículas, reservas y cambios de clases, con entrega transaccional e idempotente, sin envíos externos.
 - [ ] Recordatorios programados y avisos por correo/push/WhatsApp con consentimiento explícito.
 
 ## Etapa 3 — academia y white-label avanzados

@@ -37,6 +37,7 @@
 
 - Contexto Notifications hexagonal: dominio puro, casos de uso, puerto de almacenamiento, adaptador Prisma y controller. Mensajes se limitan a la academia y al usuario autenticado; `readAt` no se comparte entre alumnos.
 - Migración `10_in_app_notifications` y publicación transaccional con eventos de cancelación o reprogramación. Solo alumnos con reserva activa reciben el aviso, sin datos privados de otras personas.
+- Confirmación in-app de inscripción y reserva (incluida una nueva reserva tras cancelación) con publicador personal genérico, transacciones e idempotencia.
 - Bandeja visual reutilizable con iconos Lucide, contador de no leídos, lectura individual y general, reinicio de estado al cambiar de academia.
 - Exportación `.ics` privada: filtro por OWNER/ADMIN (todo el espacio), TEACHER (sus clases), STUDENT (sus reservas). Incluye UID estable, actualización de secuencia, campos escapados y control de caché.
 - Pruebas de aislamiento real PostgreSQL e idempotencia de los avisos; pruebas unitarias de permisos y serialización ICS.

@@ -47,7 +47,7 @@ En producción usa migraciones revisadas con `prisma migrate deploy`, HTTPS y co
 - **Clase Viva con IA (opt-in):** el profesor solicita una práctica a partir de sus notas, revisa cada respuesta, edita el borrador y lo publica explícitamente. El proveedor de OpenAI está desactivado por defecto.
 - **Profe SOS (opt-in):** un tutor utiliza únicamente notas aprobadas del curso en el que está inscrito el alumno y devuelve las clases consultadas; sin proveedor configurado no responde.
 - **Cuotas:** hasta diez solicitudes de IA por academia y día (Clase Viva + Profe SOS en conjunto). No se almacena historial de chat de estudiantes.
-- **Bandeja de avisos personales:** cada alumno con reserva recibe una notificación persistente cuando se cancela o reprograma su clase. Bandeja y contador de no leídas para cada workspace, con lectura individual, lectura masiva y aislamiento multi-tenant; las notificaciones se guardan en la misma transacción que el cambio de clase. **No** se envían correos, push ni WhatsApp.
+- **Bandeja de avisos personales:** cada alumno recibe una notificación persistente cuando se inscribe en un curso, reserva un cupo, o cuando se cancela o reprograma su clase. Bandeja y contador de no leídas para cada workspace, con lectura individual, lectura masiva y aislamiento multi-tenant; las notificaciones se guardan en la misma transacción que el cambio de clase. **No** se envían correos, push ni WhatsApp.
 - **Exportación de calendario:** descarga privada de `.ics` desde el encabezado, compatible con importación manual a Google Calendar, Apple Calendar y Outlook. Owners/admins ven clases del espacio; docentes, solo asignadas; alumnos, solo reservadas. **No es sincronización OAuth ni suscripción actualizable automáticamente.**
 
 Guía técnica y privacidad: [Configuración de IA](docs/AI_PROVIDER_SETUP.md).
@@ -55,7 +55,7 @@ Guía técnica y privacidad: [Configuración de IA](docs/AI_PROVIDER_SETUP.md).
 ## Integraciones sin credenciales adicionales
 
 - **Calendario ICS:** botón «Mi calendario» desde el encabezado, exportación autenticada y filtrada por rol; el archivo se puede **importar manualmente** en calendarios conocidos. Los cambios posteriores requieren descargarlo de nuevo.
-- **Avisos internos:** en cancelaciones y reprogramaciones se generan para los alumnos con reservas activas, de forma atómica; no se contacta automáticamente a nadie fuera de AcademyOS.
+- **Avisos internos:** confirmación de matrícula y reserva, cancelación y reprogramación. Los eventos se guardan atómicamente con su operación, y nunca se envían automáticamente fuera de AcademyOS.
 
 ## Funciones presentes en código
 
