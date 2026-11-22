@@ -12,9 +12,10 @@ import { ClassAliveController } from './learning/class-alive.controller.js';
 import { PracticeController } from './learning/practice.controller.js';
 import { StudioController } from './studio/controller.js';
 import { BookingsController } from './scheduling/bookings.controller.js';
+import { FinanceController } from './finance/controller.js';
 
 @Module({
-  controllers: [DemoController, MeController, WorkspaceController, CatalogController, SchedulingController, InvitationsController, MaterialsController, ClassAliveController, PracticeController, StudioController, BookingsController],
+  controllers: [DemoController, MeController, WorkspaceController, CatalogController, SchedulingController, InvitationsController, MaterialsController, ClassAliveController, PracticeController, StudioController, BookingsController, FinanceController],
   providers: [{ provide: APP_GUARD, useClass: SessionGuard }],
 })
 export class AppModule {}

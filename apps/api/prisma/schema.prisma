@@ -33,6 +33,12 @@ enum SessionStatus {
   CANCELLED
 }
 
+enum ManualPaymentMethod {
+  CASH
+  BANK_TRANSFER
+  OTHER
+}
+
 enum AttendanceStatus {
   PRESENT
   ABSENT
@@ -81,6 +87,8 @@ model User {
   setupRequests SetupRequest[]
   sentInvitations WorkspaceInvitation[] @relation("InvitedBy")
   bookings ClassBooking[]
+  studentReceipts PaymentReceipt[] @relation("StudentPayment")
+  recordedReceipts PaymentReceipt[] @relation("RecordedPayment")
   memberships WorkspaceMember[]
   teaching    TeacherProfile[]
   enrollments Enrollment[]
@@ -112,6 +120,7 @@ model Workspace {
   invitations WorkspaceInvitation[]
   offerings Offering[]
   bookings ClassBooking[]
+  paymentReceipts PaymentReceipt[]
 }
 
 model WorkspaceMember {
@@ -163,6 +172,7 @@ model Course {
   sessions    ClassSession[]
   resources   Resource[]
   offerings Offering[]
+  paymentReceipts PaymentReceipt[]
   @@index([workspaceId])
 }
 
@@ -398,4 +408,23 @@ model ClassBooking {
   student User @relation(fields:[userId],references:[id],onDelete:Cascade)
   @@unique([sessionId,userId])
   @@index([workspaceId,status])
+}
+
+model PaymentReceipt {
+  id String @id @default(cuid())
+  workspaceId String
+  courseId String?
+  studentUserId String
+  recordedByUserId String
+  amountCOP Int
+  method ManualPaymentMethod
+  reference String?
+  receivedAt DateTime @default(now())
+  voidedAt DateTime?
+  voidReason String?
+  workspace Workspace @relation(fields:[workspaceId],references:[id],onDelete:Cascade)
+  course Course? @relation(fields:[courseId],references:[id])
+  student User @relation("StudentPayment",fields:[studentUserId],references:[id])
+  recorder User @relation("RecordedPayment",fields:[recordedByUserId],references:[id])
+  @@index([workspaceId,receivedAt])
 }
