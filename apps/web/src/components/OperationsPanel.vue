@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { apiRequest, workspacePath } from '../shared/api-client';
 import { onMounted, ref, watch } from 'vue';
 import { UiButton, UiCard, UiEmptyState } from '@academy-os/ui';
 import PracticeTeacher from './PracticeTeacher.vue';
@@ -22,9 +23,7 @@ const sessionTitle=ref(''), sessionTeacherId=ref(''), sessionCourseId=ref('');
 const sessionDate=ref(''), startTime=ref('09:00'), endTime=ref('10:00');
 const mode=ref<'ONLINE'|'ONSITE'|'HYBRID'>('ONLINE'), meetingUrl=ref(''), location=ref('');
 async function request<T>(path:string,options?:RequestInit):Promise<T>{
-  const response=await fetch(`/api/v1/workspaces/${props.workspace.id}${path}`,{credentials:'same-origin',...options,headers:{'Content-Type':'application/json',...(options?.headers || {})}});
-  if(!response.ok){ const body=await response.json().catch(()=>null); throw Error(response.status===403?'No tienes permiso para realizar esta acción.':typeof body?.message==='string'?body.message:`Error HTTP ${response.status}`); }
-  return response.json() as Promise<T>;
+  return apiRequest<T>(workspacePath(props.workspace.id,path),options);
 }
 async function refresh(){status.value='loading';error.value='';try{const [s,c,t,l]=await Promise.all([request<Subject[]>('/subjects'),request<Course[]>('/courses'),request<Teacher[]>('/teachers'),request<Lesson[]>('/sessions')]);subjects.value=s;courses.value=c;teachers.value=t;sessions.value=l;if(!sessionTeacherId.value)sessionTeacherId.value=t[0]?.id||'';if(['OWNER','ADMIN'].includes(props.role))members.value=await request<Member[]>('/people');else members.value=[];status.value='ready';}catch(e){error.value=e instanceof Error?e.message:'No se pudieron cargar los datos';status.value='error';}}
 async function addSubject(){busy.value=true;message.value='';error.value='';try{await request('/subjects',{method:'POST',body:JSON.stringify({name:subjectName.value})});subjectName.value='';await refresh();message.value='Materia guardada correctamente.';}catch(e){error.value=e instanceof Error?e.message:'No se pudo crear la materia';}finally{busy.value=false;}}

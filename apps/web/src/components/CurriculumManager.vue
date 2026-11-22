@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { apiJson, workspacePath } from '../shared/api-client';
 import {onMounted,ref,watch} from 'vue';
 import {Layers3,Plus} from 'lucide-vue-next';
 const props=defineProps<{
@@ -12,13 +13,7 @@ type Detail={courseId:string;topics:Topic[];teachers:TeacherAssignment[]};
 const courseId=ref(''),selectedTeacher=ref(''),topic=ref(''),parentId=ref(''),detail=ref<Detail|null>(null);
 const busy=ref(false),error=ref(''),message=ref('');
 async function request<T>(suffix:string,method='GET',body?:unknown):Promise<T>{
- const response=await fetch('/api/v1/workspaces/'+props.workspaceId+'/curriculum/courses/'+courseId.value+suffix,{
-   method,credentials:'same-origin',
-   ...(body?{headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}:{})
- });
- const data:unknown=await response.json().catch(()=>null);
- if(!response.ok)throw Error(data&&typeof data==='object'&&'message' in data&&typeof data.message==='string'?data.message:'No se pudo modificar el programa.');
- return data as T;
+  return apiJson<T>(workspacePath(props.workspaceId,'/curriculum/courses/'+encodeURIComponent(courseId.value)+suffix),method,body);
 }
 async function load(){
  error.value='';

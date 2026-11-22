@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { apiJson, workspacePath } from '../shared/api-client';
 import {onMounted,ref,watch} from 'vue';
 import {CheckCircle2,ClipboardCheck,RotateCcw,TrendingUp} from 'lucide-vue-next';
 const props=defineProps<{workspaceId:string}>();
@@ -16,16 +17,7 @@ const results=ref<Record<string,AttemptResult>>({});
 const optionLetters=['A','B','C','D'];
 
 async function fetchJson<T>(path:string,method='GET',body?:unknown):Promise<T>{
-  const response=await fetch('/api/v1/workspaces/'+props.workspaceId+'/practice'+path,{
-    method,credentials:'same-origin',
-    ...(body?{headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}:{}),
-  });
-  const value:unknown=await response.json().catch(()=>null);
-  if(!response.ok){
-    const reason=(value&&typeof value==='object'&&'message' in value&&typeof value.message==='string')?value.message:'No se pudo guardar tu práctica.';
-    throw new Error(reason);
-  }
-  return value as T;
+  return apiJson<T>(workspacePath(props.workspaceId,'/practice'+path),method,body);
 }
 async function load(){
   loading.value=true;error.value='';

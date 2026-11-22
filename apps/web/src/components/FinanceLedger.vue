@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { apiJson, workspacePath } from '../shared/api-client';
 import {onMounted,ref,watch} from 'vue';
 import {WalletCards,CheckCircle2} from 'lucide-vue-next';
 const props=defineProps<{
@@ -11,14 +12,8 @@ type Summary={currency:string;totalReceivedCOP:number;receiptCount:number};
 const receipts=ref<Receipt[]>([]),summary=ref<Summary|null>(null),loading=ref(false),busy=ref(false),error=ref(''),message=ref('');
 const studentUserId=ref(''),courseId=ref(''),amountCOP=ref(50000),method=ref<'CASH'|'BANK_TRANSFER'|'OTHER'>('BANK_TRANSFER'),reference=ref('');
 function money(value:number){return new Intl.NumberFormat('es-CO',{style:'currency',currency:'COP',maximumFractionDigits:0}).format(value);}
-async function api<T>(suffix:string,verb='GET',body?:unknown):Promise<T>{
- const r=await fetch('/api/v1/workspaces/'+props.workspaceId+'/finance'+suffix,{
-  method:verb,credentials:'same-origin',
-  ...(body?{headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}:{})
- });
- const data:unknown=await r.json().catch(()=>null);
- if(!r.ok)throw Error(data&&typeof data==='object'&&'message' in data&&typeof data.message==='string'?data.message:'No se pudo completar el registro.');
- return data as T;
+async function api<T>(suffix:string,method='GET',body?:unknown):Promise<T>{
+  return apiJson<T>(workspacePath(props.workspaceId,'/finance'+suffix),method,body);
 }
 async function load(){
  loading.value=true;

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { apiJson, workspacePath } from '../shared/api-client';
 import {onMounted,ref,watch} from 'vue';
 import {BookOpenCheck,Plus,Send} from 'lucide-vue-next';
 
@@ -11,16 +12,7 @@ const options=ref(['','','','']),correctIndex=ref(0),explanation=ref('');
 const busy=ref(false),loading=ref(false),error=ref(''),message=ref('');
 
 async function request<T>(endpoint:string,method='GET',body?:unknown):Promise<T>{
-  const response=await fetch('/api/v1/workspaces/'+props.workspaceId+'/practice'+endpoint,{
-    method,credentials:'same-origin',
-    ...(body?{headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}:{}),
-  });
-  const data:unknown=await response.json().catch(()=>null);
-  if(!response.ok){
-    const reason=(data&&typeof data==='object'&&'message' in data&&typeof data.message==='string')?data.message:'No se pudo completar la operación.';
-    throw new Error(reason);
-  }
-  return data as T;
+  return apiJson<T>(workspacePath(props.workspaceId,'/practice'+endpoint),method,body);
 }
 async function refresh(){
   loading.value=true;

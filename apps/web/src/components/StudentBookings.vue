@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { apiJson, workspacePath } from '../shared/api-client';
 import {onMounted,ref,watch} from 'vue';
 import {CalendarCheck,CheckCircle2} from 'lucide-vue-next';
 type ClassSession={id:string;title:string;startsAt:string};
@@ -6,12 +7,7 @@ type Booking={id:string;sessionId:string;status:'BOOKED'|'CANCELLED';bookedAt:st
 const props=defineProps<{workspaceId:string;sessions:ClassSession[]}>();
 const mine=ref<Booking[]>([]),loading=ref(false),busy=ref(''),error=ref(''),notice=ref('');
 async function request<T>(path:string,method='GET',body?:unknown):Promise<T>{
- const response=await fetch('/api/v1/workspaces/'+props.workspaceId+'/bookings'+path,{
-   method,credentials:'same-origin',...(body?{headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}:{})
- });
- const data:unknown=await response.json().catch(()=>null);
- if(!response.ok)throw new Error(data&&typeof data==='object'&&'message' in data&&typeof data.message==='string'?data.message:'No se pudo actualizar tu reserva.');
- return data as T;
+  return apiJson<T>(workspacePath(props.workspaceId,'/bookings'+path),method,body);
 }
 async function load(){
  loading.value=true;

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { apiJson } from '../shared/api-client';
 import {onMounted,ref,watch} from 'vue';
 import {ArrowUpRight,CheckCircle2,Store,Plus} from 'lucide-vue-next';
 const props=defineProps<{workspace:{id:string;name:string;slug?:string};courses:Array<{id:string;title:string}>}>();
@@ -8,14 +9,8 @@ const settings=ref<Settings|null>(null),offerings=ref<Offering[]>([]),loading=re
 const description=ref(''),contactUrl=ref(''),publicEnabled=ref(false);
 const title=ref(''),details=ref(''),priceCOP=ref(45000),duration=ref(60),mode=ref<'ONLINE'|'ONSITE'|'HYBRID'>('ONLINE'),courseId=ref('');
 function publicUrl(slug:string){return window.location.origin+'/?academy='+encodeURIComponent(slug);}
-async function api<T>(suffix:string,method='GET',body?:unknown){
- const response=await fetch('/api/v1/studio/workspaces/'+props.workspace.id+suffix,{
-   method,credentials:'same-origin',
-   ...(body?{headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}:{})
- });
- const data:unknown=await response.json().catch(()=>null);
- if(!response.ok)throw new Error(data&&typeof data==='object'&&'message' in data&&typeof data.message==='string'?data.message:'Error al guardar el catálogo.');
- return data as T;
+async function api<T>(suffix:string,method='GET',body?:unknown):Promise<T>{
+  return apiJson<T>('/api/v1/studio/workspaces/'+encodeURIComponent(props.workspace.id)+suffix,method,body);
 }
 async function refresh(){
  loading.value=true;error.value='';
