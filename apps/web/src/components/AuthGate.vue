@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { onMounted, ref, computed } from 'vue';
+import { onMounted, ref, computed, watch } from 'vue';
+import { UiBadge, UiButton, UiField, UiInput, UiThemeSwitcher } from '@academy-os/ui';
 import { ArrowLeft, ArrowRight, BookOpen, Check, GraduationCap, School, ShieldCheck, Sparkles, UserRound, LoaderCircle } from 'lucide-vue-next';
 import { authClient } from '../auth-client';
 import App from '../App.vue';
@@ -28,6 +29,11 @@ const subjects = ref<string[]>([]);
 const requestId = ref(crypto.randomUUID());
 const currentRole = computed(() => { const roles=memberships.value.filter(m=>m.workspace.id===selected.value?.id).map(m=>m.role);return ['OWNER','ADMIN','TEACHER','STUDENT','GUARDIAN'].find(role=>roles.includes(role)) || 'STUDENT';});
 const initials = computed(() => (user.value?.name || 'Mi academia').split(' ').slice(0,2).map(x=>x[0]).join('').toUpperCase());
+watch(() => selected.value?.brandColor, color => {
+  const root=document.documentElement;
+  if (color && /^#[0-9a-f]{6}$/i.test(color)) root.style.setProperty('--ao-brand-override',color);
+  else root.style.removeProperty('--ao-brand-override');
+}, {immediate:true});
 
 async function load() {
   state.value = 'loading';
@@ -98,13 +104,14 @@ onMounted(()=>{
   <div v-if="state==='loading'" class="grid min-h-screen place-items-center bg-canvas"><span class="flex items-center gap-2 text-sm text-brand"><LoaderCircle class="animate-spin" :size="20"/> Preparando tu espacio...</span></div>
   <template v-else-if="state==='ready' || demo">
     <div class="min-h-screen">
-      <div class="flex flex-wrap items-center justify-between gap-3 border-b border-violet-100 bg-white px-4 py-2 text-xs md:px-8">
-        <div class="flex flex-wrap items-center gap-2"><span class="font-extrabold text-brand">AcademyOS</span><span v-if="demo" class="rounded-full bg-amber-100 px-2 py-1 text-amber-800">Vista de demostración · sin datos reales</span><span v-else class="rounded-full bg-emerald-100 px-2 py-1 text-emerald-700">Sesión iniciada · {{ selected?.name }}</span></div>
+      <div class="flex flex-wrap items-center justify-between gap-3 border-b border-outline bg-surface px-4 py-2 text-xs md:px-8">
+        <div class="flex flex-wrap items-center gap-2"><span class="font-extrabold text-brand">AcademyOS</span><span v-if="demo" class="rounded-full bg-amber-100 px-2 py-1 text-amber-800">Vista de demostración · sin datos reales</span><span v-else class="rounded-full bg-emerald-100 px-2 py-1 text-success">Sesión iniciada · {{ selected?.name }}</span></div>
         <div class="flex items-center gap-2">
+          <UiThemeSwitcher />
           <select v-if="!demo && memberships.length>1" aria-label="Elegir academia" class="rounded-lg border border-outline px-2 py-1 text-xs" :value="selected?.id" @change="selected=memberships.find(m=>m.workspace.id===($event.target as HTMLSelectElement).value)?.workspace || null"><option v-for="m in memberships" :key="m.workspace.id" :value="m.workspace.id">{{ m.workspace.name }}</option></select>
-          <button v-if="!demo" class="rounded-lg border border-outline px-3 py-2 font-bold text-slate-600" @click="newWorkspace">Nueva academia</button>
-          <button v-if="!demo" class="rounded-lg border border-outline px-3 py-2 font-bold text-slate-600" @click="operations=!operations">{{ operations ? 'Ver prototipo' : 'Gestión real' }}</button>
-          <button class="rounded-lg border border-outline px-3 py-2 font-bold text-slate-600" @click="demo ? (demo=false,state='login') : signOut()">{{ demo ? 'Salir de la demo' : 'Cerrar sesión' }}</button>
+          <button v-if="!demo" class="rounded-lg border border-outline px-3 py-2 font-bold text-muted" @click="newWorkspace">Nueva academia</button>
+          <button v-if="!demo" class="rounded-lg border border-outline px-3 py-2 font-bold text-muted" @click="operations=!operations">{{ operations ? 'Ver prototipo' : 'Gestión real' }}</button>
+          <button class="rounded-lg border border-outline px-3 py-2 font-bold text-muted" @click="demo ? (demo=false,state='login') : signOut()">{{ demo ? 'Salir de la demo' : 'Cerrar sesión' }}</button>
         </div>
       </div>
       <OperationsPanel v-if="!demo && operations && selected && ['OWNER','ADMIN','TEACHER'].includes(currentRole)" :workspace="selected" :role="currentRole" />
@@ -112,42 +119,42 @@ onMounted(()=>{
       <App v-else :active-workspace="selected" :viewer-name="user?.name || 'Demo'" />
     </div>
   </template>
-  <div v-else class="flex min-h-screen items-center justify-center bg-gradient-to-br from-[#f7f5ff] via-white to-[#f1f8ff] p-5">
-    <main class="w-full max-w-xl rounded-3xl border border-violet-100 bg-white p-7 shadow-xl shadow-violet-100/70 sm:p-10">
-      <div class="mb-8 flex items-center gap-3"><div class="grid size-11 place-items-center rounded-xl bg-brand text-white"><GraduationCap :size="24"/></div><div><p class="text-lg font-black tracking-tight">academy<span class="text-brand">.</span>os</p><p class="text-xs text-muted">Your academy. Your way.</p></div></div>
+  <div v-else class="flex min-h-screen items-center justify-center bg-gradient-to-br from-canvas via-surface to-surface-muted p-5">
+    <main class="w-full max-w-xl rounded-3xl border border-outline bg-surface p-7 shadow-xl shadow-violet-100/70 sm:p-10">
+      <div class="mb-8 flex items-center justify-between gap-3"><div class="flex items-center gap-3"><div class="grid size-11 place-items-center rounded-xl bg-brand text-white"><GraduationCap :size="24"/></div><div><p class="text-lg font-black tracking-tight">academy<span class="text-brand">.</span>os</p><p class="text-xs text-muted">Your academy. Your way.</p></div></div><UiThemeSwitcher /></div>
       <template v-if="state==='login'">
-        <span class="inline-flex items-center gap-2 rounded-full bg-violet-50 px-3 py-1.5 text-xs font-bold text-brand"><Sparkles :size="14"/> Tu enseñanza, en un solo lugar</span>
+        <span class="inline-flex items-center gap-2 rounded-full bg-brand-soft px-3 py-1.5 text-xs font-bold text-brand"><Sparkles :size="14"/> Tu enseñanza, en un solo lugar</span>
         <h1 class="mt-6 text-3xl font-extrabold tracking-tight sm:text-4xl">Bienvenido a una nueva forma de enseñar.</h1>
         <p class="mt-4 text-sm leading-7 text-muted">Organiza tus clases, acompaña a tus alumnos y crea tu propio espacio educativo. Sin contraseñas ni formularios largos.</p>
-        <button class="mt-8 flex w-full items-center justify-center gap-3 rounded-xl border border-outline bg-white p-4 text-sm font-bold shadow-sm hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40" :disabled="busy || !googleConfigured" @click="signIn"><span class="text-xl font-black text-[#4285F4]">G</span>{{ busy?'Conectando...':'Continuar con Google' }}</button>
-        <p v-if="!googleConfigured" class="mt-3 text-center text-xs text-amber-700">El administrador debe configurar Google OAuth en el servidor para habilitar el acceso.</p>
+        <UiButton variant="secondary" size="lg" class="mt-8" block :loading="busy" :disabled="!googleConfigured" @click="signIn"><span class="text-xl font-black text-[#4285F4]">G</span>Continuar con Google</UiButton>
+        <p v-if="!googleConfigured" class="mt-3 text-center text-xs text-warning">El administrador debe configurar Google OAuth en el servidor para habilitar el acceso.</p>
         <p class="mt-6 text-center text-xs text-muted">¿Solo quieres explorar? <button class="font-bold text-brand underline" @click="demo=true">Ver una demostración</button></p>
       </template>
       <template v-else-if="state==='setup'">
         <div class="mb-6 flex justify-between text-xs font-bold text-brand"><span>Configura tu espacio</span><span>Paso {{ step }} de 3</span></div>
-        <div class="mb-8 grid grid-cols-3 gap-2"><div v-for="i in 3" :key="i" :class="i<=step?'bg-brand':'bg-violet-100'" class="h-1.5 rounded-full"></div></div>
+        <div class="mb-8 grid grid-cols-3 gap-2"><div v-for="i in 3" :key="i" :class="i<=step?'bg-brand':'bg-brand-soft'" class="h-1.5 rounded-full"></div></div>
         <template v-if="step===1">
           <h1 class="text-2xl font-extrabold">¿Qué vas a crear?</h1><p class="mt-3 text-sm text-muted">Puedes cambiar detalles y añadir profesores más adelante.</p>
           <div class="mt-6 grid gap-3 sm:grid-cols-2">
-            <button type="button" :aria-pressed="type==='SOLO'" :class="type==='SOLO'?'border-brand bg-violet-50':'border-outline'" class="rounded-2xl border-2 p-5 text-left" @click="type='SOLO'"><UserRound :size="23" class="text-brand"/><b class="mt-3 block">Soy profesor</b><span class="mt-2 block text-xs leading-5 text-muted">Mis clases, materias y alumnos particulares.</span></button>
-            <button type="button" :aria-pressed="type==='ACADEMY'" :class="type==='ACADEMY'?'border-brand bg-violet-50':'border-outline'" class="rounded-2xl border-2 p-5 text-left" @click="type='ACADEMY'"><School :size="23" class="text-brand"/><b class="mt-3 block">Tengo una academia</b><span class="mt-2 block text-xs leading-5 text-muted">Varios profesores, materias y grupos.</span></button>
+            <button type="button" :aria-pressed="type==='SOLO'" :class="type==='SOLO'?'border-brand bg-brand-soft':'border-outline'" class="rounded-2xl border-2 p-5 text-left" @click="type='SOLO'"><UserRound :size="23" class="text-brand"/><b class="mt-3 block">Soy profesor</b><span class="mt-2 block text-xs leading-5 text-muted">Mis clases, materias y alumnos particulares.</span></button>
+            <button type="button" :aria-pressed="type==='ACADEMY'" :class="type==='ACADEMY'?'border-brand bg-brand-soft':'border-outline'" class="rounded-2xl border-2 p-5 text-left" @click="type='ACADEMY'"><School :size="23" class="text-brand"/><b class="mt-3 block">Tengo una academia</b><span class="mt-2 block text-xs leading-5 text-muted">Varios profesores, materias y grupos.</span></button>
           </div>
         </template>
         <template v-else-if="step===2">
           <h1 class="text-2xl font-extrabold">¿Cómo se llama tu espacio?</h1><p class="mt-3 text-sm text-muted">Este será el nombre que verán tus alumnos.</p>
-          <label class="mt-7 block text-xs font-semibold">Nombre de tu academia<input v-model="name" autocomplete="organization" maxlength="80" placeholder="Ej. Academia de Laura" class="mt-2 block w-full rounded-xl border border-outline p-4 text-base outline-brand" @keyup.enter="next"/></label>
-          <div class="mt-5 flex items-center gap-3 rounded-xl bg-slate-50 p-3"><div class="grid size-10 shrink-0 place-items-center rounded-full bg-violet-200 text-sm font-extrabold text-brand">{{ initials }}</div><p class="text-xs text-muted">Tu cuenta de Google será la propietaria de este espacio. No necesitas crear otro usuario administrador.</p></div>
+          <div class="mt-7"><UiField label="Nombre de tu academia" for="academy-name" required><UiInput id="academy-name" v-model="name" autocomplete="organization" :maxlength="80" placeholder="Ej. Academia de Laura" @keyup.enter="next"/></UiField></div>
+          <div class="mt-5 flex items-center gap-3 rounded-xl bg-surface-muted p-3"><div class="grid size-10 shrink-0 place-items-center rounded-full bg-brand-soft text-sm font-extrabold text-brand">{{ initials }}</div><p class="text-xs text-muted">Tu cuenta de Google será la propietaria de este espacio. No necesitas crear otro usuario administrador.</p></div>
         </template>
         <template v-else>
           <h1 class="text-2xl font-extrabold">Personaliza tu enseñanza</h1><p class="mt-3 text-sm text-muted">Opcional. Puedes agregar las materias ahora o hacerlo después.</p>
-          <div class="mt-6 flex flex-wrap gap-2"><button v-for="s in choices" :key="s" type="button" :aria-pressed="subjects.includes(s)" :class="subjects.includes(s)?'border-brand bg-violet-50 text-brand':'border-outline text-slate-600'" class="rounded-full border px-4 py-2 text-xs font-bold" @click="toggleSubject(s)">{{ subjects.includes(s)?'✓ ':'' }}{{ s }}</button></div>
-          <div class="mt-6 flex items-center gap-3 rounded-xl bg-emerald-50 p-4 text-xs text-emerald-800"><ShieldCheck :size="21"/> Todo listo: {{ name }} tendrá su propio espacio y permisos independientes.</div>
+          <div class="mt-6 flex flex-wrap gap-2"><button v-for="s in choices" :key="s" type="button" :aria-pressed="subjects.includes(s)" :class="subjects.includes(s)?'border-brand bg-brand-soft text-brand':'border-outline text-muted'" class="rounded-full border px-4 py-2 text-xs font-bold" @click="toggleSubject(s)">{{ subjects.includes(s)?'✓ ':'' }}{{ s }}</button></div>
+          <div class="mt-6 flex items-center gap-3 rounded-xl bg-success-soft p-4 text-xs text-success"><ShieldCheck :size="21"/> Todo listo: {{ name }} tendrá su propio espacio y permisos independientes.</div>
         </template>
-        <p v-if="error" role="alert" class="mt-4 rounded-xl bg-rose-50 p-3 text-xs font-medium text-rose-700">{{ error }}</p>
-        <div class="mt-8 flex items-center justify-between gap-3"><button v-if="step>1" class="flex items-center gap-2 text-xs font-bold text-muted" @click="step--"><ArrowLeft :size="15"/> Volver</button><span v-else></span><button :disabled="busy" class="flex items-center justify-center gap-2 rounded-xl bg-brand px-6 py-3 text-xs font-bold text-white disabled:opacity-60" @click="next">{{ busy?'Creando academia...':step===3?'Crear mi espacio':'Continuar' }}<Check v-if="step===3" :size="15"/><ArrowRight v-else :size="15"/></button></div>
+        <p v-if="error" role="alert" class="mt-4 rounded-xl bg-danger-soft p-3 text-xs font-medium text-danger">{{ error }}</p>
+        <div class="mt-8 flex items-center justify-between gap-3"><button v-if="step>1" class="flex items-center gap-2 text-xs font-bold text-muted" @click="step--"><ArrowLeft :size="15"/> Volver</button><span v-else></span><UiButton :loading="busy" @click="next">{{ step===3?'Crear mi espacio':'Continuar' }}<Check v-if="step===3" :size="15"/><ArrowRight v-else :size="15"/></UiButton></div>
       </template>
-      <template v-else><h1 class="text-xl font-extrabold">No pudimos iniciar AcademyOS</h1><p class="mt-4 text-sm text-muted">{{ error }}</p><button class="mt-5 rounded-xl bg-brand px-5 py-3 text-xs font-bold text-white" @click="load">Reintentar</button></template>
-      <p v-if="error && state==='login'" role="alert" class="mt-4 rounded-xl bg-rose-50 p-3 text-sm text-rose-700">{{ error }}</p>
+      <template v-else><h1 class="text-xl font-extrabold">No pudimos iniciar AcademyOS</h1><p class="mt-4 text-sm text-muted">{{ error }}</p><UiButton class="mt-5" @click="load">Reintentar</UiButton></template>
+      <p v-if="error && state==='login'" role="alert" class="mt-4 rounded-xl bg-danger-soft p-3 text-sm text-danger">{{ error }}</p>
       <div class="mt-9 flex items-center gap-2 border-t border-outline pt-5 text-xs text-muted"><BookOpen :size="15"/> AcademyOS · Acceso seguro</div>
     </main>
   </div>

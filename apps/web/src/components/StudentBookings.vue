@@ -38,15 +38,15 @@ watch(()=>props.workspaceId,load);
 onMounted(load);
 </script>
 <template>
-<section class="rounded-2xl border border-outline bg-white p-6">
+<section class="rounded-2xl border border-outline bg-surface p-6">
  <div class="flex items-center gap-3"><CalendarCheck :size="21" class="text-brand"/><div><h2 class="text-lg font-extrabold">Reserva tus clases</h2><p class="mt-1 text-xs text-muted">Confirma tu cupo en las sesiones disponibles de tus cursos. Los cupos son limitados.</p></div></div>
- <p v-if="error" role="alert" class="mt-4 rounded-xl bg-rose-50 p-3 text-xs text-rose-700">{{ error }}</p>
- <p v-if="notice" role="status" class="mt-4 flex items-center gap-2 rounded-xl bg-emerald-50 p-3 text-xs text-emerald-700"><CheckCircle2 :size="15"/>{{ notice }}</p>
+ <p v-if="error" role="alert" class="mt-4 rounded-xl bg-danger-soft p-3 text-xs text-danger">{{ error }}</p>
+ <p v-if="notice" role="status" class="mt-4 flex items-center gap-2 rounded-xl bg-success-soft p-3 text-xs text-success"><CheckCircle2 :size="15"/>{{ notice }}</p>
  <p v-if="loading" class="mt-4 text-xs text-muted">Consultando tus reservas...</p>
  <div class="mt-4 space-y-2">
   <div v-for="session in sessions.filter(s=>new Date(s.startsAt)>new Date())" :key="session.id" class="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-outline p-4">
    <div><p class="text-sm font-bold">{{ session.title }}</p><p class="mt-1 text-xs text-muted">{{ new Date(session.startsAt).toLocaleString('es-CO') }}</p></div>
-   <button v-if="existing(session.id)" :disabled="busy===session.id" class="rounded-xl border border-amber-200 px-4 py-2 text-xs font-bold text-amber-700 disabled:opacity-50" @click="cancel(existing(session.id)!)">Cancelar mi cupo</button>
+   <button v-if="existing(session.id)" :disabled="busy===session.id" class="rounded-xl border border-amber-200 px-4 py-2 text-xs font-bold text-warning disabled:opacity-50" @click="cancel(existing(session.id)!)">Cancelar mi cupo</button>
    <button v-else :disabled="busy===session.id || loading" class="rounded-xl bg-brand px-4 py-2 text-xs font-bold text-white disabled:opacity-50" @click="reserve(session.id)">Reservar cupo</button>
   </div>
   <p v-if="!sessions.some(s=>new Date(s.startsAt)>new Date())" class="text-xs text-muted">No hay sesiones futuras disponibles para reservar.</p>

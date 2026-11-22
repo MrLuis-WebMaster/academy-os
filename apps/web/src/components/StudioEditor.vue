@@ -49,7 +49,7 @@ watch(()=>props.workspace.id,refresh);
 onMounted(refresh);
 </script>
 <template>
-<section class="mt-6 rounded-2xl border border-outline bg-white p-6">
+<section class="mt-6 rounded-2xl border border-outline bg-surface p-6">
  <div class="flex items-center gap-2"><Store :size="22" class="text-brand"/><div><h2 class="text-lg font-extrabold">Profe Studio · Catálogo público</h2><p class="mt-1 text-xs text-muted">Publica clases y servicios con tu propia identidad; puedes ocultar toda la página hasta tenerla lista.</p></div></div>
  <p v-if="loading" class="mt-5 text-xs text-muted">Cargando Profe Studio...</p>
  <div v-else-if="settings" class="mt-5 space-y-6">
@@ -73,12 +73,12 @@ onMounted(refresh);
   <div class="grid gap-2 md:grid-cols-2">
    <div v-for="offer in offerings" :key="offer.id" class="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-outline p-3">
     <div><p class="text-sm font-bold">{{ offer.title }}</p><p class="mt-1 text-xs text-muted">{{ new Intl.NumberFormat('es-CO',{style:'currency',currency:'COP',maximumFractionDigits:0}).format(offer.priceCOP) }} · {{ offer.durationMinutes }} minutos</p></div>
-    <button :disabled="busy" @click="toggle(offer)" class="rounded-lg px-3 py-2 text-xs font-bold disabled:opacity-50" :class="offer.published?'bg-amber-50 text-amber-700':'bg-emerald-50 text-emerald-700'">{{ offer.published?'Ocultar':'Publicar' }}</button>
+    <button :disabled="busy" @click="toggle(offer)" class="rounded-lg px-3 py-2 text-xs font-bold disabled:opacity-50" :class="offer.published?'bg-warning-soft text-warning':'bg-success-soft text-success'">{{ offer.published?'Ocultar':'Publicar' }}</button>
    </div>
    <p v-if="!offerings.length" class="text-xs text-muted">Aún no has creado servicios.</p>
   </div>
  </div>
- <p v-if="error" role="alert" class="mt-4 rounded-xl bg-rose-50 p-3 text-xs text-rose-700">{{ error }}</p>
- <p v-if="message" role="status" class="mt-4 flex items-center gap-2 rounded-xl bg-emerald-50 p-3 text-xs text-emerald-700"><CheckCircle2 :size="14"/>{{ message }}</p>
+ <p v-if="error" role="alert" class="mt-4 rounded-xl bg-danger-soft p-3 text-xs text-danger">{{ error }}</p>
+ <p v-if="message" role="status" class="mt-4 flex items-center gap-2 rounded-xl bg-success-soft p-3 text-xs text-success"><CheckCircle2 :size="14"/>{{ message }}</p>
 </section>
 </template>

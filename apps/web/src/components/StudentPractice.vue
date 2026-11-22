@@ -61,23 +61,23 @@ onMounted(load);
 <template>
 <section class="space-y-5">
   <div class="flex items-center gap-3"><TrendingUp :size="22" class="text-brand"/><div><h2 class="text-lg font-extrabold">Mi Pasaporte</h2><p class="mt-1 text-xs text-muted">Resultados basados únicamente en ejercicios que has completado.</p></div></div>
-  <p v-if="loading" class="rounded-xl bg-slate-50 p-5 text-xs text-muted">Preparando tus prácticas...</p>
-  <p v-if="error" role="alert" class="rounded-xl bg-rose-50 p-4 text-sm text-rose-700">{{ error }}</p>
-  <p v-if="notice" role="status" class="rounded-xl bg-emerald-50 p-4 text-sm text-emerald-700">{{ notice }}</p>
+  <p v-if="loading" class="rounded-xl bg-surface-muted p-5 text-xs text-muted">Preparando tus prácticas...</p>
+  <p v-if="error" role="alert" class="rounded-xl bg-danger-soft p-4 text-sm text-danger">{{ error }}</p>
+  <p v-if="notice" role="status" class="rounded-xl bg-success-soft p-4 text-sm text-success">{{ notice }}</p>
   <div v-if="!loading && passport.length" class="grid gap-3 sm:grid-cols-2">
-    <article v-for="course in passport" :key="course.courseId" class="rounded-2xl border border-outline bg-white p-5">
+    <article v-for="course in passport" :key="course.courseId" class="rounded-2xl border border-outline bg-surface p-5">
       <p class="text-xs font-bold text-brand">{{ course.subject }}</p>
       <h3 class="mt-2 text-base font-extrabold">{{ course.title }}</h3>
       <p class="mt-3 text-3xl font-extrabold">{{ course.averageScore===null?'—':course.averageScore+'%' }}</p>
       <p class="mt-1 text-xs text-muted">{{ course.metric }}</p>
       <p class="mt-3 text-xs text-muted">{{ course.attempts }} {{ course.attempts===1?'intento registrado':'intentos registrados' }}</p>
-      <div class="mt-3 h-2 overflow-hidden rounded-full bg-slate-100"><div class="h-full rounded-full bg-violet-500" :style="{width:(course.averageScore??0)+'%'}"></div></div>
+      <div class="mt-3 h-2 overflow-hidden rounded-full bg-surface-muted"><div class="h-full rounded-full bg-brand-soft0" :style="{width:(course.averageScore??0)+'%'}"></div></div>
     </article>
   </div>
   <div class="flex items-center gap-3 pt-3"><ClipboardCheck :size="21" class="text-brand"/><div><h2 class="text-lg font-extrabold">Prácticas de Clase Viva</h2><p class="mt-1 text-xs text-muted">Retos publicados por tus profesores, corregidos al entregar.</p></div></div>
-  <p v-if="!loading && !practices.length" class="rounded-2xl border border-outline bg-white p-5 text-sm text-muted">Todavía no hay ejercicios publicados. Cuando tu profesor prepare uno, aparecerá aquí.</p>
-  <article v-for="practice in practices" :key="practice.id" class="rounded-2xl border border-outline bg-white p-5 sm:p-6">
-    <div class="flex flex-wrap items-start justify-between gap-2"><div><p class="text-xs font-bold text-brand">{{ practice.sessionTitle }}</p><h3 class="mt-2 text-base font-extrabold">{{ practice.title }}</h3></div><span v-if="practice.lastAttempt" class="rounded-full bg-violet-50 px-3 py-1 text-xs font-bold text-brand">Último intento: {{ practice.lastAttempt.score }}%</span></div>
+  <p v-if="!loading && !practices.length" class="rounded-2xl border border-outline bg-surface p-5 text-sm text-muted">Todavía no hay ejercicios publicados. Cuando tu profesor prepare uno, aparecerá aquí.</p>
+  <article v-for="practice in practices" :key="practice.id" class="rounded-2xl border border-outline bg-surface p-5 sm:p-6">
+    <div class="flex flex-wrap items-start justify-between gap-2"><div><p class="text-xs font-bold text-brand">{{ practice.sessionTitle }}</p><h3 class="mt-2 text-base font-extrabold">{{ practice.title }}</h3></div><span v-if="practice.lastAttempt" class="rounded-full bg-brand-soft px-3 py-1 text-xs font-bold text-brand">Último intento: {{ practice.lastAttempt.score }}%</span></div>
     <div v-for="(question,questionIndex) in practice.questions" :key="questionIndex" class="mt-5 border-t border-outline pt-4">
       <p class="text-sm font-bold">{{ questionIndex+1 }}. {{ question.prompt }}</p>
       <div class="mt-3 grid gap-2 sm:grid-cols-2">
@@ -85,18 +85,18 @@ onMounted(load);
           :aria-pressed="selected[practice.id]?.[questionIndex]===optionIndex"
           :disabled="Boolean(results[practice.id]) || busy===practice.id"
           class="flex items-start gap-2 rounded-xl border p-3 text-left text-xs disabled:cursor-default"
-          :class="selected[practice.id]?.[questionIndex]===optionIndex?'border-brand bg-violet-50':'border-outline bg-white'"
+          :class="selected[practice.id]?.[questionIndex]===optionIndex?'border-brand bg-brand-soft':'border-outline bg-surface'"
           @click="choose(practice.id,questionIndex,optionIndex)">
           <span class="font-extrabold text-brand">{{ optionLetters[optionIndex] }}.</span><span>{{ option }}</span>
         </button>
       </div>
-      <p v-if="results[practice.id]?.feedback[questionIndex]" class="mt-3 text-xs" :class="results[practice.id].feedback[questionIndex].correct?'text-emerald-700':'text-amber-700'">
+      <p v-if="results[practice.id]?.feedback[questionIndex]" class="mt-3 text-xs" :class="results[practice.id].feedback[questionIndex].correct?'text-success':'text-warning'">
         {{ results[practice.id].feedback[questionIndex].correct?'¡Correcto!':'La respuesta correcta era '+optionLetters[results[practice.id].feedback[questionIndex].correctIndex]+'.' }}
         {{ results[practice.id].feedback[questionIndex].explanation }}
       </p>
     </div>
     <div class="mt-5 flex flex-wrap items-center justify-between gap-3">
-      <p v-if="results[practice.id]" class="flex items-center gap-2 text-sm font-extrabold text-emerald-700"><CheckCircle2 :size="17"/> {{ results[practice.id].correct }}/{{ results[practice.id].total }} · {{ results[practice.id].score }}%</p>
+      <p v-if="results[practice.id]" class="flex items-center gap-2 text-sm font-extrabold text-success"><CheckCircle2 :size="17"/> {{ results[practice.id].correct }}/{{ results[practice.id].total }} · {{ results[practice.id].score }}%</p>
       <p v-else class="text-xs text-muted">Hasta 3 intentos por práctica.</p>
       <button v-if="results[practice.id]" class="flex items-center gap-2 rounded-xl border border-outline px-4 py-3 text-xs font-bold" @click="selected[practice.id]={}; delete results[practice.id]"><RotateCcw :size="14"/> Intentar otra vez</button>
       <button v-else :disabled="busy===practice.id || Object.keys(selected[practice.id]??{}).length!==practice.questions.length" class="rounded-xl bg-brand px-5 py-3 text-xs font-bold text-white disabled:opacity-40" @click="submit(practice)">{{ busy===practice.id?'Corrigiendo...':'Entregar práctica' }}</button>
