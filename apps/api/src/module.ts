@@ -17,10 +17,11 @@ import { CurriculumController } from './workspaces/curriculum.controller.js';
 import { AcademicsModule } from './modules/academics/academics.module.js';
 import {SchedulingModule} from './modules/scheduling/scheduling.module.js';
 import {NotificationsModule} from './modules/notifications/notifications.module.js';
+import {CalendarModule} from './modules/calendar/calendar.module.js';
 import {LearningModule} from './modules/learning/learning.module.js';
 
 @Module({
-  imports: [AcademicsModule,SchedulingModule,LearningModule,NotificationsModule],
+  imports: [AcademicsModule,SchedulingModule,LearningModule,NotificationsModule,CalendarModule],
   controllers: [DemoController, MeController, WorkspaceController, CatalogController, SchedulingController, InvitationsController, MaterialsController, ClassAliveController, PracticeController, StudioController, BookingsController, FinanceController, CurriculumController],
   providers: [{ provide: APP_GUARD, useClass: SessionGuard }],
 })
