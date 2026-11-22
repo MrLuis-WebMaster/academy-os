@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {randomUUID} from 'node:crypto';
-import {ForbiddenException} from '@nestjs/common';
+import {ForbiddenException,NotFoundException} from '@nestjs/common';
 import {prisma} from '../lib/prisma.js';
 import {requireMembership} from '../workspaces/access.js';
 import {CoursesController} from '../modules/academics/presentation/courses.controller.js';
@@ -11,6 +11,10 @@ import {PrismaMembershipAdapter} from '../modules/academics/infrastructure/prism
 import {BookingActionsController} from '../modules/scheduling/presentation/booking-actions.controller.js';
 import {BookingUseCases} from '../modules/scheduling/application/booking-use-cases.js';
 import {PrismaBookingRepository} from '../modules/scheduling/infrastructure/prisma-booking-repository.js';
+import {notifyBookedStudents} from '../modules/notifications/infrastructure/session-notice-publisher.js';
+import {NotificationUseCases} from '../modules/notifications/application/notification-use-cases.js';
+import {PrismaNotificationMailbox} from '../modules/notifications/infrastructure/prisma-notification-mailbox.js';
+import {NotificationsController} from '../modules/notifications/presentation/notifications.controller.js';
 import {FinanceController} from '../finance/controller.js';
 import type {AuthenticatedRequest} from '../auth/session.guard.js';
 
@@ -65,6 +69,30 @@ test('PostgreSQL multi-tenant guards and booking capacity',async()=>{
     assert.equal(reservations.filter(r=>r.status==='fulfilled').length,1, 'only one student can reserve the last seat: '+JSON.stringify(reservations.map(r=>r.status==='rejected'?String(r.reason):'ok')));
     assert.equal(reservations.filter(r=>r.status==='rejected').length,1);
     assert.equal(await prisma.classBooking.count({where:{sessionId:session.id,status:'BOOKED'}}),1);
+    // A class event creates an in-app notification for exactly the booked student,
+    // never for the entire academy or for students who lost the final seat.
+    const recipient=await prisma.classBooking.findFirstOrThrow({
+      where:{sessionId:session.id,status:'BOOKED'},select:{userId:true},
+    });
+    const notBooked=recipient.userId===student1.id?student2.id:student1.id;
+    const notificationEvent={
+      workspaceId:b.id,sessionId:session.id,sessionTitle:session.title,
+      kind:'SESSION_RESCHEDULED' as const,eventKey:'session-change-1',
+    };
+    assert.equal(await prisma.$transaction(tx=>notifyBookedStudents(tx,notificationEvent)),1);
+    assert.equal(await prisma.$transaction(tx=>notifyBookedStudents(tx,notificationEvent)),0);
+    const notices=new NotificationsController(
+      new NotificationUseCases(new PrismaNotificationMailbox(),new PrismaMembershipAdapter()),
+    );
+    const myInbox=await notices.list(request(recipient.userId),b.id);
+    assert.equal(myInbox.unreadCount,1);
+    assert.equal(myInbox.items.length,1);
+    assert.equal((await notices.list(request(notBooked),b.id)).items.length,0);
+    await assert.rejects(()=>notices.list(request(owner.id),b.id),ForbiddenException);
+    await assert.rejects(()=>notices.read(request(notBooked),b.id,myInbox.items[0]!.id),NotFoundException);
+    await notices.read(request(recipient.userId),b.id,myInbox.items[0]!.id);
+    assert.equal((await notices.list(request(recipient.userId),b.id)).unreadCount,0);
+
     await assert.rejects(()=>bookingActions.reserve(request(owner.id),b.id,{sessionId:session.id}),ForbiddenException);
   }finally{
     await prisma.workspace.deleteMany({where:{id:{in:ids}}});
