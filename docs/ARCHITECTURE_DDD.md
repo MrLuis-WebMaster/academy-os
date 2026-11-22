@@ -2,7 +2,7 @@
 
 ## Estado
 
-El backend se está migrando **por verticales funcionales**, sin romper endpoints ya existentes. Las verticales migradas incluyen `academics/subjects`, `academics/courses`, `academics/enrollments`, `scheduling/bookings`, `scheduling/reschedule`, `scheduling/availability` y los casos iniciales de IA en `learning`. Los otros controladores aún son legado y están pendientes de refactor; no se deben presentar como DDD completos.
+El backend se está migrando **por verticales funcionales**, sin romper endpoints ya existentes. Las verticales migradas incluyen `academics/subjects`, `academics/courses`, `academics/enrollments`, `scheduling/bookings`, `scheduling/reschedule`, `scheduling/availability` los casos iniciales de IA en `learning`, la bandeja en `notifications` y la exportación privada en `calendar`. Los otros controladores aún son legado y están pendientes de refactor; no se deben presentar como DDD completos.
 
 ## Dependencias y capas
 
@@ -34,9 +34,15 @@ Los controladores de materias y cursos reciben `SubjectUseCases` y `CourseUseCas
 | Classroom | recursos, tareas, acceso al Aula Digital |
 | Learning | Clase Viva, actividades, Pasaporte y ayudas IA |
 | Commerce | Profe Studio, servicios, pagos, cobros, facturación |
-| Integrations | Google Meet/Calendar, Zoom, Drive, almacenamiento y notificaciones |
+| Notifications | Bandeja personal, read state, entrega in-app transaccional para cambios de agenda |
+| Calendar | Serialización ICS, permisos por rol y consultas privadas por usuario |
+| Integrations | Google Meet/Calendar, Zoom, Drive, email/push/WhatsApp y almacenamiento |
 
 Los contextos se relacionan a través de casos de uso, puertos y eventos; **no** importando directamente controladores de otras áreas. El shared kernel solo contiene reglas con significado verdaderamente común (por ejemplo, normalización de slugs).
+
+### Entrega de notificaciones sin eventos huérfanos
+
+El adaptador de calendario y el de avisos respetan el alcance del usuario autenticado. Los avisos por cambio de clase se insertan mediante `notifyBookedStudents(tx, event)` dentro de la transacción PostgreSQL que cancela o reprograma la sesión. Una restricción única por `(workspaceId,userId,eventKey)` protege contra duplicados. Ese puente reside **solo en infraestructura**; dominio y aplicación no importan Prisma. No hay aún una cola de entrega externa, outbox ni worker de correo.
 
 ## Calidad y reglas de evolución
 

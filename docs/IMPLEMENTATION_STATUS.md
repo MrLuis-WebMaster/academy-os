@@ -2,7 +2,7 @@
 
 ## Entregas codificadas en `main`
 - Login Better Auth + Google: flujo implementado, necesita credenciales OAuth, base real y validación E2E; registro de propietario mediante onboarding de tres pasos.
-- Persistencia Prisma/PostgreSQL con migraciones `0_init` a `9_weekly_availability`, guards de sesiones y permisos tenant.
+- Persistencia Prisma/PostgreSQL con migraciones `0_init` a `10_in_app_notifications`, guards de sesiones y permisos tenant.
 - Profesores, alumnos, cursos, materias, asignación de profesores, temas y matrículas.
 - Clases virtuales/presenciales/híbridas, enlaces manuales, detección básica de choques, cancelaciones, reserva de cupos transaccional y asistencia.
 - Aula Digital protegida para inscripciones y publicaciones de materiales HTTPS.
@@ -32,6 +32,15 @@
 - Disponibilidad semanal por docente/academia, comprobación por zona horaria al crear o reprogramar sesiones, interfaz de administración de franjas.
 - `pnpm-lock.yaml` generado en GitHub Actions y versionado; instalación congelada para CI.
 - Cliente HTTP compartido ahora completa encabezados de JSON omitidos por pantallas antiguas.
+
+## Hito 3: notificaciones y calendario (2026-11-22)
+
+- Contexto Notifications hexagonal: dominio puro, casos de uso, puerto de almacenamiento, adaptador Prisma y controller. Mensajes se limitan a la academia y al usuario autenticado; `readAt` no se comparte entre alumnos.
+- Migración `10_in_app_notifications` y publicación transaccional con eventos de cancelación o reprogramación. Solo alumnos con reserva activa reciben el aviso, sin datos privados de otras personas.
+- Bandeja visual reutilizable con iconos Lucide, contador de no leídos, lectura individual y general, reinicio de estado al cambiar de academia.
+- Exportación `.ics` privada: filtro por OWNER/ADMIN (todo el espacio), TEACHER (sus clases), STUDENT (sus reservas). Incluye UID estable, actualización de secuencia, campos escapados y control de caché.
+- Pruebas de aislamiento real PostgreSQL e idempotencia de los avisos; pruebas unitarias de permisos y serialización ICS.
+- **No está implementado el envío de email, push, WhatsApp ni la sincronización OAuth.** La importación de calendario es manual.
 
 ## Límites no resueltos
 - OAuth Google en entorno real, test del callback, cookies, sesiones y logout end-to-end.

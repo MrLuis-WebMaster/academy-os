@@ -6,7 +6,7 @@ Cada marca `[x]` indica funcionalidad codificada en el repo, **no un lanzamiento
 - [x] Repositorio independiente y monorepo pnpm (Vue 3, NestJS, Tailwind 4, Prisma 7).
 - [x] Paquete `@academy-os/ui`: 14 primitivas, estilos semánticos, tema claro/oscuro/sistema, galería en desarrollo.
 - [x] Normalización compartida de slug y cliente HTTP único usado por varias pantallas.
-- [x] DDD/hexagonal en Academics (materias, cursos, inscripciones), Scheduling (reservas, reprogramaciones) y Learning (IA, tutor); pruebas con puertos fake.
+- [x] DDD/hexagonal en Academics (materias, cursos, inscripciones), Scheduling (reservas, reprogramaciones, disponibilidad), Learning (IA, tutor), Notifications (bandeja) y Calendar (exportación ICS); pruebas con puertos fake.
 - [x] Control de fronteras arquitectónicas en CI (`pnpm arch:check`).
 - [~] Migrar el resto de los contextos (tenancy, asistencia, commerce, publishing) sin cambiar contratos HTTP.
 - [x] Migraciones versionadas y validación con PostgreSQL 19 en CI.
@@ -24,7 +24,7 @@ Cada marca `[x]` indica funcionalidad codificada en el repo, **no un lanzamiento
 - [x] Registro manual de cobros; no captura pagos externos.
 - [x] Profe Studio con catálogo público, precio COP y contacto externo, desactivado por defecto.
 - [ ] E2E de Google OAuth con credenciales reales y despliegue staging.
-- [~] Reprogramación con auditoría, reservas existentes y aviso manual de cambios; franjas semanales por profesor implementadas y aplicadas; faltan excepciones/feriados, sedes/aulas, notificaciones automáticas y calendario de grupos.
+- [~] Reprogramación con auditoría y reservas existentes, franjas semanales por profesor y **notificaciones in-app transaccionales** para cancelación/reprogramación; faltan excepciones/feriados, sedes/aulas, email/WhatsApp/push y calendario avanzado.
 - [ ] Checkout con pasarela, conciliación, reembolsos y facturación.
 - [ ] E2E de flujos, privacidad/menores y auditoría multi-tenant integral.
 
@@ -34,9 +34,11 @@ Cada marca `[x]` indica funcionalidad codificada en el repo, **no un lanzamiento
 - [x] Pasaporte inicial: media de resultados reales de prácticas por curso (no inferir dominio integral).
 - [~] Generación de **prácticas** con OpenAI Responses API, opt-in y revisión/edición docente, diez usos diarios compartidos por academia; pendiente validar con API key real. Resúmenes generados automáticamente aún no implementados.
 - [~] Profe SOS con acceso limitado a **notas publicadas** de cursos inscritos, referencias a las clases y derivación al profesor; pendiente probar API externa y añadir otros materiales autorizados.
+- [x] Exportación privada de calendario `.ics` filtrada por rol (importación manual, sin OAuth).
 - [ ] OAuth Meet/Calendar, Zoom y Google Drive con lifecycle, revocación y tests.
 - [ ] Almacenamiento propio y revisión de seguridad de recursos.
-- [ ] Notificaciones y recordatorios automáticos, consentimiento explícito.
+- [x] Bandeja in-app con leído/no leído y notificaciones de cambios en clases reservadas, sin envíos externos.
+- [ ] Recordatorios programados y avisos por correo/push/WhatsApp con consentimiento explícito.
 
 ## Etapa 3 — academia y white-label avanzados
 - [ ] Roles de acudientes verificados, privacidad para menores y reportes familiares.

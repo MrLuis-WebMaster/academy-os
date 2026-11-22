@@ -22,6 +22,8 @@
 - [ ] Google Calendar/Meet OAuth con permisos separados del login.
 - [ ] Zoom OAuth, host/plan restrictions, lifecycle y cancelación.
 - [ ] Google Drive Picker, access revocation y protección de documentos.
+- [x] Bandeja in-app y avisos transaccionales de cancelación/reprogramación, aislados por usuario/academia.
+- [x] Exportación manual ICS con roles, sin OAuth ni enlaces públicos.
 - [ ] Envío real de confirmaciones y recordatorios por email.
 - [x] Código de generador de borradores de IA, proveedor adaptable, consentimiento por acción, revisión docente y tope de diez solicitudes/día/academia.
 - [ ] Verificar OpenAI Responses API con una clave y facturación reales, políticas de datos, monitoreo de costes y logs redactados.
