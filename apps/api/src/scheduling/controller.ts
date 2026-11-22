@@ -1,4 +1,4 @@
-import { BadRequestException, Body, ConflictException, Controller, Get, Param, Post, Req } from '@nestjs/common';
+import { BadRequestException, Body, ConflictException, Controller, ForbiddenException, Get, NotFoundException, Param, Patch, Post, Req } from '@nestjs/common';
 import type { AuthenticatedRequest } from '../auth/session.guard.js';
 import { prisma } from '../lib/prisma.js';
 import { requireMembership } from '../workspaces/access.js';
@@ -15,6 +15,28 @@ export class SchedulingController {
       orderBy: { startsAt: 'asc' },
       take: 100,
     });
+  }
+
+  @Patch(':sessionId/cancel')
+  async cancel(@Req() req: AuthenticatedRequest,@Param('workspaceId') workspaceId:string,@Param('sessionId') sessionId:string) {
+    const userId=req.academyUser!.id;
+    const member=await requireMembership(workspaceId,userId,['OWNER','ADMIN','TEACHER']);
+    const session=await prisma.classSession.findFirst({
+      where:{id:sessionId,workspaceId},select:{id:true,status:true,teacherProfileId:true},
+    });
+    if(!session)throw new NotFoundException('Class not found in this workspace');
+    if(member.role==='TEACHER'){
+      const teacher=await prisma.teacherProfile.findFirst({where:{workspaceId,userId},select:{id:true}});
+      if(!teacher||session.teacherProfileId!==teacher.id)throw new ForbiddenException('You can only cancel your own lessons');
+    }
+    if(session.status==='COMPLETED')throw new BadRequestException('Completed lessons cannot be cancelled');
+    if(session.status==='CANCELLED')return {id:session.id,status:'CANCELLED'};
+    const result=await prisma.classSession.updateMany({
+      where:{id:session.id,workspaceId,status:{in:['DRAFT','CONFIRMED']}},
+      data:{status:'CANCELLED'},
+    });
+    if(result.count!==1)throw new ConflictException('The class status changed; please refresh');
+    return {id:session.id,status:'CANCELLED'};
   }
 
   @Post()
