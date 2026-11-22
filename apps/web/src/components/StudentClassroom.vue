@@ -1,21 +1,52 @@
 <script setup lang="ts">
-import { onMounted, ref, watch } from 'vue';
-import { UiEmptyState } from '@academy-os/ui';
-import { BookOpen, CalendarDays, ExternalLink, FolderOpen, GraduationCap, MapPin, Video } from 'lucide-vue-next';
+import {onMounted,ref,watch} from 'vue';
+import {UiAlert,UiEmptyState} from '@academy-os/ui';
+import {apiJson,workspacePath} from '../shared/api-client';
+import {BookOpen,CalendarDays,ExternalLink,FolderOpen,GraduationCap,MapPin,Video} from 'lucide-vue-next';
 import StudentPractice from './StudentPractice.vue';
 import StudentBookings from './StudentBookings.vue';
 import StudentTutor from './StudentTutor.vue';
+
 const props=defineProps<{workspace:{id:string;name:string}}>();
 type Lesson={id:string;title:string;startsAt:string;mode:'ONLINE'|'ONSITE'|'HYBRID';meetingUrl:string|null;location:string|null};
 type Enrollment={id:string;course:{id:string;title:string;summary:string|null;subject:{name:string}|null;resources:{id:string;title:string;source:string;url:string|null}[];sessions:Lesson[]}};
 type PublishedNotes={id:string;notes:string;approvedAt:string|null;session:{id:string;courseId:string|null;title:string}};
+
 const lessonNotes=ref<PublishedNotes[]>([]);
-const courses=ref<Enrollment[]>([]),loading=ref(true),error=ref('');
-async function load(){loading.value=true;error.value='';try{const r=await fetch(`/api/v1/workspaces/${props.workspace.id}/classroom`,{credentials:'same-origin'});if(!r.ok)throw Error(r.status===403?'No tienes permiso para este curso.':'No se pudieron cargar tus cursos.');courses.value=await r.json() as Enrollment[];const notesResponse=await fetch(`/api/v1/workspaces/${props.workspace.id}/class-alive/published`,{credentials:'same-origin'});if(notesResponse.ok)lessonNotes.value=await notesResponse.json() as PublishedNotes[];else lessonNotes.value=[];}catch(e){error.value=e instanceof Error?e.message:'Hubo un problema';}finally{loading.value=false;}}
-onMounted(load);watch(()=>props.workspace.id,load);
+const courses=ref<Enrollment[]>([]);
+const loading=ref(true),error=ref(''),notesWarning=ref('');
+let loadVersion=0;
+
+async function load(){
+  const version=++loadVersion;
+  const workspaceId=props.workspace.id;
+  loading.value=true;
+  error.value='';
+  notesWarning.value='';
+  courses.value=[];
+  lessonNotes.value=[];
+  const [enrollments,notes]=await Promise.allSettled([
+    apiJson<Enrollment[]>(workspacePath(workspaceId,'/classroom')),
+    apiJson<PublishedNotes[]>(workspacePath(workspaceId,'/class-alive/published')),
+  ]);
+  // Responses from a former academy must never overwrite the new academy's view.
+  if(version!==loadVersion||workspaceId!==props.workspace.id)return;
+  if(enrollments.status==='rejected'){
+    error.value=enrollments.reason instanceof Error?enrollments.reason.message:'No se pudieron cargar tus cursos.';
+    loading.value=false;
+    return;
+  }
+  courses.value=enrollments.value;
+  if(notes.status==='fulfilled')lessonNotes.value=notes.value;
+  else notesWarning.value='No pudimos cargar las notas de Clase Viva. Tus cursos y materiales siguen disponibles.';
+  loading.value=false;
+}
+onMounted(()=>void load());
+watch(()=>props.workspace.id,()=>void load());
 </script>
 <template>
 <main class="mx-auto max-w-5xl p-6 md:p-10"><div class="mb-8"><span class="text-xs font-extrabold tracking-widest text-brand">AULA DIGITAL</span><h1 class="mt-3 text-3xl font-extrabold">Mis clases en {{ workspace.name }}</h1><p class="mt-3 text-sm text-muted">Tu agenda, tus materiales y tus cursos en un mismo lugar.</p></div>
+<UiAlert v-if="notesWarning && !loading && !error" tone="warning" class="mb-5">{{notesWarning}}</UiAlert>
 <p v-if="loading" class="rounded-xl bg-surface p-6 text-sm text-muted">Cargando tus clases...</p><p v-else-if="error" role="alert" class="rounded-xl bg-danger-soft p-6 text-sm text-danger">{{ error }}</p>
 <UiEmptyState v-else-if="!courses.length" title="Tu espacio ya está listo" description="Cuando el administrador te inscriba en un curso, encontrarás aquí tus clases y materiales."><template #icon><GraduationCap :size="27" /></template></UiEmptyState>
 <div v-else class="space-y-5"><section v-for="enrollment in courses" :key="enrollment.id" class="rounded-2xl border border-outline bg-surface p-6"><div class="flex items-center gap-3"><div class="grid size-11 place-items-center rounded-xl bg-brand-soft text-brand"><BookOpen :size="24"/></div><div><p class="text-xs font-bold text-brand">{{ enrollment.course.subject?.name || 'Curso' }}</p><h2 class="mt-1 text-lg font-extrabold">{{ enrollment.course.title }}</h2></div></div><p v-if="enrollment.course.summary" class="mt-4 text-sm text-muted">{{ enrollment.course.summary }}</p>
