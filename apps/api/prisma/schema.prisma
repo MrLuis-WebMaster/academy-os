@@ -33,6 +33,13 @@ enum SessionStatus {
   CANCELLED
 }
 
+enum AttendanceStatus {
+  PRESENT
+  ABSENT
+  LATE
+  EXCUSED
+}
+
 enum BookingStatus {
   BOOKED
   CANCELLED
@@ -383,6 +390,7 @@ model ClassBooking {
   sessionId String
   userId String
   status BookingStatus @default(BOOKED)
+  attendance AttendanceStatus?
   bookedAt DateTime @default(now())
   cancelledAt DateTime?
   workspace Workspace @relation(fields:[workspaceId],references:[id],onDelete:Cascade)

@@ -70,6 +70,27 @@ export class BookingsController {
     return {id:booking.id,status:'CANCELLED'};
   }
 
+  @Patch(':bookingId/attendance')
+  async attendance(@Req() req:AuthenticatedRequest,@Param('workspaceId') workspaceId:string,@Param('bookingId') bookingId:string,@Body() body:unknown){
+    const userId=req.academyUser!.id;
+    const membership=await requireMembership(workspaceId,userId,['OWNER','ADMIN','TEACHER']);
+    const input=z.object({attendance:z.enum(['PRESENT','ABSENT','LATE','EXCUSED'])}).safeParse(body);
+    if(!input.success)throw new BadRequestException(input.error.flatten());
+    const booking=await prisma.classBooking.findFirst({
+      where:{id:bookingId,workspaceId,status:'BOOKED'},
+      select:{id:true,session:{select:{status:true,teacher:{select:{userId:true}}}}},
+    });
+    if(!booking)throw new NotFoundException('Active booking not found');
+    if(membership.role==='TEACHER'&&booking.session.teacher?.userId!==userId)
+      throw new ForbiddenException('Only the assigned teacher can mark attendance');
+    if(booking.session.status==='CANCELLED')throw new ConflictException('Class was cancelled');
+    return prisma.classBooking.update({
+      where:{id:booking.id},
+      data:{attendance:input.data.attendance},
+      select:{id:true,attendance:true},
+    });
+  }
+
   @Get('staff')
   async staff(@Req() req:AuthenticatedRequest,@Param('workspaceId') workspaceId:string){
     const userId=req.academyUser!.id;
@@ -77,7 +98,7 @@ export class BookingsController {
     const restricted=member.role==='TEACHER'?{session:{teacher:{userId}}}:{};
     return prisma.classBooking.findMany({
       where:{workspaceId,status:'BOOKED',...restricted},
-      select:{id:true,sessionId:true,bookedAt:true,student:{select:{name:true}},session:{select:{title:true,startsAt:true}}},
+      select:{id:true,sessionId:true,attendance:true,bookedAt:true,student:{select:{name:true}},session:{select:{title:true,startsAt:true}}},
       take:200,
     });
   }
