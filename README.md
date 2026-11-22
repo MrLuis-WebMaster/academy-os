@@ -2,7 +2,7 @@
 
 **Your academy. Your way.** A white-label learning operations SaaS designed for independent teachers and multi-teacher academies, including those teaching multiple subjects.
 
-> **Development foundation / interactive demo — NOT production software.** The web panel uses mock data and local state. The API exposes safe demo endpoints only. PostgreSQL schema is a design proposal; auth, persistence, payment gateways, AI and OAuth integrations have not been implemented.
+> **Development build — NOT production software.** Better Auth/Google and workspace onboarding are implemented in source, and teacher-owned spaces can persist subjects, courses and manually linked classes after PostgreSQL setup. Live Google sign-in still requires OAuth credentials and database migration. The original dashboard remains a **separate demo** with fictional data; payments, AI and external meeting/storage connectors are not implemented.
 
 ## Stack (stable releases chosen November 2026)
 
@@ -20,19 +20,23 @@ pnpm install
 cp .env.example apps/api/.env
 docker compose up -d
 pnpm db:validate
+pnpm db:generate
+pnpm db:migrate
 pnpm dev
 ```
 
 Web: http://localhost:5173 · API: http://localhost:3001/api/v1/health
 
-For a future real database implementation:
+Google sign-in also requires `BETTER_AUTH_SECRET`, `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` and `BETTER_AUTH_URL`; follow [Google OAuth setup](docs/GOOGLE_LOGIN_SETUP.md).
 
-```bash
-pnpm db:generate
-pnpm db:migrate
-```
+**Do not run a migration against production yet.** Create/review a baseline migration in development first. Tenant consistency and privacy/security tests are still incomplete.
 
-**Do not run a migration against production yet.** The schema needs stricter cross-tenant consistency checks and a privacy/security review before connecting real data.
+## Implemented vertical slices
+
+- Self-hosted Better Auth 1.7.27 with Google login, session guard and logout (requires valid credentials and live PostgreSQL).
+- First-login three-step onboarding creates `Workspace` + `OWNER` + initial teacher profile and optional subjects transactionally.
+- Workspace-scoped subject and course creation/listing; manual online, onsite and hybrid class scheduling with basic teacher-overlap prevention.
+- A separate **Operations** screen shows real data; its predecessor dashboard remains explicitly labeled as a mock-only preview.
 
 ## Features demonstrated
 
