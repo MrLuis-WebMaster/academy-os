@@ -52,8 +52,7 @@ academy-os/
     web/      Vue + Tailwind 4 dashboard demo
     api/      NestJS + session validation + Prisma v7 schema
   docs/       architecture, product flows, rollout and security
-  scripts/    GitHub publication helper
-  .github/    CI workflow
+  .github/    CI and dependency updates
 ```
 
 ## GitHub repository
