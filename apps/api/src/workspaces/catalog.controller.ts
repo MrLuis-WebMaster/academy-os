@@ -77,7 +77,7 @@ export class CatalogController {
     await requireMembership(workspaceId,req.academyUser!.id,['STUDENT']);
     return prisma.enrollment.findMany({
       where:{userId:req.academyUser!.id,course:{workspaceId}},
-      select:{id:true,course:{select:{id:true,title:true,summary:true,subject:{select:{name:true}},resources:{where:{workspaceId},select:{id:true,title:true,source:true,url:true}},sessions:{where:{status:'CONFIRMED',workspaceId},orderBy:{startsAt:'asc'},select:{id:true,title:true,startsAt:true,endsAt:true,mode:true,location:true,meetingUrl:true}}}}},
+      select:{id:true,course:{select:{id:true,title:true,summary:true,subject:{select:{name:true}},resources:{where:{workspaceId,published:true},select:{id:true,title:true,source:true,url:true}},sessions:{where:{status:'CONFIRMED',workspaceId},orderBy:{startsAt:'asc'},select:{id:true,title:true,startsAt:true,endsAt:true,mode:true,location:true,meetingUrl:true}}}}},
       orderBy:{createdAt:'desc'},
     });
   }

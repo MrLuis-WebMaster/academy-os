@@ -256,6 +256,7 @@ model Resource {
   externalId   String?
   url          String?
   aiAuthorized Boolean        @default(false)
+  published    Boolean        @default(false)
   workspace    Workspace      @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
   course       Course?        @relation(fields: [courseId], references: [id])
   session      ClassSession?  @relation(fields: [sessionId], references: [id])
