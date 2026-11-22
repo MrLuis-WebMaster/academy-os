@@ -48,7 +48,7 @@ async function addSession(){busy.value=true;message.value='';error.value='';try{
   sessionTitle.value='';await refresh();
   message.value=isSeries?repeatWeeks.value+' clases semanales guardadas en la agenda.':'Clase guardada en la agenda.';
 }catch(e){error.value=e instanceof Error?e.message:'No se pudo agendar la clase';}finally{busy.value=false;}}
-watch(()=>props.workspace.id,async()=>{await refresh();await loadMaterials();await loadReflections();});
+watch(()=>props.workspace.id,async()=>{++materialLoadVersion;materials.value=[];await refresh();await loadMaterials();await loadReflections();});
 onMounted(async()=>{await refresh();await loadMaterials();await loadReflections();});
 async function enroll(){busy.value=true;error.value='';message.value='';try{await request('/enrollments',{method:'POST',body:JSON.stringify({courseId:enrollmentCourse.value,studentUserId:enrollmentStudent.value})});message.value='Alumno inscrito correctamente.';}catch(e){error.value=e instanceof Error?e.message:'No se pudo inscribir';}finally{busy.value=false;}}
 async function cancelSession(session:Lesson){
@@ -63,20 +63,54 @@ async function invite(){busy.value=true;error.value='';inviteLink.value='';try{c
 async function copyInvite(){try{await navigator.clipboard.writeText(inviteLink.value);message.value='Enlace copiado.';}catch{message.value='Copia el enlace manualmente.';}}
 const materialTitle=ref(''),materialUrl=ref(''),materialCourseId=ref(''),materialPublished=ref(false);
 const materials=ref<Array<{id:string;title:string;url:string|null;courseId:string|null;published:boolean}>>([]);
+let materialLoadVersion=0;
 async function loadMaterials(){
-  if(!['OWNER','ADMIN'].includes(props.role))return;
-  try{materials.value=await request<typeof materials.value>('/materials');}
-  catch(e){error.value=e instanceof Error?e.message:'No se pudieron cargar los materiales';}
+  const version=++materialLoadVersion;
+  const workspaceId=props.workspace.id;
+  if(!['OWNER','ADMIN'].includes(props.role)){materials.value=[];return;}
+  try{
+    const list=await apiRequest<typeof materials.value>(workspacePath(workspaceId,'/materials'));
+    if(version===materialLoadVersion&&workspaceId===props.workspace.id)materials.value=list;
+  }catch(e){
+    if(version===materialLoadVersion&&workspaceId===props.workspace.id){
+      materials.value=[];
+      error.value=e instanceof Error?e.message:'No se pudieron cargar los materiales';
+    }
+  }
 }
 async function addMaterial(){
   busy.value=true;error.value='';message.value='';
+  const workspaceId=props.workspace.id;
   try{
-    await request('/materials',{method:'POST',body:JSON.stringify({title:materialTitle.value,url:materialUrl.value,courseId:materialCourseId.value,published:materialPublished.value})});
+    await apiRequest(workspacePath(workspaceId,'/materials'),{
+      method:'POST',
+      body:JSON.stringify({
+        title:materialTitle.value,url:materialUrl.value,
+        courseId:materialCourseId.value,published:materialPublished.value,
+      }),
+    });
+    if(workspaceId!==props.workspace.id)return;
     materialTitle.value='';materialUrl.value='';
     await loadMaterials();
     message.value='Recurso guardado correctamente.';
-  }catch(e){error.value=e instanceof Error?e.message:'No se pudo añadir el material';}
-  finally{busy.value=false;}
+  }catch(e){
+    if(workspaceId===props.workspace.id)error.value=e instanceof Error?e.message:'No se pudo añadir el material';
+  }finally{busy.value=false;}
+}
+async function setMaterialPublication(materialId:string,published:boolean){
+  if(busy.value)return;
+  const workspaceId=props.workspace.id;
+  busy.value=true;error.value='';message.value='';
+  try{
+    await apiRequest(workspacePath(workspaceId,'/materials/'+encodeURIComponent(materialId)+'/publication'),{
+      method:'PATCH',body:JSON.stringify({published}),
+    });
+    if(workspaceId!==props.workspace.id)return;
+    await loadMaterials();
+    message.value=published?'Material publicado para alumnos inscritos.':'Material retirado del Aula Digital.';
+  }catch(e){
+    if(workspaceId===props.workspace.id)error.value=e instanceof Error?e.message:'No se pudo cambiar la publicación.';
+  }finally{busy.value=false;}
 }
 type Reflection={id:string;sessionId:string;status:'DRAFT'|'REVIEW'|'PUBLISHED';notes:string};
 const reflections=ref<Reflection[]>([]);
@@ -132,7 +166,17 @@ const input='mt-2 w-full rounded-xl border border-outline bg-surface p-3 text-sm
         <label class="flex items-center gap-2 self-end text-xs font-semibold"><input v-model="materialPublished" type="checkbox" class="size-4 accent-violet-600"/> Publicar para alumnos inscritos</label>
         <button :disabled="busy || !courses.length" class="rounded-xl bg-brand px-5 py-3 text-xs font-bold text-white disabled:opacity-60">Añadir material</button>
       </form>
-      <div class="mt-5 space-y-2"><div v-for="material in materials" :key="material.id" class="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-outline p-3 text-sm"><div><p class="font-semibold">{{ material.title }}</p><p class="text-xs text-muted">{{ courses.find(c=>c.id===material.courseId)?.title || 'Curso' }}</p></div><span :class="material.published?'text-success':'text-warning'" class="text-xs font-bold">{{ material.published?'Publicado':'Borrador' }}</span></div></div>
+      <div class="mt-5 space-y-2"><div v-for="material in materials" :key="material.id" class="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-outline p-3 text-sm">
+        <div class="min-w-0"><p class="font-semibold">{{ material.title }}</p><p class="text-xs text-muted">{{ courses.find(c=>c.id===material.courseId)?.title || 'Curso' }}</p></div>
+        <div class="flex flex-wrap items-center gap-2">
+          <span :class="material.published?'text-success':'text-warning'" class="text-xs font-bold">{{ material.published?'Publicado':'Borrador' }}</span>
+          <UiButton variant="secondary" size="sm" :disabled="busy"
+            :aria-label="(material.published?'Retirar':'Publicar')+' '+material.title"
+            @click="setMaterialPublication(material.id,!material.published)">
+            {{ material.published?'Retirar':'Publicar' }}
+          </UiButton>
+        </div>
+      </div></div>
     </section>
     <section v-if="status==='ready'" class="mt-6 rounded-2xl border border-outline bg-surface p-6">
       <h2 class="flex items-center gap-2 text-lg font-extrabold"><GraduationCap :size="20" class="text-brand"/> Clase Viva · notas del docente</h2>

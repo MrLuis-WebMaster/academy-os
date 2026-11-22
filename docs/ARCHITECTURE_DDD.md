@@ -2,7 +2,7 @@
 
 ## Estado
 
-El backend se está migrando **por verticales funcionales**, sin romper endpoints ya existentes. Las verticales migradas incluyen `academics/subjects`, `academics/courses`, `academics/enrollments`, `scheduling/bookings`, `scheduling/reschedule`, `scheduling/availability`, `scheduling/time-off`, `scheduling/weekly-series` los casos iniciales de IA en `learning`, la bandeja en `notifications` y la exportación privada en `calendar`, los recibos manuales en `finance` y la asistencia en `attendance`. Los otros controladores aún son legado y están pendientes de refactor; no se deben presentar como DDD completos.
+El backend se está migrando **por verticales funcionales**, sin romper endpoints ya existentes. Las verticales migradas incluyen `academics/subjects`, `academics/courses`, `academics/enrollments`, `scheduling/bookings`, `scheduling/reschedule`, `scheduling/availability`, `scheduling/time-off`, `scheduling/weekly-series` los casos iniciales de IA en `learning`, la bandeja en `notifications` y la exportación privada en `calendar`, los recibos manuales en `finance` y la asistencia en `attendance` y la administración de materiales del Aula Digital en `classroom`. Los otros controladores aún son legado y están pendientes de refactor; no se deben presentar como DDD completos.
 
 ## Dependencias y capas
 
@@ -68,3 +68,7 @@ Scheduling creación/cancelación de sesiones → Learning publicación de activ
 ## Asistencia aislada entre academias
 
 La lectura `GET /bookings/staff` y la escritura `PATCH /bookings/:bookingId/attendance` se mantienen compatibles tras extraer `modules/attendance`. La aplicación valida el rol, el adaptador filtra por academia y profesor, y la escritura vuelve a comprobar permisos y cancelación dentro de una transacción PostgreSQL. Usa el mismo advisory lock de la sesión que las cancelaciones. Los alumnos no consultan listas de asistencia del personal.
+
+## Classroom / materiales externos
+
+`modules/classroom` separa reglas de enlaces HTTPS en el dominio, casos de uso en aplicación, puertos de acceso y Prisma en infraestructura, y el adaptador NestJS en presentación. Se conservan GET/POST `workspaces/:workspaceId/materials` y se incorpora PATCH `:materialId/publication` para publicar/retirar sin borrar recursos. Solo OWNER/ADMIN pueden gestionar; el repositorio revalida ese rol en la transacción junto con la pertenencia del curso. Los enlaces privados no se muestran al alumnado hasta estar publicados y matriculados; las referencias a proveedores OAuth siguen sin conectarse ni verificarse. No se autoriza procesamiento IA al agregar materiales.

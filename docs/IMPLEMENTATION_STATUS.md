@@ -61,6 +61,14 @@
 - La pantalla de asistencia utiliza componentes `@academy-os/ui`, transporte API compartido, estados de carga/error/guardado y evita mostrar valores no persistidos tras un fallo.
 - El flujo sigue requiriendo validación de despliegue, OAuth real y pruebas de usuario; no significa que el producto esté listo para producción.
 
+## Hito 6: Classroom — gestión de materiales (2026-11-22)
+
+- El contexto Classroom migra recursos HTTPS a dominio, casos de uso, puertos y repositorio Prisma.
+- Se conservan creación y consulta de materiales. Nuevo endpoint PATCH para publicar o retirar un borrador sin recrearlo.
+- La administración verifica OWNER/ADMIN y scope de curso en la misma transacción; los alumnos ven solamente recursos publicados de cursos inscritos.
+- La vista Gestión real incluye acciones publicar/retirar; los resultados de solicitudes antiguas no sobrescriben materiales al cambiar de academia.
+- Los enlaces externos **no** son alojamiento seguro ni implican permisos garantizados de Drive/Dropbox. Los accesos OAuth siguen pendientes.
+
 ## Límites no resueltos
 - OAuth Google en entorno real, test del callback, cookies, sesiones y logout end-to-end.
 - Meet/Zoom/Drive, correo transaccional, sync calendario, app almacenamiento no conectado.

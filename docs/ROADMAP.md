@@ -6,9 +6,9 @@ Cada marca `[x]` indica funcionalidad codificada en el repo, **no un lanzamiento
 - [x] Repositorio independiente y monorepo pnpm (Vue 3, NestJS, Tailwind 4, Prisma 7).
 - [x] Paquete `@academy-os/ui`: 14 primitivas, estilos semánticos, tema claro/oscuro/sistema, galería en desarrollo.
 - [x] Normalización compartida de slug y cliente HTTP único usado por varias pantallas.
-- [x] DDD/hexagonal en Academics, Scheduling, Attendance, Finance, Learning, Notifications y Calendar, con pruebas de puertos falsos y algunas pruebas reales de PostgreSQL.
+- [x] DDD/hexagonal en Academics, Scheduling, Attendance, Finance, Classroom (materiales), Learning, Notifications y Calendar, con pruebas de puertos falsos y algunas pruebas reales de PostgreSQL.
 - [x] Control de fronteras arquitectónicas en CI (`pnpm arch:check`).
-- [~] Migrar el resto de los contextos (tenancy, gestión de sesiones, commerce, publishing) sin cambiar contratos HTTP.
+- [~] Migrar el resto de los contextos (tenancy, gestión de sesiones, commerce y publicación de actividades) sin cambiar contratos HTTP.
 - [x] Migraciones versionadas y validación con PostgreSQL 19 en CI.
 - [x] PWA estática con fallback offline sin caché de información privada.
 - [~] Pruebas de aislamiento en PostgreSQL y sobrecupo concurrente (verificar CI más reciente).
@@ -20,7 +20,7 @@ Cada marca `[x]` indica funcionalidad codificada en el repo, **no un lanzamiento
 - [x] Invitaciones de docente/alumno/admin, roles por espacio.
 - [x] Materias, cursos, temas jerárquicos, docentes asignados, inscripciones.
 - [x] Clases ONLINE/ONSITE/HYBRID con enlaces manuales; reservas, cancelación, cupos y registro de asistencia.
-- [x] Aula Digital con materiales por curso, controles de publicación y sesiones.
+- [x] Aula Digital con materiales por curso, creación en borrador y publicación/retiro explícitos, visibles solo a inscritos.
 - [x] Registro manual de cobros; no captura pagos externos.
 - [x] Profe Studio con catálogo público, precio COP y contacto externo, desactivado por defecto.
 - [ ] E2E de Google OAuth con credenciales reales y despliegue staging.
@@ -56,3 +56,9 @@ Cumplir [RELEASE_CHECKLIST.md](RELEASE_CHECKLIST.md). Nunca considerar CI verde 
 - [x] Registro y consulta de asistencia en módulo hexagonal separado, conservando rutas y permisos.
 - [x] Bloqueo transaccional de cambios de asistencia frente a cancelaciones, revalidación de academia/rol/docente en la escritura.
 - [ ] Validar junto al resto del sistema mediante CI y pruebas end-to-end antes de declararlo listo para usuarios reales.
+
+## Hito: Classroom materiales por capas
+- [x] Materiales HTTPS migrados a contexto hexagonal y conservación de GET/POST existentes.
+- [x] Endpoint de publicación/retiro con validación de permisos, academia y curso dentro de transacción.
+- [x] Control visual de publicación en Gestión real; evita respuestas tardías de otro workspace en el listado.
+- [ ] Gestión de archivos privados, permisos reales de enlaces externos y OAuth Drive/Dropbox.

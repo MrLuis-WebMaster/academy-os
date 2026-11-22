@@ -32,7 +32,7 @@ En producción usa migraciones revisadas con `prisma migrate deploy`, HTTPS y co
 
 ## Arquitectura y sistema visual
 
-- **DDD / hexagonal:** [`docs/ARCHITECTURE_DDD.md`](docs/ARCHITECTURE_DDD.md). Los contextos Academics, Scheduling, Attendance, Finance, Learning, Notifications y Calendar contienen verticales mediante dominio, casos de uso, puertos e infraestructura Prisma. La migración de los demás contextos es progresiva.
+- **DDD / hexagonal:** [`docs/ARCHITECTURE_DDD.md`](docs/ARCHITECTURE_DDD.md). Los contextos Academics, Scheduling, Attendance, Finance, Classroom (materiales), Learning, Notifications y Calendar contienen verticales mediante dominio, casos de uso, puertos e infraestructura Prisma. La migración de los demás contextos es progresiva.
 - **Design System:** [`docs/DESIGN_SYSTEM.md`](docs/DESIGN_SYSTEM.md). Paquete de workspace `@academy-os/ui` con 14 primitivas, variables semánticas Tailwind 4, Lucide Icons y apariencia **clara, oscura o automática según el sistema**. La preferencia se conserva localmente.
 - **Galería de componentes (solo desarrollo):** ejecutar `pnpm dev` y abrir `http://localhost:5173/?design-system=1`.
 - **HTTP compartido:** `apps/web/src/shared/api-client.ts` centraliza transporte, errores y rutas por workspace, evitando implementaciones duplicadas en las pantallas.
