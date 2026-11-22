@@ -4,6 +4,8 @@ import type { AuthenticatedRequest } from '../auth/session.guard.js';
 import { prisma } from '../lib/prisma.js';
 import { requireMembership } from './access.js';
 
+const enrollmentInput=z.object({courseId:z.string().min(1),studentUserId:z.string().min(1)});
+
 const courseInput = z.object({
   title: z.string().trim().min(3).max(120),
   summary: z.string().trim().max(2000).optional(),
@@ -54,4 +56,30 @@ export class CatalogController {
     try { return await prisma.course.create({ data: { title, summary, subjectId, workspaceId }, select: { id: true, title: true, summary: true, subjectId: true } }); }
     catch (e) { throw new ConflictException('Unable to create course'); }
   }
+
+  @Post('enrollments')
+  async enroll(@Req() req: AuthenticatedRequest, @Param('workspaceId') workspaceId: string, @Body() body:unknown) {
+    await requireMembership(workspaceId,req.academyUser!.id,['OWNER','ADMIN']);
+    const parsed=enrollmentInput.safeParse(body);
+    if(!parsed.success)throw new BadRequestException('Invalid enrollment');
+    const {courseId,studentUserId}=parsed.data;
+    const [course,member]=await Promise.all([
+      prisma.course.findFirst({where:{id:courseId,workspaceId}}),
+      prisma.workspaceMember.findFirst({where:{workspaceId,userId:studentUserId,role:'STUDENT'}}),
+    ]);
+    if(!course||!member)throw new BadRequestException('Student and course must belong to this academy');
+    try{return await prisma.enrollment.create({data:{courseId,userId:studentUserId},select:{id:true,courseId:true,userId:true,createdAt:true}});}
+    catch(e){if(typeof e==='object'&&e!==null&&'code' in e&&e.code==='P2002')throw new ConflictException('Student is already enrolled');throw e;}
+  }
+
+  @Get('classroom')
+  async classroom(@Req() req:AuthenticatedRequest,@Param('workspaceId') workspaceId:string) {
+    await requireMembership(workspaceId,req.academyUser!.id,['STUDENT']);
+    return prisma.enrollment.findMany({
+      where:{userId:req.academyUser!.id,course:{workspaceId}},
+      select:{id:true,course:{select:{id:true,title:true,summary:true,subject:{select:{name:true}},resources:{select:{id:true,title:true,source:true,url:true}},sessions:{where:{status:'CONFIRMED'},orderBy:{startsAt:'asc'},select:{id:true,title:true,startsAt:true,endsAt:true,mode:true,location:true,meetingUrl:true}}}}},
+      orderBy:{createdAt:'desc'},
+    });
+  }
+
 }

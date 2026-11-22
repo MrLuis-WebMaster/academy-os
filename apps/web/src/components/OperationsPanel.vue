@@ -1,12 +1,15 @@
 <script setup lang="ts">
 import { onMounted, ref, watch } from 'vue';
 import { BookOpen, CalendarDays, GraduationCap, Plus, RefreshCcw, Users, Video, MapPin, CheckCircle2 } from 'lucide-vue-next';
-const props = defineProps<{ workspace: { id: string; name: string; type: 'SOLO'|'ACADEMY' } }>();
+const props = defineProps<{ workspace: { id: string; name: string; type: 'SOLO'|'ACADEMY' }; role: string }>();
 type Subject = { id:string; name:string };
 type Course = { id:string; title:string; summary:string|null; subjectId:string|null };
 type Teacher = { id:string; userId:string; user:{name:string} };
 type Lesson = { id:string; title:string; startsAt:string; endsAt:string; mode:'ONLINE'|'ONSITE'|'HYBRID'; status:string; location:string|null };
 const subjects=ref<Subject[]>([]), courses=ref<Course[]>([]), teachers=ref<Teacher[]>([]), sessions=ref<Lesson[]>([]);
+type Member={role:string;user:{id:string;name:string;email:string}};
+const members=ref<Member[]>([]);
+const enrollmentCourse=ref(''),enrollmentStudent=ref('');
 const status=ref<'loading'|'ready'|'error'>('loading'), busy=ref(false), message=ref(''), error=ref('');
 const subjectName=ref(''), courseTitle=ref(''), courseSubjectId=ref('');
 const sessionTitle=ref(''), sessionTeacherId=ref(''), sessionCourseId=ref('');
@@ -17,7 +20,7 @@ async function request<T>(path:string,options?:RequestInit):Promise<T>{
   if(!response.ok){ const body=await response.json().catch(()=>null); throw Error(response.status===403?'No tienes permiso para realizar esta acción.':typeof body?.message==='string'?body.message:`Error HTTP ${response.status}`); }
   return response.json() as Promise<T>;
 }
-async function refresh(){status.value='loading';error.value='';try{const [s,c,t,l]=await Promise.all([request<Subject[]>('/subjects'),request<Course[]>('/courses'),request<Teacher[]>('/teachers'),request<Lesson[]>('/sessions')]);subjects.value=s;courses.value=c;teachers.value=t;sessions.value=l;if(!sessionTeacherId.value)sessionTeacherId.value=t[0]?.id||'';status.value='ready';}catch(e){error.value=e instanceof Error?e.message:'No se pudieron cargar los datos';status.value='error';}}
+async function refresh(){status.value='loading';error.value='';try{const [s,c,t,l]=await Promise.all([request<Subject[]>('/subjects'),request<Course[]>('/courses'),request<Teacher[]>('/teachers'),request<Lesson[]>('/sessions')]);subjects.value=s;courses.value=c;teachers.value=t;sessions.value=l;if(!sessionTeacherId.value)sessionTeacherId.value=t[0]?.id||'';if(['OWNER','ADMIN'].includes(props.role))members.value=await request<Member[]>('/people');else members.value=[];status.value='ready';}catch(e){error.value=e instanceof Error?e.message:'No se pudieron cargar los datos';status.value='error';}}
 async function addSubject(){busy.value=true;message.value='';error.value='';try{await request('/subjects',{method:'POST',body:JSON.stringify({name:subjectName.value})});subjectName.value='';await refresh();message.value='Materia guardada correctamente.';}catch(e){error.value=e instanceof Error?e.message:'No se pudo crear la materia';}finally{busy.value=false;}}
 async function addCourse(){busy.value=true;message.value='';error.value='';try{await request('/courses',{method:'POST',body:JSON.stringify({title:courseTitle.value, ...(courseSubjectId.value?{subjectId:courseSubjectId.value}:{})})});courseTitle.value='';await refresh();message.value='Curso creado.';}catch(e){error.value=e instanceof Error?e.message:'No se pudo crear el curso';}finally{busy.value=false;}}
 async function addSession(){busy.value=true;message.value='';error.value='';try{
@@ -27,6 +30,7 @@ async function addSession(){busy.value=true;message.value='';error.value='';try{
 }catch(e){error.value=e instanceof Error?e.message:'No se pudo agendar la clase';}finally{busy.value=false;}}
 watch(()=>props.workspace.id,refresh);
 onMounted(refresh);
+async function enroll(){busy.value=true;error.value='';message.value='';try{await request('/enrollments',{method:'POST',body:JSON.stringify({courseId:enrollmentCourse.value,studentUserId:enrollmentStudent.value})});message.value='Alumno inscrito correctamente.';}catch(e){error.value=e instanceof Error?e.message:'No se pudo inscribir';}finally{busy.value=false;}}
 const inviteEmail=ref(''),inviteRole=ref<'TEACHER'|'STUDENT'|'ADMIN'>('TEACHER'),inviteLink=ref('');
 async function invite(){busy.value=true;error.value='';inviteLink.value='';try{const r=await request<{inviteUrl:string}>('/invitations',{method:'POST',body:JSON.stringify({email:inviteEmail.value,role:inviteRole.value})});inviteLink.value=r.inviteUrl;message.value='Invitación generada. Compártela con la persona indicada.';}catch(e){error.value=e instanceof Error?e.message:'No se pudo invitar';}finally{busy.value=false;}}
 async function copyInvite(){try{await navigator.clipboard.writeText(inviteLink.value);message.value='Enlace copiado.';}catch{message.value='Copia el enlace manualmente.';}}
@@ -43,6 +47,11 @@ const input='mt-2 w-full rounded-xl border border-outline bg-white p-3 text-sm o
       <section class="rounded-2xl border border-outline bg-white p-5"><div class="flex items-center gap-2"><GraduationCap :size="20" class="text-brand"/><h2 class="font-extrabold">Cursos</h2></div><p class="mt-2 text-xs text-muted">Puedes crear cursos para una materia o asesorías libres.</p><form class="mt-5 grid gap-3" @submit.prevent="addCourse"><input v-model="courseTitle" required minlength="3" maxlength="120" placeholder="Ej. Álgebra básica" :class="input"/><select v-model="courseSubjectId" :class="input"><option value="">Sin materia específica</option><option v-for="subject in subjects" :key="subject.id" :value="subject.id">{{ subject.name }}</option></select><button :disabled="busy" class="flex items-center justify-center gap-2 rounded-xl bg-brand p-3 text-xs font-bold text-white disabled:opacity-60"><Plus :size="16"/> Crear curso</button></form><div class="mt-5 space-y-2"><div v-for="course in courses" :key="course.id" class="rounded-xl border border-outline p-3"><p class="text-sm font-bold">{{ course.title }}</p><p class="mt-1 text-xs text-muted">{{ subjects.find(s=>s.id===course.subjectId)?.name || 'Asesoría libre' }}</p></div><p v-if="!courses.length" class="text-xs text-muted">Aún no tienes cursos.</p></div></section>
       <section class="rounded-2xl border border-outline bg-white p-5"><div class="flex items-center gap-2"><Users :size="20" class="text-brand"/><h2 class="font-extrabold">Equipo</h2></div><p class="mt-2 text-xs text-muted">Profesores asociados a este espacio.</p><div class="mt-5 space-y-3"><div v-for="teacher in teachers" :key="teacher.id" class="flex items-center gap-3 rounded-xl bg-slate-50 p-3"><span class="grid size-9 place-items-center rounded-full bg-violet-200 text-sm font-extrabold text-brand">{{ teacher.user.name[0] }}</span><div><b class="text-sm">{{ teacher.user.name }}</b><p class="text-xs text-muted">Profesor del espacio</p></div></div></div><p class="mt-5 text-xs text-muted">Invita a docentes o alumnos por correo. La persona debe entrar con ese mismo correo de Google.</p></section>
     </div>
+    <section v-if="status==='ready' && ['OWNER','ADMIN'].includes(role)" class="mt-6 rounded-2xl border border-outline bg-white p-6">
+      <h2 class="flex items-center gap-2 text-lg font-extrabold"><GraduationCap :size="20" class="text-brand"/> Inscribir alumnos</h2>
+      <p class="mt-2 text-xs text-muted">Selecciona un alumno que ya haya aceptado su invitación y el curso que va a estudiar.</p>
+      <form class="mt-4 flex flex-wrap items-end gap-3" @submit.prevent="enroll"><label class="min-w-48 flex-1 text-xs font-semibold">Alumno<select v-model="enrollmentStudent" required :class="input"><option value="">Seleccionar alumno</option><option v-for="m in members.filter(x=>x.role==='STUDENT')" :key="m.user.id" :value="m.user.id">{{ m.user.name }}</option></select></label><label class="min-w-48 flex-1 text-xs font-semibold">Curso<select v-model="enrollmentCourse" required :class="input"><option value="">Seleccionar curso</option><option v-for="course in courses" :key="course.id" :value="course.id">{{ course.title }}</option></select></label><button :disabled="busy||!courses.length" class="rounded-xl bg-brand px-5 py-3 text-xs font-bold text-white disabled:opacity-60">Inscribir alumno</button></form>
+    </section>
     <section v-if="status==='ready'" class="mt-6 rounded-2xl border border-outline bg-white p-6">
       <h2 class="flex items-center gap-2 text-lg font-extrabold"><Users :size="20" class="text-brand"/> Invitar a otra persona</h2>
       <p class="mt-2 text-xs text-muted">Genera una invitación privada de un solo uso, válida por 7 días. Compártela con su correo de Google. No se envía ningún correo automáticamente.</p>

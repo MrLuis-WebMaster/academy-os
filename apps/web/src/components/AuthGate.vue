@@ -4,6 +4,7 @@ import { ArrowLeft, ArrowRight, BookOpen, Check, GraduationCap, School, ShieldCh
 import { authClient } from '../auth-client';
 import App from '../App.vue';
 import OperationsPanel from './OperationsPanel.vue';
+import StudentClassroom from './StudentClassroom.vue';
 
 type Workspace = { id: string; name: string; slug: string; type: 'SOLO'|'ACADEMY'; brandColor: string };
 type Membership = { role: string; workspace: Workspace };
@@ -106,8 +107,8 @@ onMounted(()=>{
           <button class="rounded-lg border border-outline px-3 py-2 font-bold text-slate-600" @click="demo ? (demo=false,state='login') : signOut()">{{ demo ? 'Salir de la demo' : 'Cerrar sesión' }}</button>
         </div>
       </div>
-      <OperationsPanel v-if="!demo && operations && selected && ['OWNER','ADMIN','TEACHER'].includes(currentRole)" :workspace="selected" />
-      <main v-else-if="!demo && operations && selected" class="mx-auto max-w-3xl p-6 md:p-12"><div class="rounded-3xl border border-outline bg-white p-8"><GraduationCap :size="32" class="text-brand"/><h1 class="mt-4 text-2xl font-extrabold">Bienvenido a {{ selected.name }}</h1><p class="mt-3 text-sm text-muted">Tu cuenta ya tiene acceso a este espacio. El Aula Digital del alumno y las inscripciones están en desarrollo; todavía no hay cursos disponibles aquí.</p></div></main>
+      <OperationsPanel v-if="!demo && operations && selected && ['OWNER','ADMIN','TEACHER'].includes(currentRole)" :workspace="selected" :role="currentRole" />
+      <StudentClassroom v-else-if="!demo && operations && selected" :workspace="selected" />
       <App v-else :active-workspace="selected" :viewer-name="user?.name || 'Demo'" />
     </div>
   </template>
