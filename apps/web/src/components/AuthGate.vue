@@ -6,6 +6,7 @@ import { authClient } from '../auth-client';
 import App from '../App.vue';
 import OperationsPanel from './OperationsPanel.vue';
 import StudentClassroom from './StudentClassroom.vue';
+import NotificationCenter from './NotificationCenter.vue';
 
 type Workspace = { id: string; name: string; slug: string; type: 'SOLO'|'ACADEMY'; brandColor: string };
 type Membership = { role: string; workspace: Workspace };
@@ -107,6 +108,7 @@ onMounted(()=>{
       <div class="flex flex-wrap items-center justify-between gap-3 border-b border-outline bg-surface px-4 py-2 text-xs md:px-8">
         <div class="flex flex-wrap items-center gap-2"><span class="font-extrabold text-brand">AcademyOS</span><span v-if="demo" class="rounded-full bg-amber-100 px-2 py-1 text-amber-800">Vista de demostración · sin datos reales</span><span v-else class="rounded-full bg-emerald-100 px-2 py-1 text-success">Sesión iniciada · {{ selected?.name }}</span></div>
         <div class="flex items-center gap-2">
+          <NotificationCenter v-if="!demo && selected" :workspace-id="selected.id" />
           <UiThemeSwitcher />
           <select v-if="!demo && memberships.length>1" aria-label="Elegir academia" class="rounded-lg border border-outline px-2 py-1 text-xs" :value="selected?.id" @change="selected=memberships.find(m=>m.workspace.id===($event.target as HTMLSelectElement).value)?.workspace || null"><option v-for="m in memberships" :key="m.workspace.id" :value="m.workspace.id">{{ m.workspace.name }}</option></select>
           <button v-if="!demo" class="rounded-lg border border-outline px-3 py-2 font-bold text-muted" @click="newWorkspace">Nueva academia</button>
