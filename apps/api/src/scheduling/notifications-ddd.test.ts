@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {sessionNotice,notificationId,InvalidNotificationIdentifier} from '../modules/notifications/domain/notification.js';
+import {sessionNotice,bookingNotice,enrollmentNotice,notificationId,InvalidNotificationIdentifier} from '../modules/notifications/domain/notification.js';
 import {
  NotificationUseCases,NotificationAccessDenied,NotificationNotFound
 } from '../modules/notifications/application/notification-use-cases.js';
@@ -41,4 +41,9 @@ test('workspace outsiders cannot read or change notifications',async()=>{
  await assert.rejects(()=>useCases.list('w','outsider'),NotificationAccessDenied);
  await assert.rejects(()=>useCases.read('w','outsider','notice-1'),NotificationAccessDenied);
  await assert.rejects(()=>useCases.readAll('w','outsider'),NotificationAccessDenied);
+});
+
+test('booking and enrollment notice titles contain no private profiles',()=>{
+ assert.match(bookingNotice(' Aritmética ').body,/Aritmética/);
+ assert.match(enrollmentNotice(' Inglés ').body,/Inglés/);
 });
