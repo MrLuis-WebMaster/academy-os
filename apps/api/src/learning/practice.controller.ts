@@ -1,4 +1,4 @@
-import {BadRequestException,Body,ConflictException,Controller,ForbiddenException,Get,NotFoundException,Param,Post,Req} from '@nestjs/common';
+import {BadRequestException,Body,ConflictException,Controller,ForbiddenException,Get,NotFoundException,Param,Patch,Post,Req} from '@nestjs/common';
 import {prisma} from '../lib/prisma.js';
 import {requireMembership} from '../workspaces/access.js';
 import type {AuthenticatedRequest} from '../auth/session.guard.js';
@@ -38,8 +38,31 @@ export class PracticeController {
     const scoped=member.role==='TEACHER'?{teacher:{userId:req.academyUser!.id}}:{};
     return prisma.activity.findMany({
       where:{reflection:{session:{workspaceId,...scoped}}},
-      select:{id:true,title:true,publishedAt:true,reflection:{select:{sessionId:true,session:{select:{title:true,courseId:true}}}},_count:{select:{attempts:true}}},
+      select:{id:true,title:true,questions:true,publishedAt:true,reflection:{select:{sessionId:true,status:true,session:{select:{title:true,courseId:true}}}},_count:{select:{attempts:true}}},
       take:100,
+    });
+  }
+
+  @Patch(':activityId')
+  async revise(@Req() req:AuthenticatedRequest,@Param('workspaceId') workspaceId:string,
+    @Param('activityId') activityId:string,@Body() body:unknown){
+    const parsed=newPracticeSchema.pick({title:true,questions:true}).safeParse(body);
+    if(!parsed.success)throw new BadRequestException(parsed.error.flatten());
+    const activity=await prisma.activity.findFirst({
+      where:{id:activityId,reflection:{session:{workspaceId}}},
+      select:{id:true,publishedAt:true,reflection:{select:{sessionId:true}},_count:{select:{attempts:true}}},
+    });
+    if(!activity)throw new NotFoundException('Activity not found');
+    await this.teachingScope(workspaceId,req.academyUser!.id,activity.reflection.sessionId);
+    if(activity.publishedAt||activity._count.attempts>0)
+      throw new ConflictException('Published or answered exercises cannot be modified');
+    const updated=await prisma.activity.updateMany({
+      where:{id:activityId,publishedAt:null},
+      data:{title:parsed.data.title,questions:parsed.data.questions},
+    });
+    if(updated.count!==1)throw new ConflictException('Exercise changed during editing');
+    return prisma.activity.findUnique({
+      where:{id:activityId},select:{id:true,title:true,questions:true,publishedAt:true},
     });
   }
 
