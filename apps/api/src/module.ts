@@ -13,9 +13,10 @@ import { PracticeController } from './learning/practice.controller.js';
 import { StudioController } from './studio/controller.js';
 import { BookingsController } from './scheduling/bookings.controller.js';
 import { FinanceController } from './finance/controller.js';
+import { CurriculumController } from './workspaces/curriculum.controller.js';
 
 @Module({
-  controllers: [DemoController, MeController, WorkspaceController, CatalogController, SchedulingController, InvitationsController, MaterialsController, ClassAliveController, PracticeController, StudioController, BookingsController, FinanceController],
+  controllers: [DemoController, MeController, WorkspaceController, CatalogController, SchedulingController, InvitationsController, MaterialsController, ClassAliveController, PracticeController, StudioController, BookingsController, FinanceController, CurriculumController],
   providers: [{ provide: APP_GUARD, useClass: SessionGuard }],
 })
 export class AppModule {}
