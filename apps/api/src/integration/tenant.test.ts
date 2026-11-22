@@ -17,6 +17,9 @@ import {PrismaNotificationMailbox} from '../modules/notifications/infrastructure
 import {NotificationsController} from '../modules/notifications/presentation/notifications.controller.js';
 import {ExportCalendarUseCase,CalendarAccessDenied} from '../modules/calendar/application/export-calendar-use-case.js';
 import {PrismaCalendarReadRepository} from '../modules/calendar/infrastructure/prisma-calendar-read-repository.js';
+import {EnrollmentsController} from '../modules/academics/presentation/enrollments.controller.js';
+import {EnrollmentUseCases} from '../modules/academics/application/enrollment-use-cases.js';
+import {PrismaEnrollmentRepository} from '../modules/academics/infrastructure/prisma-enrollment-repository.js';
 import {FinanceController} from '../finance/controller.js';
 import type {AuthenticatedRequest} from '../auth/session.guard.js';
 
@@ -106,6 +109,23 @@ test('PostgreSQL multi-tenant guards and booking capacity',async()=>{
     assert.match(bookedCalendar,/SUMMARY:Taller 1/);
     assert.equal(otherCalendar.includes('SUMMARY:Taller 1'),false);
     await assert.rejects(()=>calendar.execute(b.id,owner.id),CalendarAccessDenied);
+    // Owner of academy A enrolls a member of both academies; the confirmation
+    // must be visible in A only, never leak into their B notification feed.
+    await prisma.workspaceMember.create({
+      data:{workspaceId:a.id,userId:student1.id,role:'STUDENT'},
+    });
+    const courseA=await prisma.course.create({data:{workspaceId:a.id,title:'Taller privado A'}});
+    const enrollments=new EnrollmentsController(
+      new EnrollmentUseCases(new PrismaEnrollmentRepository(),new PrismaMembershipAdapter()),
+    );
+    await enrollments.enroll(request(owner.id),a.id,{
+      courseId:courseA.id,studentUserId:student1.id,
+    });
+    const studentAInbox=await notices.list(request(student1.id),a.id);
+    assert.equal(studentAInbox.items.length,1);
+    assert.equal(studentAInbox.items[0]!.kind,'COURSE_ENROLLED');
+    assert.equal((await notices.list(request(student1.id),b.id)).items.some(n=>n.kind==='COURSE_ENROLLED'),false);
+
 
 
     await assert.rejects(()=>bookingActions.reserve(request(owner.id),b.id,{sessionId:session.id}),ForbiddenException);
