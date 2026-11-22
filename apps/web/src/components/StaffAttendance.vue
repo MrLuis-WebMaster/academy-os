@@ -17,6 +17,7 @@ const rows=ref<RecordRow[]>([]);
 const loading=ref(false),error=ref(''),message=ref(''),busy=ref('');
 const selectVersion=ref(0);
 let loadVersion=0;
+let saveVersion=0;
 
 const sortedRows=computed(()=>[...rows.value].sort((a,b)=>
   new Date(b.session.startsAt).getTime()-new Date(a.session.startsAt).getTime(),
@@ -52,6 +53,7 @@ async function save(bookingId:string,value:string|number){
   if(busy.value||loading.value)return;
   if(!['PRESENT','ABSENT','LATE','EXCUSED'].includes(String(value)))return;
   const currentWorkspace=props.workspaceId;
+  const operation=++saveVersion;
   busy.value=bookingId;
   error.value='';
   message.value='';
@@ -68,12 +70,13 @@ async function save(bookingId:string,value:string|number){
     // Restore the saved server value; a failed selection must not appear persisted.
     selectVersion.value++;
   }finally{
-    busy.value='';
+    if(operation===saveVersion)busy.value='';
   }
 }
 
 watch(()=>props.workspaceId,()=>{
   ++loadVersion;
+  ++saveVersion;
   rows.value=[];
   error.value='';
   message.value='';

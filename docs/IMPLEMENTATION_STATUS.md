@@ -53,6 +53,14 @@
 - Gestión real incluye selector de repetición y pantalla de vacaciones. Las series aparecen identificadas en el listado de clases y sus ocurrencias se exportan a ICS.
 - Hay cancelación masiva de próximas sesiones de una serie, con notificación privada por reserva y preservación de sesiones anteriores o completadas; no existe aún edición masiva, generación automática de festivos según país ni invitaciones recurrentes de videollamada.
 
+## Hito 5: asistencia y finanzas por capas (2026-11-22)
+
+- Finanzas manuales y asistencia se migraron a contextos DDD/hexagonales con casos de uso, puertos, adaptadores Prisma y controladores NestJS. Sin nuevas migraciones ni cambios en los contratos HTTP.
+- La escritura de asistencia valida nuevamente la membresía, el profesor asignado, el estado de la reserva y la cancelación de la sesión dentro de una transacción PostgreSQL, usando el bloqueo compartido de clase.
+- El backend incluye pruebas unitarias de roles y reglas de asistencia, y pruebas de integración PostgreSQL para aislamiento por academia, profesor y cancelaciones.
+- La pantalla de asistencia utiliza componentes `@academy-os/ui`, transporte API compartido, estados de carga/error/guardado y evita mostrar valores no persistidos tras un fallo.
+- El flujo sigue requiriendo validación de despliegue, OAuth real y pruebas de usuario; no significa que el producto esté listo para producción.
+
 ## Límites no resueltos
 - OAuth Google en entorno real, test del callback, cookies, sesiones y logout end-to-end.
 - Meet/Zoom/Drive, correo transaccional, sync calendario, app almacenamiento no conectado.
