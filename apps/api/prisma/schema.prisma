@@ -90,6 +90,7 @@ model User {
   studentReceipts PaymentReceipt[] @relation("StudentPayment")
   recordedReceipts PaymentReceipt[] @relation("RecordedPayment")
   sessionChanges SessionChange[]
+  aiGenerations AiGeneration[]
   memberships WorkspaceMember[]
   teaching    TeacherProfile[]
   enrollments Enrollment[]
@@ -122,6 +123,7 @@ model Workspace {
   offerings Offering[]
   bookings ClassBooking[]
   paymentReceipts PaymentReceipt[]
+  aiGenerations AiGeneration[]
 }
 
 model WorkspaceMember {
@@ -229,6 +231,7 @@ model ClassSession {
   teacher     TeacherProfile? @relation(fields: [teacherProfileId], references: [id])
   bookings ClassBooking[]
   changes SessionChange[]
+  aiGenerations AiGeneration[]
   reflection  ClassReflection?
   resources   Resource[]
   @@index([workspaceId, startsAt])
@@ -252,6 +255,7 @@ model Activity {
   publishedAt  DateTime?
   reflection   ClassReflection @relation(fields: [reflectionId], references: [id], onDelete: Cascade)
   attempts     ActivityAttempt[]
+  aiGenerations AiGeneration[]
 }
 
 model ActivityAttempt {
@@ -444,4 +448,20 @@ model SessionChange {
   session ClassSession @relation(fields:[sessionId],references:[id],onDelete:Cascade)
   actor User @relation(fields:[actorUserId],references:[id])
   @@index([sessionId,changedAt])
+}
+
+model AiGeneration {
+  id String @id @default(cuid())
+  workspaceId String
+  actorUserId String
+  sessionId String
+  activityId String?
+  model String
+  status String @default("PENDING")
+  createdAt DateTime @default(now())
+  workspace Workspace @relation(fields:[workspaceId],references:[id],onDelete:Cascade)
+  actor User @relation(fields:[actorUserId],references:[id],onDelete:Cascade)
+  session ClassSession @relation(fields:[sessionId],references:[id],onDelete:Cascade)
+  activity Activity? @relation(fields:[activityId],references:[id],onDelete:SetNull)
+  @@index([workspaceId,createdAt])
 }
