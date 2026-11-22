@@ -1,11 +1,7 @@
-import { BadRequestException, Body, ConflictException, Controller, Get, Param, Post, Req } from '@nestjs/common';
-import { z } from 'zod';
+import { Controller, Get, Param, Req } from '@nestjs/common';
 import type { AuthenticatedRequest } from '../auth/session.guard.js';
 import { prisma } from '../lib/prisma.js';
 import { requireMembership } from './access.js';
-
-const enrollmentInput=z.object({courseId:z.string().min(1),studentUserId:z.string().min(1)});
-
 
 @Controller('workspaces/:workspaceId')
 export class CatalogController {
@@ -26,21 +22,6 @@ export class CatalogController {
       where: { workspaceId },
       select: { id: true, bio: true, userId: true, user: { select: { name: true, image: true } } },
     });
-  }
-
-  @Post('enrollments')
-  async enroll(@Req() req: AuthenticatedRequest, @Param('workspaceId') workspaceId: string, @Body() body:unknown) {
-    await requireMembership(workspaceId,req.academyUser!.id,['OWNER','ADMIN']);
-    const parsed=enrollmentInput.safeParse(body);
-    if(!parsed.success)throw new BadRequestException('Invalid enrollment');
-    const {courseId,studentUserId}=parsed.data;
-    const [course,member]=await Promise.all([
-      prisma.course.findFirst({where:{id:courseId,workspaceId}}),
-      prisma.workspaceMember.findFirst({where:{workspaceId,userId:studentUserId,role:'STUDENT'}}),
-    ]);
-    if(!course||!member)throw new BadRequestException('Student and course must belong to this academy');
-    try{return await prisma.enrollment.create({data:{courseId,userId:studentUserId},select:{id:true,courseId:true,userId:true,createdAt:true}});}
-    catch(e){if(typeof e==='object'&&e!==null&&'code' in e&&e.code==='P2002')throw new ConflictException('Student is already enrolled');throw e;}
   }
 
   @Get('classroom')

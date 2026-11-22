@@ -15,7 +15,13 @@ export function workspacePath(workspaceId: string, path: string): string {
 }
 
 export async function apiRequest<T>(url: string, options: RequestInit = {}): Promise<T> {
-  const response = await fetch(url, {credentials: 'same-origin', ...options});
+  const headers = new Headers(options.headers);
+  // Several legacy screens already send JSON.stringify() without a Content-Type.
+  // Express will not parse such requests as JSON; normalize centrally.
+  if (typeof options.body === 'string' && !headers.has('Content-Type')) {
+    headers.set('Content-Type', 'application/json');
+  }
+  const response = await fetch(url, {credentials: 'same-origin', ...options, headers});
   let body: unknown;
   try { body = await response.json() as unknown; } catch { body = null; }
 
