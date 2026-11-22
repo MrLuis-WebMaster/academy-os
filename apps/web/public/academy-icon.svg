@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192" role="img" aria-label="AcademyOS">
+<defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#7059e8"/><stop offset="1" stop-color="#a28afa"/></linearGradient></defs>
+<rect width="192" height="192" rx="44" fill="url(#g)"/>
+<path d="M39 59c19-8 39-5 57 7v67c-19-12-38-14-57-7z" fill="white"/>
+<path d="M153 59c-19-8-39-5-57 7v67c19-12 38-14 57-7z" fill="white" opacity=".76"/>
+<path d="M96 66v67M37 136c18-7 38-5 59 7 21-12 41-14 59-7" stroke="white" stroke-width="6" fill="none" stroke-linecap="round"/>
+</svg>

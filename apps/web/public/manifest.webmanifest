@@ -1,0 +1,19 @@
+{
+  "name": "AcademyOS — Tu academia, a tu manera",
+  "short_name": "AcademyOS",
+  "description": "Agenda, clases, materiales y seguimiento de aprendizaje para docentes y academias.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#f8f9fc",
+  "theme_color": "#7059e8",
+  "lang": "es",
+  "icons": [
+    {
+      "src": "/academy-icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

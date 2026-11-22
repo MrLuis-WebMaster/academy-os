@@ -8,3 +8,7 @@ import './styles.css';
 const slug = new URLSearchParams(window.location.search).get('academy');
 const app=slug?createApp(PublicStorefront,{slug}):createApp(AuthGate);
 app.use(createPinia()).use(VueQueryPlugin).mount('#app');
+
+if ('serviceWorker' in navigator && import.meta.env.PROD) {
+  window.addEventListener('load', () => { navigator.serviceWorker.register('/service-worker.js').catch(() => {}); });
+}
