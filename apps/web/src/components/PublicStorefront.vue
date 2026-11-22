@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import {onMounted,ref} from 'vue';
-import { UiCard, UiThemeSwitcher } from '@academy-os/ui';
+import { UiCard, UiThemeSwitcher, UiBrand } from '@academy-os/ui';
 import {BookOpen,CalendarDays,Clock3,GraduationCap,MapPin,Video,ArrowUpRight,Mail} from 'lucide-vue-next';
 const props=defineProps<{slug:string}>();
 type Offering={id:string;title:string;description:string|null;priceCOP:number;durationMinutes:number;mode:'ONLINE'|'ONSITE'|'HYBRID';course:{title:string;subject:{name:string}|null}|null};
@@ -21,7 +21,7 @@ onMounted(async()=>{
   <div class="min-h-screen bg-canvas text-ink">
     <header class="border-b border-outline bg-surface">
       <div class="mx-auto flex max-w-6xl items-center justify-between gap-4 px-5 py-5">
-        <a href="/" class="flex items-center gap-2 font-extrabold"><span class="grid size-9 place-items-center rounded-xl bg-violet-600 text-white"><GraduationCap :size="20"/></span>academy<span class="text-violet-600">.os</span></a>
+        <UiBrand href="/" compact />
         <div class="flex items-center gap-2"><UiThemeSwitcher /><a href="/" class="rounded-lg border border-outline px-4 py-2 text-xs font-bold">Ingresar como profesor</a></div>
       </div>
     </header>

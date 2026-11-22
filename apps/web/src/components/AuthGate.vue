@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { onMounted, ref, computed, watch } from 'vue';
-import { UiBadge, UiButton, UiField, UiInput, UiThemeSwitcher } from '@academy-os/ui';
+import { UiBadge, UiButton, UiField, UiInput, UiThemeSwitcher, UiBrand } from '@academy-os/ui';
 import { ArrowLeft, ArrowRight, BookOpen, Check, GraduationCap, School, ShieldCheck, Sparkles, UserRound, LoaderCircle } from 'lucide-vue-next';
 import { authClient } from '../auth-client';
 import App from '../App.vue';
@@ -121,7 +121,7 @@ onMounted(()=>{
   </template>
   <div v-else class="flex min-h-screen items-center justify-center bg-gradient-to-br from-canvas via-surface to-surface-muted p-5">
     <main class="w-full max-w-xl rounded-3xl border border-outline bg-surface p-7 shadow-xl shadow-violet-100/70 sm:p-10">
-      <div class="mb-8 flex items-center justify-between gap-3"><div class="flex items-center gap-3"><div class="grid size-11 place-items-center rounded-xl bg-brand text-white"><GraduationCap :size="24"/></div><div><p class="text-lg font-black tracking-tight">academy<span class="text-brand">.</span>os</p><p class="text-xs text-muted">Your academy. Your way.</p></div></div><UiThemeSwitcher /></div>
+      <div class="mb-8 flex items-center justify-between gap-3"><UiBrand /><UiThemeSwitcher /></div>
       <template v-if="state==='login'">
         <span class="inline-flex items-center gap-2 rounded-full bg-brand-soft px-3 py-1.5 text-xs font-bold text-brand"><Sparkles :size="14"/> Tu enseñanza, en un solo lugar</span>
         <h1 class="mt-6 text-3xl font-extrabold tracking-tight sm:text-4xl">Bienvenido a una nueva forma de enseñar.</h1>
