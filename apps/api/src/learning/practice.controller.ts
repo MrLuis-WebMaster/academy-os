@@ -89,7 +89,7 @@ export class PracticeController {
     if(!parsed.success)throw new BadRequestException(parsed.error.flatten());
     return prisma.$transaction(async tx=>{
       // $1 is a bound parameter, not interpolated SQL.
-      await tx.$queryRawUnsafe('SELECT pg_advisory_xact_lock(hashtext($1))','academy-os:attempt:'+userId+':'+activityId);
+      await tx.$queryRawUnsafe('SELECT pg_advisory_xact_lock(hashtext($1))::text AS lock_acquired','academy-os:attempt:'+userId+':'+activityId);
       const activity=await tx.activity.findFirst({
         where:{id:activityId,publishedAt:{not:null},reflection:{status:'PUBLISHED',session:{workspaceId,course:{enrollments:{some:{userId}}}}}},
         select:{id:true,questions:true},

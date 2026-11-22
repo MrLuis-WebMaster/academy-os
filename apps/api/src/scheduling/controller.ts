@@ -57,7 +57,7 @@ export class SchedulingController {
     try {
       return await prisma.$transaction(async tx => {
         // Same teacher concurrent submissions serialize via a transaction-scoped Postgres advisory lock.
-        await tx.$queryRaw`SELECT pg_advisory_xact_lock(hashtext(${`academy-os:teacher:${teacher.id}`}))`;
+        await tx.$queryRaw`SELECT pg_advisory_xact_lock(hashtext(${`academy-os:teacher:${teacher.id}`}))::text AS lock_acquired`;
         const conflict=await tx.classSession.findFirst({where:{workspaceId,teacherProfileId:teacher.id,status:'CONFIRMED',startsAt:{lt:endsAt},endsAt:{gt:startsAt}}});
         if(conflict) throw new ConflictException('Teacher already has a class during this period');
         return tx.classSession.create({data:{workspaceId,teacherProfileId:teacher.id,courseId:data.courseId,title:data.title,mode:data.mode,status:'CONFIRMED',startsAt,endsAt,timezone:'UTC',capacity:data.capacity,location:data.location,meetingUrl:data.meetingUrl,provider:data.meetingUrl?'CUSTOM':undefined},select:{id:true,title:true,mode:true,startsAt:true,endsAt:true,status:true}});

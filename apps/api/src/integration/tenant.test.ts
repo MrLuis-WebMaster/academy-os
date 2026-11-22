@@ -56,7 +56,7 @@ test('PostgreSQL multi-tenant guards and booking capacity',async()=>{
       new BookingsController().reserve(request(student1.id),b.id,{sessionId:session.id}),
       new BookingsController().reserve(request(student2.id),b.id,{sessionId:session.id}),
     ]);
-    assert.equal(reservations.filter(r=>r.status==='fulfilled').length,1,'only one student can reserve the last seat');
+    assert.equal(reservations.filter(r=>r.status==='fulfilled').length,1, 'only one student can reserve the last seat: '+JSON.stringify(reservations.map(r=>r.status==='rejected'?String(r.reason):'ok')));
     assert.equal(reservations.filter(r=>r.status==='rejected').length,1);
     assert.equal(await prisma.classBooking.count({where:{sessionId:session.id,status:'BOOKED'}}),1);
     await assert.rejects(()=>new BookingsController().reserve(request(owner.id),b.id,{sessionId:session.id}),ForbiddenException);

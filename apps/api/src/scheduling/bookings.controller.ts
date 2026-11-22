@@ -29,7 +29,7 @@ export class BookingsController {
     const sessionId=parsed.data.sessionId;
     return prisma.$transaction(async tx=>{
       // Serialize only reservations of the same session; parameters are bound.
-      await tx.$queryRawUnsafe('SELECT pg_advisory_xact_lock(hashtext($1))','academy-os:booking:'+sessionId);
+      await tx.$queryRawUnsafe('SELECT pg_advisory_xact_lock(hashtext($1))::text AS lock_acquired','academy-os:booking:'+sessionId);
       const session=await tx.classSession.findFirst({
         where:{id:sessionId,workspaceId},
         select:{id:true,courseId:true,capacity:true,status:true,startsAt:true},

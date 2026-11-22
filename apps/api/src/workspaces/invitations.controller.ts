@@ -31,7 +31,7 @@ export class InvitationsController {
     const tokenHash=digest(parsed.data.token);
     const userId=request.academyUser!.id;
     return prisma.$transaction(async tx=>{
-      await tx.$queryRaw`SELECT pg_advisory_xact_lock(hashtext(${`academy-os:invite:${tokenHash}`}))`;
+      await tx.$queryRaw`SELECT pg_advisory_xact_lock(hashtext(${`academy-os:invite:${tokenHash}`}))::text AS lock_acquired`;
       const invitation=await tx.workspaceInvitation.findUnique({where:{tokenHash}});
       if(!invitation||invitation.acceptedAt||invitation.expiresAt<=new Date())throw new GoneException('Invitation expired or already used');
       if(invitation.email!==request.academyUser!.email.toLowerCase())throw new ForbiddenException('Sign in using the invited email address');
