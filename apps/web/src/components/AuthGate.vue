@@ -15,6 +15,7 @@ const memberships = ref<Membership[]>([]);
 const selected = ref<Workspace | null>(null);
 const demo = ref(false);
 const operations = ref(true);
+const pendingInvite = ref('');
 const busy = ref(false);
 const error = ref('');
 const step = ref(1);
@@ -24,6 +25,7 @@ const timezone = ref(Intl.DateTimeFormat().resolvedOptions().timeZone || 'Americ
 const choices = ['Inglés','Matemáticas','Programación','Física','Música','Arte','Idiomas','Refuerzo escolar'];
 const subjects = ref<string[]>([]);
 const requestId = ref(crypto.randomUUID());
+const currentRole = computed(() => { const roles=memberships.value.filter(m=>m.workspace.id===selected.value?.id).map(m=>m.role);return ['OWNER','ADMIN','TEACHER','STUDENT','GUARDIAN'].find(role=>roles.includes(role)) || 'STUDENT';});
 const initials = computed(() => (user.value?.name || 'Mi academia').split(' ').slice(0,2).map(x=>x[0]).join('').toUpperCase());
 
 async function load() {
@@ -36,7 +38,16 @@ async function load() {
     const result = await fetch('/api/v1/me', { credentials: 'same-origin' });
     if (result.status === 401) { state.value = 'login'; return; }
     if (!result.ok) throw new Error('No se pudo comprobar tu sesión.');
-    const body = await result.json() as {user: Identity; memberships: Membership[]};
+    let body = await result.json() as {user: Identity; memberships: Membership[]};
+    const invite = pendingInvite.value || sessionStorage.getItem('academy:invite') || '';
+    if(invite){
+      const acceptance=await fetch('/api/v1/invitations/accept',{method:'POST',headers:{'Content-Type':'application/json'},credentials:'same-origin',body:JSON.stringify({token:invite})});
+      if(!acceptance.ok){const detail=await acceptance.json().catch(()=>null);throw Error(detail?.message || 'No se pudo aceptar esta invitación. Comprueba que usas el correo correcto.');}
+      sessionStorage.removeItem('academy:invite');pendingInvite.value='';
+      const refreshed=await fetch('/api/v1/me',{credentials:'same-origin'});
+      if(!refreshed.ok)throw Error('No se pudo actualizar tu acceso.');
+      body=await refreshed.json() as {user:Identity;memberships:Membership[]};
+    }
     user.value = body.user; memberships.value = body.memberships;
     if (!memberships.value.length) {
       name.value = `Academia de ${body.user.name.split(' ')[0]}`;
@@ -53,6 +64,7 @@ async function signIn() {
   catch (e) { error.value = e instanceof Error ? e.message : 'No pudimos iniciar sesión.'; }
   finally { busy.value = false; }
 }
+function newWorkspace(){state.value='setup';step.value=1;name.value=`Academia de ${user.value?.name.split(' ')[0] || 'Mi nombre'}`;type.value='SOLO';subjects.value=[];requestId.value=crypto.randomUUID();error.value='';}
 async function signOut() { await authClient.signOut(); user.value=null; memberships.value=[]; selected.value=null; state.value='login'; demo.value=false; }
 async function create() {
   busy.value=true; error.value='';
@@ -68,7 +80,17 @@ async function create() {
 }
 function next() { error.value=''; if(step.value===2 && name.value.trim().length<2){error.value='Elige un nombre para continuar.';return;} if(step.value<3) step.value++; else void create(); }
 function toggleSubject(s:string) { subjects.value=subjects.value.includes(s)?subjects.value.filter(x=>x!==s):[...subjects.value,s]; }
-onMounted(load);
+onMounted(()=>{
+  const url = new URL(window.location.href);
+  const invite = url.searchParams.get('invite');
+  if(invite && /^[a-zA-Z0-9_-]{40,100}$/.test(invite)){
+    pendingInvite.value=invite;
+    sessionStorage.setItem('academy:invite',invite);
+    url.searchParams.delete('invite');
+    window.history.replaceState({},'',url.pathname+url.search+url.hash);
+  }
+  void load();
+});
 </script>
 
 <template>
@@ -79,11 +101,13 @@ onMounted(load);
         <div class="flex flex-wrap items-center gap-2"><span class="font-extrabold text-brand">AcademyOS</span><span v-if="demo" class="rounded-full bg-amber-100 px-2 py-1 text-amber-800">Vista de demostración · sin datos reales</span><span v-else class="rounded-full bg-emerald-100 px-2 py-1 text-emerald-700">Sesión iniciada · {{ selected?.name }}</span></div>
         <div class="flex items-center gap-2">
           <select v-if="!demo && memberships.length>1" aria-label="Elegir academia" class="rounded-lg border border-outline px-2 py-1 text-xs" :value="selected?.id" @change="selected=memberships.find(m=>m.workspace.id===($event.target as HTMLSelectElement).value)?.workspace || null"><option v-for="m in memberships" :key="m.workspace.id" :value="m.workspace.id">{{ m.workspace.name }}</option></select>
+          <button v-if="!demo" class="rounded-lg border border-outline px-3 py-2 font-bold text-slate-600" @click="newWorkspace">Nueva academia</button>
           <button v-if="!demo" class="rounded-lg border border-outline px-3 py-2 font-bold text-slate-600" @click="operations=!operations">{{ operations ? 'Ver prototipo' : 'Gestión real' }}</button>
           <button class="rounded-lg border border-outline px-3 py-2 font-bold text-slate-600" @click="demo ? (demo=false,state='login') : signOut()">{{ demo ? 'Salir de la demo' : 'Cerrar sesión' }}</button>
         </div>
       </div>
-      <OperationsPanel v-if="!demo && operations && selected" :workspace="selected" />
+      <OperationsPanel v-if="!demo && operations && selected && ['OWNER','ADMIN','TEACHER'].includes(currentRole)" :workspace="selected" />
+      <main v-else-if="!demo && operations && selected" class="mx-auto max-w-3xl p-6 md:p-12"><div class="rounded-3xl border border-outline bg-white p-8"><GraduationCap :size="32" class="text-brand"/><h1 class="mt-4 text-2xl font-extrabold">Bienvenido a {{ selected.name }}</h1><p class="mt-3 text-sm text-muted">Tu cuenta ya tiene acceso a este espacio. El Aula Digital del alumno y las inscripciones están en desarrollo; todavía no hay cursos disponibles aquí.</p></div></main>
       <App v-else :active-workspace="selected" :viewer-name="user?.name || 'Demo'" />
     </div>
   </template>

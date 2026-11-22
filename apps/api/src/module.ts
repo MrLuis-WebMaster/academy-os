@@ -6,9 +6,10 @@ import { WorkspaceController } from './workspaces/controller.js';
 import { SessionGuard } from './auth/session.guard.js';
 import { CatalogController } from './workspaces/catalog.controller.js';
 import { SchedulingController } from './scheduling/controller.js';
+import { InvitationsController } from './workspaces/invitations.controller.js';
 
 @Module({
-  controllers: [DemoController, MeController, WorkspaceController, CatalogController, SchedulingController],
+  controllers: [DemoController, MeController, WorkspaceController, CatalogController, SchedulingController, InvitationsController],
   providers: [{ provide: APP_GUARD, useClass: SessionGuard }],
 })
 export class AppModule {}

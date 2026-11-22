@@ -92,6 +92,8 @@ model Workspace {
   resources   Resource[]
   connections ExternalConnection[]
   setupRequests SetupRequest[]
+  invitations WorkspaceInvitation[]
+  sentInvitations WorkspaceInvitation[] @relation("InvitedBy")
 }
 
 model WorkspaceMember {
@@ -328,4 +330,19 @@ model SetupRequest {
   workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
   user        User @relation(fields: [userId], references: [id], onDelete: Cascade)
   @@unique([userId, requestId])
+}
+
+model WorkspaceInvitation {
+  id         String     @id @default(cuid())
+  workspaceId String
+  email      String
+  role       MemberRole
+  tokenHash  String     @unique
+  createdBy  String
+  expiresAt  DateTime
+  acceptedAt DateTime?
+  createdAt  DateTime   @default(now())
+  workspace  Workspace  @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  creator    User       @relation("InvitedBy", fields: [createdBy], references: [id], onDelete: Cascade)
+  @@index([workspaceId, email])
 }
