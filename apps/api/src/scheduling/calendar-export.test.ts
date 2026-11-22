@@ -17,7 +17,8 @@ test('ICS escapes newline/commas/semicolons to prevent field injection',()=>{
  assert.match(result,/DTSTART:20261204T180000Z/);
  assert.match(result,/SEQUENCE:2/);
  assert.match(result,/LOCATION:Aula\\, 3/);
- assert.equal((result.match(/BEGIN:VEVENT/g)||[]).length,1);
+ assert.equal(result.split('\r\n').filter(line=>line==='BEGIN:VEVENT').length,1);
+ assert.equal(result.includes('\r\nUID:evil'),false);
  assert.ok(result.endsWith('\r\n'));
 });
 test('ICS folds long UTF-8 strings and preserves octet line limits',()=>{
