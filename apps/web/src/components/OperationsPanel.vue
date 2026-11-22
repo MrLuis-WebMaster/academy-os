@@ -10,6 +10,7 @@ import CurriculumManager from './CurriculumManager.vue';
 import RescheduleSession from './RescheduleSession.vue';
 import AiPracticeAssistant from './AiPracticeAssistant.vue';
 import WeeklyAvailability from './WeeklyAvailability.vue';
+import TeacherTimeOff from './TeacherTimeOff.vue';
 import { BookOpen, CalendarDays, GraduationCap, Plus, RefreshCcw, Users, Video, MapPin, CheckCircle2 } from 'lucide-vue-next';
 const props = defineProps<{ workspace: { id: string; name: string; type: 'SOLO'|'ACADEMY' }; role: string }>();
 type Subject = { id:string; name:string };
@@ -140,6 +141,7 @@ const input='mt-2 w-full rounded-xl border border-outline bg-surface p-3 text-sm
       <div class="mt-7 divide-y divide-outline"><div v-for="session in sessions" :key="session.id" class="flex flex-wrap items-center justify-between gap-3 py-4"><div><p class="text-sm font-bold">{{ session.title }}</p><p class="mt-1 text-xs text-muted">{{ new Date(session.startsAt).toLocaleString('es-CO') }} · {{ session.mode==='ONLINE'?'Virtual':session.mode==='ONSITE'?'Presencial':'Híbrida' }}</p></div><div class="flex items-center gap-3"><span class="rounded-full px-3 py-1 text-xs font-bold" :class="session.status==='CANCELLED'?'bg-surface-muted text-muted':'bg-success-soft text-success'">{{ session.status }}</span><button v-if="session.status==='CONFIRMED'" :disabled="busy" class="rounded-lg border border-rose-200 px-3 py-1 text-xs font-bold text-rose-600 disabled:opacity-40" @click="cancelSession(session)">Cancelar</button></div></div><p v-if="!sessions.length" class="py-5 text-sm text-muted">Todavía no hay clases programadas.</p></div>
     </section>
   <WeeklyAvailability v-if="status==='ready' && ['OWNER','ADMIN'].includes(role)" :workspace-id="workspace.id" :teachers="teachers" />
+    <TeacherTimeOff v-if="status==='ready' && ['OWNER','ADMIN'].includes(role)" :workspace-id="workspace.id" :teachers="teachers" />
     <RescheduleSession v-if="status==='ready' && ['OWNER','ADMIN'].includes(role)" :workspace-id="workspace.id" :sessions="sessions" @updated="refresh" />
   <PracticeTeacher v-if="status==='ready'" :workspace-id="workspace.id" :sessions="sessions" />
     <AiPracticeAssistant v-if="status==='ready'" :workspace-id="workspace.id" :sessions="sessions" />
