@@ -8,6 +8,7 @@ import StaffAttendance from './StaffAttendance.vue';
 import FinanceLedger from './FinanceLedger.vue';
 import CurriculumManager from './CurriculumManager.vue';
 import RescheduleSession from './RescheduleSession.vue';
+import AiPracticeAssistant from './AiPracticeAssistant.vue';
 import { BookOpen, CalendarDays, GraduationCap, Plus, RefreshCcw, Users, Video, MapPin, CheckCircle2 } from 'lucide-vue-next';
 const props = defineProps<{ workspace: { id: string; name: string; type: 'SOLO'|'ACADEMY' }; role: string }>();
 type Subject = { id:string; name:string };
@@ -139,6 +140,7 @@ const input='mt-2 w-full rounded-xl border border-outline bg-surface p-3 text-sm
     </section>
   <RescheduleSession v-if="status==='ready' && ['OWNER','ADMIN'].includes(role)" :workspace-id="workspace.id" :sessions="sessions" @updated="refresh" />
   <PracticeTeacher v-if="status==='ready'" :workspace-id="workspace.id" :sessions="sessions" />
+    <AiPracticeAssistant v-if="status==='ready'" :workspace-id="workspace.id" :sessions="sessions" />
     <StudioEditor v-if="status==='ready' && ['OWNER','ADMIN'].includes(role)" :workspace="workspace" :courses="courses" />
     <StaffAttendance v-if="status==='ready'" :workspace-id="workspace.id" />
     <FinanceLedger v-if="status==='ready' && ['OWNER','ADMIN'].includes(role)" :workspace-id="workspace.id" :role="role" :students="members" :courses="courses" />
