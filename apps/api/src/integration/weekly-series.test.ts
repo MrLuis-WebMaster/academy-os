@@ -9,29 +9,36 @@ import {PrismaTeacherTimeOffRepository} from '../modules/scheduling/infrastructu
 import {TimeOffConflict} from '../modules/scheduling/application/manage-time-off-use-case.js';
 import {ExportCalendarUseCase} from '../modules/calendar/application/export-calendar-use-case.js';
 import {PrismaCalendarReadRepository} from '../modules/calendar/infrastructure/prisma-calendar-read-repository.js';
+import {CancelFutureSeriesUseCase} from '../modules/scheduling/application/cancel-future-series-use-case.js';
+import {PrismaWeeklySeriesCancellationRepository} from '../modules/scheduling/infrastructure/prisma-series-cancellation-repository.js';
 
 test('PostgreSQL: weekly series is atomic and respects teacher vacation blocks',async()=>{
  const nonce=randomUUID().replaceAll('-','').slice(0,16);
  const owner=await prisma.user.create({
   data:{email:'recurrence-'+nonce+'@example.invalid',name:'Weekly Test Admin'},
  });
+ const student=await prisma.user.create({
+  data:{email:'recurrence-student-'+nonce+'@example.invalid',name:'Test Student'},
+ });
  let workspaceId='';
  try{
   const workspace=await prisma.workspace.create({
    data:{slug:'series-'+nonce,name:'Test weekly series',type:'ACADEMY',timezone:'America/Bogota',
-    members:{create:{userId:owner.id,role:'OWNER'}},
+    members:{create:[{userId:owner.id,role:'OWNER'},{userId:student.id,role:'STUDENT'}]},
     teachers:{create:{userId:owner.id}},
    },
    select:{id:true,teachers:{select:{id:true}}},
   });
   workspaceId=workspace.id;
   const teacherProfileId=workspace.teachers[0]!.id;
+  const course=await prisma.course.create({data:{workspaceId:workspace.id,title:'Matemáticas semanales'}});
+  await prisma.enrollment.create({data:{courseId:course.id,userId:student.id}});
   const series=new CreateWeeklySeriesUseCase(new PrismaWeeklySeriesRepository(),new PrismaMembershipAdapter());
   const start=new Date(Date.now()+14*24*60*60*1000);
   start.setUTCMinutes(0,0,0);
   const end=new Date(start.getTime()+60*60*1000);
   const input={
-   teacherProfileId,title:'Taller semanal de matemáticas',
+   teacherProfileId,courseId:course.id,title:'Taller semanal de matemáticas',
    mode:'ONSITE' as const,capacity:12,location:'Sede Centro',
    startsAt:start,endsAt:end,repeatWeeks:3,
   };
@@ -66,8 +73,37 @@ test('PostgreSQL: weekly series is atomic and respects teacher vacation blocks',
    repeatWeeks:2,
   }),WeeklySeriesConflict);
   assert.equal(await prisma.classSeries.count({where:{workspaceId:workspace.id}}),1);
+
+  await prisma.classBooking.create({
+   data:{workspaceId:workspace.id,sessionId:created.lessons[0]!.id,userId:student.id},
+  });
+  // A lesson that has already been imparted must survive a bulk cancellation.
+  const oldStart=new Date(Date.now()-48*60*60*1000);
+  await prisma.classSession.update({
+   where:{id:created.lessons[2]!.id},
+   data:{status:'COMPLETED',startsAt:oldStart,endsAt:new Date(oldStart.getTime()+60*60*1000)},
+  });
+  const canceller=new CancelFutureSeriesUseCase(
+   new PrismaWeeklySeriesCancellationRepository(),new PrismaMembershipAdapter(),
+  );
+  const receipt=await canceller.execute(workspace.id,owner.id,created.seriesId);
+  assert.equal(receipt.cancelledSessions,2);
+  assert.equal(receipt.notifiedStudents,1);
+  assert.equal(await prisma.classSession.count({
+   where:{workspaceId:workspace.id,seriesId:created.seriesId,status:'COMPLETED'},
+  }),1);
+  assert.equal(await prisma.classSession.count({
+   where:{workspaceId:workspace.id,seriesId:created.seriesId,status:'CANCELLED'},
+  }),2);
+  const notification=await prisma.notification.findFirst({
+   where:{workspaceId:workspace.id,userId:student.id,kind:'SESSION_CANCELLED'},
+  });
+  assert.ok(notification);
+  const duplicate=await canceller.execute(workspace.id,owner.id,created.seriesId);
+  assert.equal(duplicate.cancelledSessions,0);
+  assert.equal(duplicate.notifiedStudents,0);
  }finally{
   if(workspaceId)await prisma.workspace.deleteMany({where:{id:workspaceId}});
-  await prisma.user.deleteMany({where:{id:owner.id}});
+  await prisma.user.deleteMany({where:{id:{in:[owner.id,student.id]}}});
  }
 });
