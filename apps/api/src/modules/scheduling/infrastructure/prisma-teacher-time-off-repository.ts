@@ -23,7 +23,7 @@ export class PrismaTeacherTimeOffRepository implements TeacherTimeOffRepository 
  }
  async create(workspaceId:string,teacherProfileId:string,actorId:string,window:TimeOffWindow){
   return prisma.$transaction(async tx=>{
-   await tx.$queryRaw\`SELECT pg_advisory_xact_lock(hashtext(\${'academy-os:teacher:'+teacherProfileId}))::text AS lock_acquired\`;
+   await tx.$queryRaw`SELECT pg_advisory_xact_lock(hashtext(${'academy-os:teacher:'+teacherProfileId}))::text AS lock_acquired`;
    const teacher=await tx.teacherProfile.findFirst({where:{id:teacherProfileId,workspaceId},select:{id:true}});
    if(!teacher)throw new TimeOffTeacherUnknown();
    const existing=await tx.teacherTimeOff.findFirst({
