@@ -42,7 +42,8 @@ En producción usa migraciones revisadas con `prisma migrate deploy`, HTTPS y co
 
 - **Academics/Enrollment** ahora tiene dominio, caso de uso, puertos y repositorio Prisma; la baja de un alumno cancela sus reservas futuras sin borrar historial.
 - **Scheduling/Reschedule y Booking** tienen reglas de dominio, casos de uso y adaptadores transaccionales. La reprogramación conserva reservas y graba el historial; si hay alumnos reservados, se muestra un aviso de notificación manual.
-- **Disponibilidad semanal:** franjas recurrentes por profesor y día, verificadas con la zona horaria de su academia. Nuevas sesiones y reprogramaciones comprueban esas franjas; sin configuración, el profesor sigue teniendo agenda libre.
+- **Disponibilidad semanal y ausencias:** franjas recurrentes por profesor y día, con vacaciones/festivos bloqueados por intervalo. La creación de excepciones impide solaparse con clases ya confirmadas; nuevas clases y reprogramaciones respetan esos bloqueos.
+- **Series semanales:** desde el formulario de Gestión real se pueden crear 2, 4, 8, 12 o 16 sesiones recurrentes en una transacción (todas o ninguna). Las horas locales se conservan al cambiar el horario de verano; las horas inexistentes se rechazan. Cada sesión es independiente para cancelación o reprogramación.
 - **Grupos:** el formulario de clases acepta de 1 a 500 cupos, no solo sesiones individuales.
 - **Clase Viva con IA (opt-in):** el profesor solicita una práctica a partir de sus notas, revisa cada respuesta, edita el borrador y lo publica explícitamente. El proveedor de OpenAI está desactivado por defecto.
 - **Profe SOS (opt-in):** un tutor utiliza únicamente notas aprobadas del curso en el que está inscrito el alumno y devuelve las clases consultadas; sin proveedor configurado no responde.
@@ -61,7 +62,7 @@ Guía técnica y privacidad: [Configuración de IA](docs/AI_PROVIDER_SETUP.md).
 
 - **Identidad y espacios:** Google/Better Auth alojado en el propio servidor, setup guiado de tres pasos, rol OWNER, múltiples workspaces, permisos y enlaces de invitación de un solo uso.
 - **Gestión académica:** docentes, alumnos invitados, inscripciones, materias, cursos, subtemas y profesores asignados.
-- **Agenda:** clases virtuales, presenciales e híbridas con enlace HTTPS manual; franjas semanales, conflictos del docente, reprogramación auditada, reservas con cupos transaccionales, avisos in-app y asistencia.
+- **Agenda:** clases individuales y grupales virtuales, presenciales e híbridas; franjas semanales, excepciones por vacaciones, series semanales, conflictos del docente, reprogramaciones auditadas, reservas con cupos transaccionales, avisos in-app y asistencia.
 - **Aula Digital:** clases, recursos HTTPS aprobados por el profesor, notas de Clase Viva, actividades prácticas con corrección y Pasaporte por resultados de ejercicios.
 - **Clase Viva:** observaciones de clase y publicación revisada por el docente. Los ejercicios pueden redactarse manualmente o sugerirse por IA cuando se configure el proveedor; **siempre requieren revisión y publicación del profesor**.
 - **Profe Studio:** servicios con precio COP, duración y modalidad; página pública de marca activable por el propietario y URL de contacto externa. **No procesa pagos ni reservas públicas todavía.**

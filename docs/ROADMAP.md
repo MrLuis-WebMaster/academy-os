@@ -24,7 +24,7 @@ Cada marca `[x]` indica funcionalidad codificada en el repo, **no un lanzamiento
 - [x] Registro manual de cobros; no captura pagos externos.
 - [x] Profe Studio con catálogo público, precio COP y contacto externo, desactivado por defecto.
 - [ ] E2E de Google OAuth con credenciales reales y despliegue staging.
-- [~] Reprogramación con auditoría y reservas existentes, franjas semanales por profesor y **notificaciones in-app transaccionales** para cancelación/reprogramación; faltan excepciones/feriados, sedes/aulas, email/WhatsApp/push y calendario avanzado.
+- [~] Reprogramación auditada y reservas existentes, franjas semanales, **ausencias y festivos manuales**, series semanales de 2–16 clases y notificaciones in-app transaccionales. Faltan festivos automáticos por país, sedes/aulas, edición masiva de series, email/WhatsApp/push y calendario avanzado.
 - [ ] Checkout con pasarela, conciliación, reembolsos y facturación.
 - [ ] E2E de flujos, privacidad/menores y auditoría multi-tenant integral.
 
@@ -42,7 +42,8 @@ Cada marca `[x]` indica funcionalidad codificada en el repo, **no un lanzamiento
 
 ## Etapa 3 — academia y white-label avanzados
 - [ ] Roles de acudientes verificados, privacidad para menores y reportes familiares.
-- [ ] Sedes/aulas, docentes sustitutos, reservas recurrentes, recursos compartidos.
+- [~] Series semanales de clases, todas o ninguna, con validación DST y conflictos; falta edición/cancelación masiva y reservas recurrentes de estudiantes.
+- [ ] Sedes/aulas, docentes sustitutos y recursos compartidos.
 - [ ] Dominios personalizados, branding completo, multimoneda y planes comerciales.
 - [ ] OneDrive, Dropbox, Outlook/Teams y más conectores.
 - [ ] Instancias dedicadas con activación segura del propietario.

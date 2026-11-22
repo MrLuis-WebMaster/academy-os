@@ -2,7 +2,7 @@
 
 ## Entregas codificadas en `main`
 - Login Better Auth + Google: flujo implementado, necesita credenciales OAuth, base real y validación E2E; registro de propietario mediante onboarding de tres pasos.
-- Persistencia Prisma/PostgreSQL con migraciones `0_init` a `10_in_app_notifications`, guards de sesiones y permisos tenant.
+- Persistencia Prisma/PostgreSQL con migraciones `0_init` a `12_weekly_series`, guards de sesiones y permisos tenant.
 - Profesores, alumnos, cursos, materias, asignación de profesores, temas y matrículas.
 - Clases virtuales/presenciales/híbridas, enlaces manuales, detección básica de choques, cancelaciones, reserva de cupos transaccional y asistencia.
 - Aula Digital protegida para inscripciones y publicaciones de materiales HTTPS.
@@ -42,6 +42,16 @@
 - Exportación `.ics` privada: filtro por OWNER/ADMIN (todo el espacio), TEACHER (sus clases), STUDENT (sus reservas). Incluye UID estable, actualización de secuencia, campos escapados y control de caché.
 - Pruebas de aislamiento real PostgreSQL e idempotencia de los avisos; pruebas unitarias de permisos y serialización ICS.
 - **No está implementado el envío de email, push, WhatsApp ni la sincronización OAuth.** La importación de calendario es manual.
+
+## Hito 4: calendario semanal y ausencias
+
+- DDD hexagonal para `scheduling/time-off`: crear/listar/eliminar ausencias por docente; permisos de OWNER/ADMIN o docente asignado, límites y auditoría básica.
+- El sistema rechaza una ausencia que pisa sesiones confirmadas; también rechaza crear o reprogramar sobre una ausencia.
+- DDD hexagonal para series de clases: de 2 a 16 semanas, mismo horario de reloj en la zona horaria de la academia aun con cambios DST. No transforma una hora local inexistente en otra hora.
+- Migraciones PostgreSQL `11_teacher_time_off` y `12_weekly_series`; `ClassSeries` conserva las relaciones de cada sesión, sin impedir su cancelación individual.
+- Creación de la serie en una **única transacción** con el mismo bloqueo de profesor utilizado por sesiones sueltas y ausencias; conflictos de horario, clase existente o vacaciones revierten todos los cambios.
+- Gestión real incluye selector de repetición y pantalla de vacaciones. Las series aparecen identificadas en el listado de clases y sus ocurrencias se exportan a ICS.
+- No existe aún edición/eliminación masiva de una serie, generación automática de festivos según país ni invitaciones recurrentes de videollamada.
 
 ## Límites no resueltos
 - OAuth Google en entorno real, test del callback, cookies, sesiones y logout end-to-end.

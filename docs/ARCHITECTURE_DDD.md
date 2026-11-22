@@ -2,7 +2,7 @@
 
 ## Estado
 
-El backend se está migrando **por verticales funcionales**, sin romper endpoints ya existentes. Las verticales migradas incluyen `academics/subjects`, `academics/courses`, `academics/enrollments`, `scheduling/bookings`, `scheduling/reschedule`, `scheduling/availability` los casos iniciales de IA en `learning`, la bandeja en `notifications` y la exportación privada en `calendar`. Los otros controladores aún son legado y están pendientes de refactor; no se deben presentar como DDD completos.
+El backend se está migrando **por verticales funcionales**, sin romper endpoints ya existentes. Las verticales migradas incluyen `academics/subjects`, `academics/courses`, `academics/enrollments`, `scheduling/bookings`, `scheduling/reschedule`, `scheduling/availability`, `scheduling/time-off`, `scheduling/weekly-series` los casos iniciales de IA en `learning`, la bandeja en `notifications` y la exportación privada en `calendar`. Los otros controladores aún son legado y están pendientes de refactor; no se deben presentar como DDD completos.
 
 ## Dependencias y capas
 
@@ -56,6 +56,10 @@ El adaptador de calendario y el de avisos respetan el alcance del usuario autent
 ## Fitness function en CI
 
 `pnpm arch:check` verifica archivos de `modules/*/domain`, `modules/*/application`, `shared/domain` y `packages/ui`. Falla si detecta dependencias invertidas. El resto del backend deberá migrarse gradualmente sin renombrados masivos improvisados.
+
+## Consistencia del calendario
+
+La creación de excepciones y series semanales comparte la llave de advisory lock `academy-os:teacher:<teacherId>` con la creación/reprogramación de clases. Un bloqueo de ausencia no puede sobreescribir una clase ya confirmada. La expansión semanal está en el dominio puro y preserva la hora local de la zona horaria configurada; la infraestructura comprueba todos los choques y persiste todas las ocurrencias en una sola transacción. Ninguna regla de recurrencia depende de Prisma o NestJS.
 
 ## Próximas extracciones
 
