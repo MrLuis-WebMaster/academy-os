@@ -10,9 +10,10 @@ import { InvitationsController } from './workspaces/invitations.controller.js';
 import { MaterialsController } from './workspaces/materials.controller.js';
 import { ClassAliveController } from './learning/class-alive.controller.js';
 import { PracticeController } from './learning/practice.controller.js';
+import { StudioController } from './studio/controller.js';
 
 @Module({
-  controllers: [DemoController, MeController, WorkspaceController, CatalogController, SchedulingController, InvitationsController, MaterialsController, ClassAliveController, PracticeController],
+  controllers: [DemoController, MeController, WorkspaceController, CatalogController, SchedulingController, InvitationsController, MaterialsController, ClassAliveController, PracticeController, StudioController],
   providers: [{ provide: APP_GUARD, useClass: SessionGuard }],
 })
 export class AppModule {}
