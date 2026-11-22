@@ -67,6 +67,7 @@ model User {
   sessions    Session[]
   accounts    Account[]
   setupRequests SetupRequest[]
+  sentInvitations WorkspaceInvitation[] @relation("InvitedBy")
   memberships WorkspaceMember[]
   teaching    TeacherProfile[]
   enrollments Enrollment[]
@@ -93,7 +94,6 @@ model Workspace {
   connections ExternalConnection[]
   setupRequests SetupRequest[]
   invitations WorkspaceInvitation[]
-  sentInvitations WorkspaceInvitation[] @relation("InvitedBy")
 }
 
 model WorkspaceMember {
