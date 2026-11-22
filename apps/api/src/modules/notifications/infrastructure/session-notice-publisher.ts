@@ -1,9 +1,10 @@
 import type {Prisma} from '../../../generated/prisma/client.js';
 import {sessionNotice} from '../domain/notification.js';
 import type {NotificationKind} from '../domain/notification.js';
+type ScheduleChangeKind=Extract<NotificationKind,'SESSION_CANCELLED'|'SESSION_RESCHEDULED'>;
 
 export interface PublishClassNotice {
- workspaceId:string;sessionId:string;sessionTitle:string;kind:NotificationKind;eventKey:string;
+ workspaceId:string;sessionId:string;sessionTitle:string;kind:ScheduleChangeKind;eventKey:string;
 }
 
 /** Called only inside the scheduling transaction: no notices on a rolled-back class change. */
