@@ -1,17 +1,8 @@
 @import "tailwindcss";
-
-@theme {
-  --color-brand: #7059e8;
-  --color-brand-dark: #5945cb;
-  --color-ink: #201f37;
-  --color-muted: #9393a5;
-  --color-canvas: #f8f8fb;
-  --color-outline: #e9e8f0;
-  --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
-}
+@import "@academy-os/ui/styles.css";
+@source "../../../packages/ui/src";
 
 @layer base {
-  body { @apply bg-canvas text-ink; }
   button:not(:disabled) { cursor: pointer; }
-  input:focus, select:focus { @apply outline-brand; }
+  :is(input, textarea, select):focus-visible { outline-color: var(--ao-accent); }
 }

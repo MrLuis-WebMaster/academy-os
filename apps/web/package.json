@@ -14,7 +14,8 @@
     "vue-router": "5.5.1",
     "@tanstack/vue-query": "5.108.1",
     "lucide-vue-next": "1.0.0",
-    "better-auth": "1.7.27"
+    "better-auth": "1.7.27",
+    "@academy-os/ui": "workspace:*"
   },
   "devDependencies": {
     "@vitejs/plugin-vue": "6.0.11",

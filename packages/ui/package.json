@@ -1,0 +1,19 @@
+{
+  "name": "@academy-os/ui",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./styles.css": "./src/styles.css",
+    "./theme": "./src/theme.ts"
+  },
+  "peerDependencies": {
+    "vue": "^3.5.0",
+    "lucide-vue-next": "^1.0.0"
+  },
+  "devDependencies": {
+    "vue": "3.5.46",
+    "lucide-vue-next": "1.0.0"
+  }
+}

@@ -4,6 +4,9 @@ import { VueQueryPlugin } from '@tanstack/vue-query';
 import AuthGate from './components/AuthGate.vue';
 import PublicStorefront from './components/PublicStorefront.vue';
 import './styles.css';
+import { initializeTheme } from '@academy-os/ui';
+
+initializeTheme();
 
 const slug = new URLSearchParams(window.location.search).get('academy');
 const app=slug?createApp(PublicStorefront,{slug}):createApp(AuthGate);
