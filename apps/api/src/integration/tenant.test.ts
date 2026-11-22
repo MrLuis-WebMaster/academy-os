@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {randomUUID} from 'node:crypto';
-import {ForbiddenException,NotFoundException} from '@nestjs/common';
+import {ConflictException,ForbiddenException,NotFoundException} from '@nestjs/common';
 import {prisma} from '../lib/prisma.js';
 import {requireMembership} from '../workspaces/access.js';
 import {CoursesController} from '../modules/academics/presentation/courses.controller.js';
@@ -21,6 +21,9 @@ import {EnrollmentsController} from '../modules/academics/presentation/enrollmen
 import {EnrollmentUseCases} from '../modules/academics/application/enrollment-use-cases.js';
 import {PrismaEnrollmentRepository} from '../modules/academics/infrastructure/prisma-enrollment-repository.js';
 import {FinanceController} from '../modules/finance/presentation/finance.controller.js';
+import {AttendanceController} from '../modules/attendance/presentation/attendance.controller.js';
+import {AttendanceUseCases} from '../modules/attendance/application/attendance-use-cases.js';
+import {PrismaAttendanceRepository} from '../modules/attendance/infrastructure/prisma-attendance-repository.js';
 import {FinanceUseCases} from '../modules/finance/application/finance-use-cases.js';
 import {PrismaFinanceRepository} from '../modules/finance/infrastructure/prisma-finance-repository.js';
 import {BadRequestException} from '@nestjs/common';
@@ -35,7 +38,9 @@ test('PostgreSQL multi-tenant guards and booking capacity',async()=>{
   const owner=await prisma.user.create({data:{email:'owner-'+nonce+'@example.invalid',name:'Workspace Owner'}});
   const student1=await prisma.user.create({data:{email:'one-'+nonce+'@example.invalid',name:'Student One'}});
   const student2=await prisma.user.create({data:{email:'two-'+nonce+'@example.invalid',name:'Student Two'}});
-  const users=[owner.id,student1.id,student2.id];
+  const teacherOne=await prisma.user.create({data:{email:'teacher-one-'+nonce+'@example.invalid',name:'Teacher One'}});
+  const teacherTwo=await prisma.user.create({data:{email:'teacher-two-'+nonce+'@example.invalid',name:'Teacher Two'}});
+  const users=[owner.id,student1.id,student2.id,teacherOne.id,teacherTwo.id];
   const ids:string[]=[];
   try{
     const a=await prisma.workspace.create({
@@ -156,6 +161,48 @@ test('PostgreSQL multi-tenant guards and booking capacity',async()=>{
 
 
     await assert.rejects(()=>bookingActions.reserve(request(owner.id),b.id,{sessionId:session.id}),ForbiddenException);
+
+    // Real PostgreSQL: teachers can only see and mark their own academy sessions.
+    // This validates the actual Prisma adapter, not only an in-memory fake.
+    await prisma.workspaceMember.createMany({data:[
+      {workspaceId:b.id,userId:teacherOne.id,role:'TEACHER'},
+      {workspaceId:b.id,userId:teacherTwo.id,role:'TEACHER'},
+    ]});
+    const teacherProfile=await prisma.teacherProfile.create({
+      data:{workspaceId:b.id,userId:teacherOne.id},
+    });
+    await prisma.classSession.update({
+      where:{id:session.id},data:{teacherProfileId:teacherProfile.id},
+    });
+    const attendance=new AttendanceController(
+      new AttendanceUseCases(new PrismaAttendanceRepository(),new PrismaMembershipAdapter()),
+    );
+    const activeBooking=await prisma.classBooking.findFirstOrThrow({
+      where:{workspaceId:b.id,sessionId:session.id,status:'BOOKED'},
+      select:{id:true},
+    });
+    await assert.rejects(()=>attendance.staff(request(recipient.userId),b.id),ForbiddenException);
+    await assert.rejects(()=>attendance.staff(request(owner.id),b.id),ForbiddenException);
+    assert.equal((await attendance.staff(request(owner.id),a.id)).length,0);
+    assert.equal((await attendance.staff(request(teacherTwo.id),b.id)).length,0);
+    const staffRows=await attendance.staff(request(teacherOne.id),b.id);
+    assert.equal(staffRows.length,1);
+    assert.equal(staffRows[0]?.id,activeBooking.id);
+    await assert.rejects(()=>attendance.mark(request(teacherTwo.id),b.id,activeBooking.id,{attendance:'ABSENT'}),ForbiddenException);
+    await assert.rejects(()=>attendance.mark(request(owner.id),a.id,activeBooking.id,{attendance:'ABSENT'}),NotFoundException);
+    assert.deepEqual(await attendance.mark(request(teacherOne.id),b.id,activeBooking.id,{attendance:'PRESENT'}),{
+      id:activeBooking.id,attendance:'PRESENT',
+    });
+    assert.equal((await prisma.classBooking.findUniqueOrThrow({
+      where:{id:activeBooking.id},select:{attendance:true},
+    })).attendance,'PRESENT');
+    await prisma.classSession.update({
+      where:{id:session.id},data:{status:'CANCELLED'},
+    });
+    await assert.rejects(()=>attendance.mark(request(teacherOne.id),b.id,activeBooking.id,{attendance:'LATE'}),ConflictException);
+    assert.equal((await prisma.classBooking.findUniqueOrThrow({
+      where:{id:activeBooking.id},select:{attendance:true},
+    })).attendance,'PRESENT');
   }finally{
     await prisma.workspace.deleteMany({where:{id:{in:ids}}});
     await prisma.user.deleteMany({where:{id:{in:users}}});
