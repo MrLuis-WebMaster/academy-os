@@ -33,7 +33,7 @@ async function submit(){
   );
   affected.value=response.affectedBookings;
   notice.value=response.manualNotificationRequired
-   ?'Horario modificado. IMPORTANTE: debes avisar personalmente a '+response.affectedBookings+' alumno(s) con reservas. No se han enviado mensajes automáticos.'
+   ?'Horario modificado. Los alumnos recibirán un aviso dentro de AcademyOS. Para comunicación por correo o WhatsApp, debes avisar personalmente a '+response.affectedBookings+' alumno(s) con reservas. No se han enviado mensajes automáticos.'
    :'Clase reprogramada y cambio registrado en el historial.';
   emit('updated');
  }catch(e){error.value=e instanceof Error?e.message:'No se pudo reprogramar la clase';}

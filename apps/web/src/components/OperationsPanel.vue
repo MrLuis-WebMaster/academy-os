@@ -40,7 +40,7 @@ watch(()=>props.workspace.id,async()=>{await refresh();await loadMaterials();awa
 onMounted(async()=>{await refresh();await loadMaterials();await loadReflections();});
 async function enroll(){busy.value=true;error.value='';message.value='';try{await request('/enrollments',{method:'POST',body:JSON.stringify({courseId:enrollmentCourse.value,studentUserId:enrollmentStudent.value})});message.value='Alumno inscrito correctamente.';}catch(e){error.value=e instanceof Error?e.message:'No se pudo inscribir';}finally{busy.value=false;}}
 async function cancelSession(session:Lesson){
-  if(!window.confirm('¿Cancelar esta clase? Se liberará el horario, pero no se enviarán avisos automáticos todavía.'))return;
+  if(!window.confirm('¿Cancelar esta clase? Se liberará el horario y los alumnos con reserva recibirán un aviso dentro de AcademyOS. No se enviarán correos ni mensajes externos.'))return;
   busy.value=true;error.value='';message.value='';
   try{await request('/sessions/'+session.id+'/cancel',{method:'PATCH'});await refresh();message.value='Clase cancelada correctamente.';}
   catch(e){error.value=e instanceof Error?e.message:'No se pudo cancelar la clase';}

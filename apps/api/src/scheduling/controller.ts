@@ -4,6 +4,7 @@ import { prisma } from '../lib/prisma.js';
 import { requireMembership } from '../workspaces/access.js';
 import { bookingInput } from './input.js';
 import {withinWeeklyAvailability} from '../modules/scheduling/domain/weekly-availability.js';
+import {notifyBookedStudents} from '../modules/notifications/infrastructure/session-notice-publisher.js';
 
 @Controller('workspaces/:workspaceId/sessions')
 export class SchedulingController {
@@ -19,25 +20,33 @@ export class SchedulingController {
   }
 
   @Patch(':sessionId/cancel')
-  async cancel(@Req() req: AuthenticatedRequest,@Param('workspaceId') workspaceId:string,@Param('sessionId') sessionId:string) {
+  async cancel(@Req() req:AuthenticatedRequest,@Param('workspaceId') workspaceId:string,
+    @Param('sessionId') sessionId:string){
     const userId=req.academyUser!.id;
     const member=await requireMembership(workspaceId,userId,['OWNER','ADMIN','TEACHER']);
-    const session=await prisma.classSession.findFirst({
-      where:{id:sessionId,workspaceId},select:{id:true,status:true,teacherProfileId:true},
+    return prisma.$transaction(async tx=>{
+      // Reserve and cancel serialize on the same session lock; notifications are atomic.
+      await tx.$queryRaw`SELECT pg_advisory_xact_lock(hashtext(${'academy-os:booking:'+sessionId}))::text AS lock_acquired`;
+      const session=await tx.classSession.findFirst({
+        where:{id:sessionId,workspaceId},
+        select:{id:true,title:true,status:true,teacher:{select:{userId:true}}},
+      });
+      if(!session)throw new NotFoundException('Class not found in this workspace');
+      if(member.role==='TEACHER'&&session.teacher?.userId!==userId)
+        throw new ForbiddenException('You can only cancel your own lessons');
+      if(session.status==='COMPLETED')throw new BadRequestException('Completed lessons cannot be cancelled');
+      if(session.status==='CANCELLED')return {id:session.id,status:'CANCELLED',inAppNotificationsCreated:0};
+      const result=await tx.classSession.updateMany({
+        where:{id:session.id,workspaceId,status:{in:['DRAFT','CONFIRMED']}},
+        data:{status:'CANCELLED'},
+      });
+      if(result.count!==1)throw new ConflictException('The class status changed; please refresh');
+      const inAppNotificationsCreated=await notifyBookedStudents(tx,{
+        workspaceId,sessionId,sessionTitle:session.title,
+        kind:'SESSION_CANCELLED',eventKey:'cancelled:'+sessionId,
+      });
+      return {id:session.id,status:'CANCELLED',inAppNotificationsCreated};
     });
-    if(!session)throw new NotFoundException('Class not found in this workspace');
-    if(member.role==='TEACHER'){
-      const teacher=await prisma.teacherProfile.findFirst({where:{workspaceId,userId},select:{id:true}});
-      if(!teacher||session.teacherProfileId!==teacher.id)throw new ForbiddenException('You can only cancel your own lessons');
-    }
-    if(session.status==='COMPLETED')throw new BadRequestException('Completed lessons cannot be cancelled');
-    if(session.status==='CANCELLED')return {id:session.id,status:'CANCELLED'};
-    const result=await prisma.classSession.updateMany({
-      where:{id:session.id,workspaceId,status:{in:['DRAFT','CONFIRMED']}},
-      data:{status:'CANCELLED'},
-    });
-    if(result.count!==1)throw new ConflictException('The class status changed; please refresh');
-    return {id:session.id,status:'CANCELLED'};
   }
 
   @Post()

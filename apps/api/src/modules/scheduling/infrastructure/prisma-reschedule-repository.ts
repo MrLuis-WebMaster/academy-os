@@ -3,6 +3,7 @@ import type {SessionRescheduleRepository} from '../application/ports.js';
 import type {ReschedulePlan} from '../domain/reschedule.js';
 import {withinWeeklyAvailability} from '../domain/weekly-availability.js';
 import {SessionRescheduleConflict,SessionRescheduleMissing} from '../application/reschedule-use-case.js';
+import {notifyBookedStudents} from '../../notifications/infrastructure/session-notice-publisher.js';
 
 export class PrismaSessionRescheduleRepository implements SessionRescheduleRepository {
   async belongsToTeacher(workspaceId:string,userId:string,sessionId:string){
@@ -17,7 +18,7 @@ export class PrismaSessionRescheduleRepository implements SessionRescheduleRepos
       await tx.$queryRaw`SELECT pg_advisory_xact_lock(hashtext(${'academy-os:booking:'+sessionId}))::text AS lock_acquired`;
       const session=await tx.classSession.findFirst({
         where:{id:sessionId,workspaceId,status:'CONFIRMED'},
-        select:{id:true,teacherProfileId:true,startsAt:true,endsAt:true,status:true},
+        select:{id:true,title:true,teacherProfileId:true,startsAt:true,endsAt:true,status:true},
       });
       if(!session)throw new SessionRescheduleMissing();
       if(session.startsAt<=new Date())throw new SessionRescheduleConflict('A class that already started cannot be moved');
@@ -48,16 +49,21 @@ export class PrismaSessionRescheduleRepository implements SessionRescheduleRepos
       const affectedBookings=await tx.classBooking.count({
         where:{sessionId,workspaceId,status:'BOOKED'},
       });
-      await tx.sessionChange.create({
+      const change=await tx.sessionChange.create({
         data:{
           sessionId,actorUserId,reason:plan.reason,
           oldStartsAt:session.startsAt,oldEndsAt:session.endsAt,
           newStartsAt:plan.startsAt,newEndsAt:plan.endsAt,
         },
       });
+      const inAppNotificationsCreated=await notifyBookedStudents(tx,{
+        workspaceId,sessionId,sessionTitle:session.title,
+        kind:'SESSION_RESCHEDULED',eventKey:'rescheduled:'+change.id,
+      });
       return {
         id:sessionId,startsAt:plan.startsAt,endsAt:plan.endsAt,
-        affectedBookings,manualNotificationRequired:affectedBookings>0,
+        affectedBookings,inAppNotificationsCreated,
+        manualNotificationRequired:affectedBookings>0, // External email/WhatsApp is not connected.
         reason:plan.reason,
       };
     });
