@@ -5,6 +5,25 @@ on:
 jobs:
   verify:
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:19
+        env:
+          POSTGRES_DB: academy_os
+          POSTGRES_USER: academy
+          POSTGRES_PASSWORD: academy_local
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U academy -d academy_os"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      DATABASE_URL: postgresql://academy:academy_local@localhost:5432/academy_os?schema=public
+      BETTER_AUTH_URL: http://localhost:5173
+      WEB_ORIGIN: http://localhost:5173
+      BETTER_AUTH_SECRET: github-ci-only-test-secret-32-chars-or-longer
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -13,11 +32,28 @@ jobs:
       - uses: pnpm/action-setup@v4
       - run: pnpm install --no-frozen-lockfile
       - run: pnpm db:validate
-        env:
-          DATABASE_URL: postgresql://academy:academy_local@localhost:5432/academy_os?schema=public
       - run: pnpm db:generate
-        env:
-          DATABASE_URL: postgresql://academy:academy_local@localhost:5432/academy_os?schema=public
+      - name: Apply versioned migrations against Postgres
+        run: pnpm --filter @academy-os/api exec prisma migrate deploy
+      - name: Verify migrations status
+        run: pnpm --filter @academy-os/api exec prisma migrate status
       - run: pnpm typecheck
       - run: pnpm test
       - run: pnpm build
+      - name: API smoke test (public + protected)
+        shell: bash
+        run: |
+          pnpm --filter @academy-os/api start > /tmp/academy-api.log 2>&1 &
+          PID=$!
+          trap 'kill "$PID" 2>/dev/null || true' EXIT
+          for i in {1..15}; do
+            if curl --silent --fail http://localhost:3001/api/v1/health > /tmp/academy-health.json; then break; fi
+            sleep 2
+          done
+          cat /tmp/academy-api.log
+          curl --fail --silent http://localhost:3001/api/v1/health
+          echo
+          curl --fail --silent http://localhost:3001/api/v1/auth-config
+          echo
+          status=$(curl --silent -o /dev/null -w "%{http_code}" http://localhost:3001/api/v1/me)
+          test "$status" = "401"
