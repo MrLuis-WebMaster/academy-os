@@ -114,6 +114,7 @@ model TeacherProfile {
   workspace   Workspace       @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
   user        User            @relation(fields: [userId], references: [id], onDelete: Cascade)
   courses     CourseTeacher[]
+  sessions    ClassSession[]
   @@unique([workspaceId, userId])
 }
 
@@ -179,6 +180,7 @@ model ClassSession {
   id          String        @id @default(cuid())
   workspaceId String
   courseId    String?
+  teacherProfileId String?
   title       String
   mode        SessionMode
   status      SessionStatus @default(DRAFT)
@@ -192,6 +194,7 @@ model ClassSession {
   externalId  String?
   workspace   Workspace     @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
   course      Course?       @relation(fields: [courseId], references: [id])
+  teacher     TeacherProfile? @relation(fields: [teacherProfileId], references: [id])
   reflection  ClassReflection?
   resources   Resource[]
   @@index([workspaceId, startsAt])

@@ -3,6 +3,7 @@ import { onMounted, ref, computed } from 'vue';
 import { ArrowLeft, ArrowRight, BookOpen, Check, GraduationCap, School, ShieldCheck, Sparkles, UserRound, LoaderCircle } from 'lucide-vue-next';
 import { authClient } from '../auth-client';
 import App from '../App.vue';
+import OperationsPanel from './OperationsPanel.vue';
 
 type Workspace = { id: string; name: string; slug: string; type: 'SOLO'|'ACADEMY'; brandColor: string };
 type Membership = { role: string; workspace: Workspace };
@@ -13,6 +14,7 @@ const user = ref<Identity | null>(null);
 const memberships = ref<Membership[]>([]);
 const selected = ref<Workspace | null>(null);
 const demo = ref(false);
+const operations = ref(true);
 const busy = ref(false);
 const error = ref('');
 const step = ref(1);
@@ -77,10 +79,12 @@ onMounted(load);
         <div class="flex flex-wrap items-center gap-2"><span class="font-extrabold text-brand">AcademyOS</span><span v-if="demo" class="rounded-full bg-amber-100 px-2 py-1 text-amber-800">Vista de demostración · sin datos reales</span><span v-else class="rounded-full bg-emerald-100 px-2 py-1 text-emerald-700">Sesión iniciada · {{ selected?.name }}</span></div>
         <div class="flex items-center gap-2">
           <select v-if="!demo && memberships.length>1" aria-label="Elegir academia" class="rounded-lg border border-outline px-2 py-1 text-xs" :value="selected?.id" @change="selected=memberships.find(m=>m.workspace.id===($event.target as HTMLSelectElement).value)?.workspace || null"><option v-for="m in memberships" :key="m.workspace.id" :value="m.workspace.id">{{ m.workspace.name }}</option></select>
+          <button v-if="!demo" class="rounded-lg border border-outline px-3 py-2 font-bold text-slate-600" @click="operations=!operations">{{ operations ? 'Ver prototipo' : 'Gestión real' }}</button>
           <button class="rounded-lg border border-outline px-3 py-2 font-bold text-slate-600" @click="demo ? (demo=false,state='login') : signOut()">{{ demo ? 'Salir de la demo' : 'Cerrar sesión' }}</button>
         </div>
       </div>
-      <App :active-workspace="selected" :viewer-name="user?.name || 'Demo'" />
+      <OperationsPanel v-if="!demo && operations && selected" :workspace="selected" />
+      <App v-else :active-workspace="selected" :viewer-name="user?.name || 'Demo'" />
     </div>
   </template>
   <div v-else class="flex min-h-screen items-center justify-center bg-gradient-to-br from-[#f7f5ff] via-white to-[#f1f8ff] p-5">

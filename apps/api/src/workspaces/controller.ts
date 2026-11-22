@@ -28,6 +28,7 @@ export class WorkspaceController {
           data: {
             name: input.name, slug: input.slug, type: input.type, timezone: input.timezone,
             members: { create: { userId, role: 'OWNER' } },
+            teachers: { create: { userId } },
             subjects: { create: input.subjects.map(name => ({ name, slug: slugify(name) })) },
           },
         });
