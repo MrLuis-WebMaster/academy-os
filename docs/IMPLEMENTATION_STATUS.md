@@ -1,23 +1,36 @@
-# Implementation status — November 22, 2026
+# AcademyOS — Implementation status (2026-11-22)
 
-## Milestone 1: authentication and tenant onboarding
+## Entregas codificadas en `main`
+- Login Better Auth + Google: flujo implementado, necesita credenciales OAuth, base real y validación E2E; registro de propietario mediante onboarding de tres pasos.
+- Persistencia Prisma/PostgreSQL con migraciones `0_init` a `6_manual_payments`, guards de sesiones y permisos tenant.
+- Profesores, alumnos, cursos, materias, asignación de profesores, temas y matrículas.
+- Clases virtuales/presenciales/híbridas, enlaces manuales, detección básica de choques, cancelaciones, reserva de cupos transaccional y asistencia.
+- Aula Digital protegida para inscripciones y publicaciones de materiales HTTPS.
+- Clase Viva de anotaciones aprobadas, cuestionarios manuales con corrección e historial de intentos; Pasaporte de resultados basados en evidencia.
+- Profe Studio básico (página pública solo tras habilitarla) y catálogo de servicios.
+- Finanzas manuales con recibos y anulaciones; no es una pasarela real.
+- PWA con precaché de activos públicos y pantalla offline; nada privado se guarda en caché.
+- CI: Prisma validate/generate/migrate + tests + build + smoke checks; prueba nueva de aislamiento y concurrencia añadida (última ejecución pendiente de confirmación).
 
-- Implemented in code: Better Auth 1.7.27 (Google SSO), Prisma 7 storage model and sessions; NestJS global authenticated guard, public health/auth config endpoints; workspace provisioning transaction creates OWNER, optional subjects, request idempotency and tenant authorization; Vue three-step guided onboarding, optional demo screen and workspace switching.
-- External configuration required: Google Cloud OAuth client/secret; BETTER_AUTH_SECRET; running PostgreSQL; versioned Prisma migrations already exist (0_init, 1_invitations, 2_resource_publication). Google identity only; Drive and Calendar scopes are **not** obtained at login.
-- Authenticated dashboard after onboarding still displays **mock schedules, people and course cards**. They are not persistent and must not be confused with real data. **Operations** UI now connects to real workspace-scoped subject, course, teacher and manually linked session endpoints. The original prototype remains separate and uses mock data.
-- Teacher/student/admin invitation links, invitation acceptance with email matching and token replay protection, course enrolment, student classroom scope and PostgreSQL migrations have been added; the live Google OAuth flow is still untested without external credentials.
-- Dedicated-instance one-time bootstrap (separate from multi-tenant self-service sign-up) is still planned, not implemented.
-- Implemented additionally: class cancellation with teacher/owner authorization, course-linked HTTPS materials with a publication gate, and a **manual Class Alive** teacher-notes draft/approval/student-publication workflow (AI-generation and interactive exercises not implemented). The CI applies versioned migrations to a temporary PostgreSQL 19 server and smoke-tests the API.
+## Límites no resueltos
+- OAuth Google en entorno real, test del callback, cookies, sesiones y logout end-to-end.
+- Meet/Zoom/Drive, correo transaccional, sync calendario, app almacenamiento no conectado.
+- Clase Viva IA y Profe SOS no implementados; ejercicios actuales son del profesor.
+- Checkout, cobros reales, facturación y reembolsos no implementados.
+- Dedicado bootstrap OWNER, acudientes, recuperación de cuenta, consentimientos para menores y grabaciones.
+- Auditoría/observabilidad/backup, publicación por dominios y pruebas de seguridad profundas.
+- El dashboard original sigue siendo una demo; la pantalla **Gestión real** contiene los flujos persistentes.
+- El código no está desplegado como servicio para clientes.
 
-Not finished: class attendance/assignments, student payments, recording consent, Google Calendar/Meet/Zoom/Drive OAuth, AI-generated Class Alive content, interactive Class Alive exercises, Learning Passport UI/evidence, Profe SOS, Profe Studio commerce, branded subdomains, integration E2E/tenant security audit, production deployment.
+## Estado de integraciones
+Credenciales privadas necesarias en el entorno, nunca en GitHub. Ver `GOOGLE_LOGIN_SETUP.md`, `INTEGRATIONS.md` y `RELEASE_CHECKLIST.md`. La visibilidad actual del repositorio es pública.
 
-## Next acceptance milestone
-
-1. Real Google sign-in on a configured preview environment and DB migration; verify callback, cookie, session, logout.
-2. Cross-workspace RBAC and provisioning tests against a live PostgreSQL service in CI.
-3. Replace demo dashboard elements with workspace-scoped API resources.
-4. Complete teacher/student life cycle, editing/rebooking and availability, notifications, payment handling, real class exercises and AI usage safeguards. Invitations, course enrolment, cancellation and a teacher-conflict-aware manual scheduling endpoint now exist.
-
-## QA notes
-
-Run `pnpm db:validate`, `pnpm db:generate`, `pnpm typecheck`, `pnpm test`, `pnpm build`. Node.js 26 with pnpm 10.30.3. Running the auth API requires env secrets and a PostgreSQL database. Never commit real credentials or user/student records.
+## QA local
+```bash
+pnpm install
+docker compose up -d
+pnpm db:validate
+pnpm db:generate
+pnpm --filter @academy-os/api exec prisma migrate deploy
+pnpm typecheck && pnpm test && pnpm build
+```

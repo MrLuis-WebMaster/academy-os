@@ -1,36 +1,44 @@
-# Roadmap / epics
+# AcademyOS roadmap — actualizado 2026-11-22
 
-## Phase 0 — independent foundation (in this archive)
-- [x] Brand and independent repository structure
-- [x] Vue dashboard prototype built on Tailwind CSS 4
-- [x] NestJS API health + capabilities + session validation
-- [x] Multi-tenant domain schema, Prisma v7 config, Docker Compose for PostgreSQL 19
-- [x] CI pipeline template, unit tests for scheduling validation
-- [x] Publish to independent `MrLuis-WebMaster/academy-os` repository on `main` (currently public, not private)
-- [x] Install dependencies and verify typecheck/tests/build in GitHub Actions (green run confirmed)
-- [ ] Commit reproducible pnpm lockfile and deploy preview
+Cada marca `[x]` indica funcionalidad codificada en el repo, **no un lanzamiento público aprobado**. `[~]` indica incompleto.
 
-## Phase 1 — sellable MVP
-- [~] **FIRST PRIORITY:** Better Auth self-hosted + Google sign-in, session guard, multi-tenant 3-step OWNER setup implemented; live Google OAuth, dedicated bootstrap, full tenant audit and E2E verification pending (details in [AUTH_AND_ONBOARDING.md](AUTH_AND_ONBOARDING.md))
-- [~] Subject/course creation and listing implemented; teacher/student invitations and course enrolments implemented; topic CRUD and multi-teacher assignment pending
-- [~] Teacher overlap checks and authorized cancellation implemented; availability rules, physical resources, rescheduling and notifications pending
-- [~] Online/onsite/hybrid manual URL/location sessions saved to DB; rebooking, reminders and external calendar sync pending
-- [~] Student Digital Classroom with course enrolment, sessions and published HTTPS materials implemented; uploads/assignments/attendance/messages pending
-- [ ] Branded profile/storefront, plan packages, payments, basic reporting
-- [ ] Accessibility, privacy and E2E tests
+## Etapa 0 — Foundation
+- [x] Repositorio independiente y monorepo pnpm (Vue 3, NestJS, Tailwind 4, Prisma 7).
+- [x] Migraciones versionadas y validación con PostgreSQL 19 en CI.
+- [x] PWA estática con fallback offline sin caché de información privada.
+- [~] Pruebas de aislamiento en PostgreSQL y sobrecupo concurrente (verificar CI más reciente).
+- [ ] Fijar lockfile reproducible, staging HTTPS y backups automáticos.
 
-## Phase 2 — differentiation and external connections
-- [ ] Google Calendar / Meet OAuth
-- [ ] Zoom OAuth + meetings
-- [ ] Drive Picker and resource authorization
-- [~] Class Alive teacher notes -> draft -> manual approval -> student-visible recap implemented; AI activity generation and student practice pending
-- [ ] Passport: evidence-based progress, mastery recommendations
-- [ ] Profe SOS: configurable tutor assistants per subject
-- [ ] AI usage quotas, provider monitoring and cost controls
+## Etapa 1 — MVP operativo
+- [x] Better Auth + Google, sesiones y onboarding self-service OWNER implementados en código.
+- [x] Invitaciones de docente/alumno/admin, roles por espacio.
+- [x] Materias, cursos, temas jerárquicos, docentes asignados, inscripciones.
+- [x] Clases ONLINE/ONSITE/HYBRID con enlaces manuales; reservas, cancelación, cupos y registro de asistencia.
+- [x] Aula Digital con materiales por curso, controles de publicación y sesiones.
+- [x] Registro manual de cobros; no captura pagos externos.
+- [x] Profe Studio con catálogo público, precio COP y contacto externo, desactivado por defecto.
+- [ ] E2E de Google OAuth con credenciales reales y despliegue staging.
+- [ ] Gestión completa de disponibilidad recurrente, reprogramaciones, sedes/aulas, notificaciones y calendario de grupos.
+- [ ] Checkout con pasarela, conciliación, reembolsos y facturación.
+- [ ] E2E de flujos, privacidad/menores y auditoría multi-tenant integral.
 
-## Phase 3 — academy scale
-- [ ] Billing, subscriptions, taxes, multi-branch / room management
-- [ ] Advanced Profe Studio, digital downloads, memberships
-- [ ] Parent/guardian portal with strict permissions
-- [ ] OneDrive, Dropbox, Outlook/Teams integrations
-- [ ] Analytics, multi-workspace operations, custom domains
+## Etapa 2 — aprendizaje e integraciones
+- [x] Clase Viva: observaciones y publicación de notas bajo supervisión humana.
+- [x] Prácticas redactadas por profesores, corrección automática y hasta tres intentos.
+- [x] Pasaporte inicial: media de resultados reales de prácticas por curso (no inferir dominio integral).
+- [ ] IA para sugerir ejercicios y resúmenes (opt-in, revisión docente, cuotas).
+- [ ] Profe SOS basado en materiales autorizados y con derivación al profesor.
+- [ ] OAuth Meet/Calendar, Zoom y Google Drive con lifecycle, revocación y tests.
+- [ ] Almacenamiento propio y revisión de seguridad de recursos.
+- [ ] Notificaciones y recordatorios automáticos, consentimiento explícito.
+
+## Etapa 3 — academia y white-label avanzados
+- [ ] Roles de acudientes verificados, privacidad para menores y reportes familiares.
+- [ ] Sedes/aulas, docentes sustitutos, reservas recurrentes, recursos compartidos.
+- [ ] Dominios personalizados, branding completo, multimoneda y planes comerciales.
+- [ ] OneDrive, Dropbox, Outlook/Teams y más conectores.
+- [ ] Instancias dedicadas con activación segura del propietario.
+- [ ] Analítica avanzada, soporte, facturación, backups, observabilidad y lanzamiento.
+
+## Condiciones de lanzamiento
+Cumplir [RELEASE_CHECKLIST.md](RELEASE_CHECKLIST.md). Nunca considerar CI verde como sustituto de pruebas de Google OAuth, pagos, seguridad y protección de alumnos.
