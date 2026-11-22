@@ -33,6 +33,11 @@ enum SessionStatus {
   CANCELLED
 }
 
+enum BookingStatus {
+  BOOKED
+  CANCELLED
+}
+
 enum ContentStatus {
   DRAFT
   REVIEW
@@ -68,6 +73,7 @@ model User {
   accounts    Account[]
   setupRequests SetupRequest[]
   sentInvitations WorkspaceInvitation[] @relation("InvitedBy")
+  bookings ClassBooking[]
   memberships WorkspaceMember[]
   teaching    TeacherProfile[]
   enrollments Enrollment[]
@@ -98,6 +104,7 @@ model Workspace {
   setupRequests SetupRequest[]
   invitations WorkspaceInvitation[]
   offerings Offering[]
+  bookings ClassBooking[]
 }
 
 model WorkspaceMember {
@@ -202,6 +209,7 @@ model ClassSession {
   workspace   Workspace     @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
   course      Course?       @relation(fields: [courseId], references: [id])
   teacher     TeacherProfile? @relation(fields: [teacherProfileId], references: [id])
+  bookings ClassBooking[]
   reflection  ClassReflection?
   resources   Resource[]
   @@index([workspaceId, startsAt])
@@ -367,4 +375,19 @@ model Offering {
   workspace Workspace @relation(fields:[workspaceId], references:[id], onDelete:Cascade)
   course Course? @relation(fields:[courseId], references:[id])
   @@index([workspaceId,published])
+}
+
+model ClassBooking {
+  id String @id @default(cuid())
+  workspaceId String
+  sessionId String
+  userId String
+  status BookingStatus @default(BOOKED)
+  bookedAt DateTime @default(now())
+  cancelledAt DateTime?
+  workspace Workspace @relation(fields:[workspaceId],references:[id],onDelete:Cascade)
+  session ClassSession @relation(fields:[sessionId],references:[id],onDelete:Cascade)
+  student User @relation(fields:[userId],references:[id],onDelete:Cascade)
+  @@unique([sessionId,userId])
+  @@index([workspaceId,status])
 }
