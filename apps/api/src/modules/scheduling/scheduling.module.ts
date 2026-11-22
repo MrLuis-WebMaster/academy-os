@@ -9,10 +9,16 @@ import {PrismaBookingRepository} from './infrastructure/prisma-booking-repositor
 import {AvailabilityController} from './presentation/availability.controller.js';
 import {ManageAvailabilityUseCase} from './application/manage-availability-use-case.js';
 import {PrismaAvailabilityRepository} from './infrastructure/prisma-availability-repository.js';
+import {TeacherTimeOffController} from './presentation/teacher-time-off.controller.js';
+import {ManageTimeOffUseCase} from './application/manage-time-off-use-case.js';
+import {PrismaTeacherTimeOffRepository} from './infrastructure/prisma-teacher-time-off-repository.js';
 
 @Module({
-  controllers:[RescheduleController,BookingActionsController,AvailabilityController],
+  controllers:[RescheduleController,BookingActionsController,AvailabilityController,TeacherTimeOffController],
   providers:[{
+    provide:ManageTimeOffUseCase,
+    useFactory:()=>new ManageTimeOffUseCase(new PrismaTeacherTimeOffRepository(),new PrismaMembershipAdapter()),
+  },{
     provide:ManageAvailabilityUseCase,
     useFactory:()=>new ManageAvailabilityUseCase(new PrismaAvailabilityRepository(),new PrismaMembershipAdapter()),
   },{

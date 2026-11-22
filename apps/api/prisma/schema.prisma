@@ -126,6 +126,7 @@ model Workspace {
   paymentReceipts PaymentReceipt[]
   notifications Notification[]
   availabilitySlots WeeklyAvailability[]
+  timeOffPeriods TeacherTimeOff[]
   aiGenerations AiGeneration[]
 }
 
@@ -151,6 +152,7 @@ model TeacherProfile {
   courses     CourseTeacher[]
   sessions    ClassSession[]
   availabilitySlots WeeklyAvailability[]
+  timeOffPeriods TeacherTimeOff[]
   @@unique([workspaceId, userId])
 }
 
@@ -498,4 +500,18 @@ model Notification {
   @@unique([workspaceId,userId,eventKey])
   @@index([workspaceId,userId,createdAt])
   @@index([workspaceId,userId,readAt])
+}
+
+model TeacherTimeOff {
+  id String @id @default(cuid())
+  workspaceId String
+  teacherProfileId String
+  createdByUserId String
+  startsAt DateTime
+  endsAt DateTime
+  reason String
+  createdAt DateTime @default(now())
+  workspace Workspace @relation(fields:[workspaceId],references:[id],onDelete:Cascade)
+  teacher TeacherProfile @relation(fields:[teacherProfileId],references:[id],onDelete:Cascade)
+  @@index([workspaceId,teacherProfileId,startsAt,endsAt])
 }
