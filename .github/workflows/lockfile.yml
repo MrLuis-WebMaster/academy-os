@@ -1,0 +1,34 @@
+name: Generate reproducible pnpm lockfile
+on:
+  push:
+    paths:
+      - '.github/workflows/lockfile.yml'
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  lockfile:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '26'
+      - uses: pnpm/action-setup@v4
+      - name: Resolve workspace dependency graph
+        run: pnpm install --lockfile-only --ignore-scripts
+      - name: Commit generated lockfile if changed
+        shell: bash
+        run: |
+          test -s pnpm-lock.yaml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add pnpm-lock.yaml
+          if ! git diff --cached --quiet; then
+            git commit -m "chore(deps): commit reproducible workspace lockfile"
+            git push origin HEAD:main
+          else
+            echo "Lockfile already matches dependencies"
+          fi
