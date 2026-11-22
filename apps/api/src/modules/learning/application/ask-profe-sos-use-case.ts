@@ -35,7 +35,7 @@ export class AskProfeSosUseCase {
     const evidence=published.slice(0,6).map(x=>({
       ...x,notes:minimizeTeachingNotes(x.notes).slice(0,1800),
     }));
-    const id=await this.repository.reserveDailyAttempt(workspaceId,userId,published[0].id,this.provider.model);
+    const id=await this.repository.reserveDailyAttempt(workspaceId,userId,published[0]!.id,this.provider.model);
     try{
       const raw=await this.provider.answer(
         question.replace(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/gi,'[EMAIL OMITIDO]').slice(0,650),
