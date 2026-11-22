@@ -7,6 +7,8 @@ import {CreateWeeklySeriesUseCase,WeeklySeriesConflict} from '../modules/schedul
 import {PrismaMembershipAdapter} from '../modules/academics/infrastructure/prisma-subject-repository.js';
 import {PrismaTeacherTimeOffRepository} from '../modules/scheduling/infrastructure/prisma-teacher-time-off-repository.js';
 import {TimeOffConflict} from '../modules/scheduling/application/manage-time-off-use-case.js';
+import {ExportCalendarUseCase} from '../modules/calendar/application/export-calendar-use-case.js';
+import {PrismaCalendarReadRepository} from '../modules/calendar/infrastructure/prisma-calendar-read-repository.js';
 
 test('PostgreSQL: weekly series is atomic and respects teacher vacation blocks',async()=>{
  const nonce=randomUUID().replaceAll('-','').slice(0,16);
@@ -39,6 +41,10 @@ test('PostgreSQL: weekly series is atomic and respects teacher vacation blocks',
   assert.equal(await prisma.classSession.count({
    where:{workspaceId:workspace.id,seriesId:created.seriesId},
   }),3);
+  const calendar=new ExportCalendarUseCase(new PrismaCalendarReadRepository());
+  const ics=await calendar.execute(workspace.id,owner.id);
+  assert.equal(ics.split('\r\n').filter(line=>line==='BEGIN:VEVENT').length,3);
+
   // A collision on the second attempt must not persist any partial series or sessions.
   await assert.rejects(()=>series.execute(workspace.id,owner.id,input),WeeklySeriesConflict);
   assert.equal(await prisma.classSeries.count({where:{workspaceId:workspace.id}}),1);

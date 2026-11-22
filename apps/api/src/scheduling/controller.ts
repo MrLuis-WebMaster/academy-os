@@ -13,7 +13,7 @@ export class SchedulingController {
     await requireMembership(workspaceId, req.academyUser!.id, ['OWNER','ADMIN','TEACHER']);
     return prisma.classSession.findMany({
       where: { workspaceId },
-      select: { id: true, title: true, status: true, mode: true, startsAt: true, endsAt: true, location: true, meetingUrl: true, teacherProfileId: true, courseId: true },
+      select: { id: true, title: true, status: true, mode: true, startsAt: true, endsAt: true, location: true, meetingUrl: true, teacherProfileId: true, courseId: true, seriesId:true, seriesIndex:true },
       orderBy: { startsAt: 'asc' },
       take: 100,
     });
