@@ -28,12 +28,29 @@ async function addSession(){busy.value=true;message.value='';error.value='';try{
   if(Number.isNaN(startsAt.getTime()) || Number.isNaN(endsAt.getTime()))throw Error('Elige una fecha y un horario válido.');
   await request('/sessions',{method:'POST',body:JSON.stringify({title:sessionTitle.value,teacherProfileId:sessionTeacherId.value,courseId:sessionCourseId.value||undefined,mode:mode.value,startsAt:startsAt.toISOString(),endsAt:endsAt.toISOString(),capacity:1,location:mode.value==='ONLINE'?undefined:location.value,meetingUrl:mode.value==='ONSITE'?undefined:meetingUrl.value})});sessionTitle.value='';await refresh();message.value='Clase guardada en la agenda.';
 }catch(e){error.value=e instanceof Error?e.message:'No se pudo agendar la clase';}finally{busy.value=false;}}
-watch(()=>props.workspace.id,refresh);
-onMounted(refresh);
+watch(()=>props.workspace.id,async()=>{await refresh();await loadMaterials();});
+onMounted(async()=>{await refresh();await loadMaterials();});
 async function enroll(){busy.value=true;error.value='';message.value='';try{await request('/enrollments',{method:'POST',body:JSON.stringify({courseId:enrollmentCourse.value,studentUserId:enrollmentStudent.value})});message.value='Alumno inscrito correctamente.';}catch(e){error.value=e instanceof Error?e.message:'No se pudo inscribir';}finally{busy.value=false;}}
 const inviteEmail=ref(''),inviteRole=ref<'TEACHER'|'STUDENT'|'ADMIN'>('TEACHER'),inviteLink=ref('');
 async function invite(){busy.value=true;error.value='';inviteLink.value='';try{const r=await request<{inviteUrl:string}>('/invitations',{method:'POST',body:JSON.stringify({email:inviteEmail.value,role:inviteRole.value})});inviteLink.value=r.inviteUrl;message.value='Invitación generada. Compártela con la persona indicada.';}catch(e){error.value=e instanceof Error?e.message:'No se pudo invitar';}finally{busy.value=false;}}
 async function copyInvite(){try{await navigator.clipboard.writeText(inviteLink.value);message.value='Enlace copiado.';}catch{message.value='Copia el enlace manualmente.';}}
+const materialTitle=ref(''),materialUrl=ref(''),materialCourseId=ref(''),materialPublished=ref(false);
+const materials=ref<Array<{id:string;title:string;url:string|null;courseId:string|null;published:boolean}>>([]);
+async function loadMaterials(){
+  if(!['OWNER','ADMIN'].includes(props.role))return;
+  try{materials.value=await request<typeof materials.value>('/materials');}
+  catch(e){error.value=e instanceof Error?e.message:'No se pudieron cargar los materiales';}
+}
+async function addMaterial(){
+  busy.value=true;error.value='';message.value='';
+  try{
+    await request('/materials',{method:'POST',body:JSON.stringify({title:materialTitle.value,url:materialUrl.value,courseId:materialCourseId.value,published:materialPublished.value})});
+    materialTitle.value='';materialUrl.value='';
+    await loadMaterials();
+    message.value='Recurso guardado correctamente.';
+  }catch(e){error.value=e instanceof Error?e.message:'No se pudo añadir el material';}
+  finally{busy.value=false;}
+}
 const input='mt-2 w-full rounded-xl border border-outline bg-white p-3 text-sm outline-brand';
 </script>
 <template>
@@ -57,6 +74,18 @@ const input='mt-2 w-full rounded-xl border border-outline bg-white p-3 text-sm o
       <p class="mt-2 text-xs text-muted">Genera una invitación privada de un solo uso, válida por 7 días. Compártela con su correo de Google. No se envía ningún correo automáticamente.</p>
       <form class="mt-5 flex flex-wrap items-end gap-3" @submit.prevent="invite"><label class="min-w-48 flex-1 text-xs font-semibold">Correo del invitado<input v-model="inviteEmail" required type="email" :class="input" placeholder="profesor@ejemplo.com"/></label><label class="text-xs font-semibold">Rol<select v-model="inviteRole" :class="input"><option value="TEACHER">Profesor</option><option value="STUDENT">Alumno</option><option value="ADMIN">Administrador</option></select></label><button :disabled="busy" class="rounded-xl bg-brand px-5 py-3 text-xs font-bold text-white disabled:opacity-60">Generar invitación</button></form>
       <div v-if="inviteLink" class="mt-4 flex flex-wrap items-center gap-2 rounded-xl bg-violet-50 p-4"><input :value="inviteLink" aria-label="Enlace de invitación" readonly class="min-w-0 flex-1 bg-transparent text-xs"/><button class="rounded-lg bg-white px-3 py-2 text-xs font-bold text-brand" @click="copyInvite">Copiar enlace</button></div>
+    </section>
+    <section v-if="status==='ready' && ['OWNER','ADMIN'].includes(role)" class="mt-6 rounded-2xl border border-outline bg-white p-6">
+      <h2 class="flex items-center gap-2 text-lg font-extrabold"><BookOpen :size="20" class="text-brand"/> Materiales de estudio</h2>
+      <p class="mt-2 text-xs text-muted">Comparte un enlace HTTPS autorizado con alumnos inscritos. Drive/Dropbox se conectarán mediante OAuth más adelante.</p>
+      <form class="mt-4 grid gap-3 md:grid-cols-2" @submit.prevent="addMaterial">
+        <label class="text-xs font-semibold">Nombre del material<input v-model="materialTitle" required minlength="3" maxlength="140" :class="input" placeholder="Ej. Guía de ecuaciones"/></label>
+        <label class="text-xs font-semibold">Enlace HTTPS<input v-model="materialUrl" required type="url" :class="input" placeholder="https://drive.google.com/file/..."/></label>
+        <label class="text-xs font-semibold">Curso<select v-model="materialCourseId" required :class="input"><option value="">Selecciona un curso</option><option v-for="course in courses" :key="course.id" :value="course.id">{{ course.title }}</option></select></label>
+        <label class="flex items-center gap-2 self-end text-xs font-semibold"><input v-model="materialPublished" type="checkbox" class="size-4 accent-violet-600"/> Publicar para alumnos inscritos</label>
+        <button :disabled="busy || !courses.length" class="rounded-xl bg-brand px-5 py-3 text-xs font-bold text-white disabled:opacity-60">Añadir material</button>
+      </form>
+      <div class="mt-5 space-y-2"><div v-for="material in materials" :key="material.id" class="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-outline p-3 text-sm"><div><p class="font-semibold">{{ material.title }}</p><p class="text-xs text-muted">{{ courses.find(c=>c.id===material.courseId)?.title || 'Curso' }}</p></div><span :class="material.published?'text-emerald-700':'text-amber-700'" class="text-xs font-bold">{{ material.published?'Publicado':'Borrador' }}</span></div></div>
     </section>
     <section v-if="status==='ready'" class="mt-6 rounded-2xl border border-outline bg-white p-6"><div class="flex items-center gap-2"><CalendarDays :size="21" class="text-brand"/><h2 class="text-lg font-extrabold">Agenda real</h2></div><p class="mt-2 text-xs text-muted">Clases presenciales, virtuales o híbridas. Hasta conectar Google/Zoom, pega un enlace HTTPS creado en tu plataforma de videollamadas.</p><form class="mt-6 grid gap-4 md:grid-cols-3" @submit.prevent="addSession"><label class="text-xs font-semibold">Título<input v-model="sessionTitle" required minlength="3" placeholder="Ej. Clase de refuerzo" :class="input"/></label><label class="text-xs font-semibold">Profesor<select v-model="sessionTeacherId" required :class="input"><option v-for="teacher in teachers" :key="teacher.id" :value="teacher.id">{{ teacher.user.name }}</option></select></label><label class="text-xs font-semibold">Curso<select v-model="sessionCourseId" :class="input"><option value="">Sin curso asociado</option><option v-for="course in courses" :key="course.id" :value="course.id">{{ course.title }}</option></select></label><label class="text-xs font-semibold">Fecha<input v-model="sessionDate" required type="date" :class="input"/></label><label class="text-xs font-semibold">Desde<input v-model="startTime" required type="time" :class="input"/></label><label class="text-xs font-semibold">Hasta<input v-model="endTime" required type="time" :class="input"/></label><label class="text-xs font-semibold">Modalidad<select v-model="mode" :class="input"><option value="ONLINE">Virtual</option><option value="ONSITE">Presencial</option><option value="HYBRID">Híbrida</option></select></label><label v-if="mode!=='ONSITE'" class="text-xs font-semibold"><span class="flex gap-1"><Video :size="13"/> Enlace HTTPS</span><input v-model="meetingUrl" required type="url" placeholder="https://meet.google.com/..." :class="input"/></label><label v-if="mode!=='ONLINE'" class="text-xs font-semibold"><span class="flex gap-1"><MapPin :size="13"/> Dirección o sede</span><input v-model="location" required placeholder="Sede Centro, Aula 2" :class="input"/></label><div class="flex items-end"><button :disabled="busy||!teachers.length" class="w-full rounded-xl bg-brand px-5 py-3 text-xs font-bold text-white disabled:opacity-60">{{ busy?'Guardando...':'Agendar clase' }}</button></div></form>
       <div class="mt-7 divide-y divide-outline"><div v-for="session in sessions" :key="session.id" class="flex flex-wrap items-center justify-between gap-3 py-4"><div><p class="text-sm font-bold">{{ session.title }}</p><p class="mt-1 text-xs text-muted">{{ new Date(session.startsAt).toLocaleString('es-CO') }} · {{ session.mode==='ONLINE'?'Virtual':session.mode==='ONSITE'?'Presencial':'Híbrida' }}</p></div><span class="rounded-full bg-emerald-50 px-3 py-1 text-xs font-bold text-emerald-700">{{ session.status }}</span></div><p v-if="!sessions.length" class="py-5 text-sm text-muted">Todavía no hay clases programadas.</p></div>
