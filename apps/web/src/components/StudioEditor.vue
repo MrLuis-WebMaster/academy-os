@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { apiJson } from '../shared/api-client';
-import {onMounted,ref,watch} from 'vue';
+import {computed,onMounted,ref,watch} from 'vue';
 import {ArrowUpRight,Store,Plus} from 'lucide-vue-next';
 import {UiAlert,UiButton,UiField,UiInput,UiSelect,UiSwitch,UiTextarea} from '@academy-os/ui';
 const props=defineProps<{workspace:{id:string;name:string;slug?:string};courses:Array<{id:string;title:string}>}>();
@@ -10,6 +10,7 @@ const settings=ref<Settings|null>(null),offerings=ref<Offering[]>([]),loading=re
 const description=ref(''),contactUrl=ref(''),publicEnabled=ref(false);
 const title=ref(''),details=ref(''),priceCOP=ref(45000),duration=ref(60),mode=ref<'ONLINE'|'ONSITE'|'HYBRID'>('ONLINE'),courseId=ref('');
 function publicUrl(slug:string){return window.location.origin+'/?academy='+encodeURIComponent(slug);}
+const studioUrl=computed(()=>publicUrl(settings.value?.slug||props.workspace.slug||''));
 async function api<T>(suffix:string,method='GET',body?:unknown):Promise<T>{
   return apiJson<T>('/api/v1/studio/workspaces/'+encodeURIComponent(props.workspace.id)+suffix,method,body);
 }
@@ -53,7 +54,7 @@ onMounted(refresh);
    <div class="md:col-span-2"><UiField for="studio-description" label="Presentación"><UiTextarea id="studio-description" v-model="description" :maxlength="800" :rows="2" placeholder="¿Qué hace única a tu academia?"/></UiField></div>
    <UiField for="studio-contact" label="URL de contacto HTTPS"><UiInput id="studio-contact" v-model="contactUrl" type="url" placeholder="https://wa.me/573001234567"/></UiField>
    <div class="self-end"><UiSwitch v-model="publicEnabled" label="Catálogo públicamente visible" /></div>
-   <div class="flex flex-wrap items-center gap-3 md:col-span-2"><UiButton type="submit" :loading="busy">Guardar presentación</UiButton><a :href="publicUrl(settings.slug)" target="_blank" rel="noopener noreferrer" class="flex items-center gap-1 text-xs font-bold text-brand">Ver mi página <ArrowUpRight :size="14"/></a></div>
+   <div class="flex flex-wrap items-center gap-3 md:col-span-2"><UiButton type="submit" :loading="busy">Guardar presentación</UiButton><a :href="studioUrl" target="_blank" rel="noopener noreferrer" class="flex items-center gap-1 text-xs font-bold text-brand">Ver mi página <ArrowUpRight :size="14"/></a></div>
   </form>
   <div class="border-t border-outline pt-5"><h3 class="text-base font-extrabold">Servicios disponibles</h3><p class="mt-2 text-xs text-muted">Los servicios nuevos permanecen privados hasta que los publiques.</p>
    <form class="mt-4 grid gap-3 sm:grid-cols-2" @submit.prevent="add">
