@@ -1,6 +1,6 @@
 import {
  BadRequestException,Body,Controller,ForbiddenException,InternalServerErrorException,
- NotFoundException,Param,Post,Req,ServiceUnavailableException,TooManyRequestsException,
+ NotFoundException,Param,Post,Req,ServiceUnavailableException,HttpException,HttpStatus,
 } from '@nestjs/common';
 import type {AuthenticatedRequest} from '../../../auth/session.guard.js';
 import {AiSuggestionInvalid} from '../domain/suggestion.js';
@@ -19,7 +19,7 @@ export class AiClassAliveController {
       if(error instanceof AiPermissionDenied)throw new ForbiddenException(error.message);
       if(error instanceof AiConsentRequired)throw new BadRequestException(error.message);
       if(error instanceof AiNotesNotFound)throw new NotFoundException(error.message);
-      if(error instanceof AiQuotaReached)throw new TooManyRequestsException(error.message);
+      if(error instanceof AiQuotaReached)throw new HttpException(error.message,HttpStatus.TOO_MANY_REQUESTS);
       if(error instanceof AiProviderNotConfigured)throw new ServiceUnavailableException(error.message);
       if(error instanceof AiSuggestionInvalid)throw new ServiceUnavailableException(error.message);
       throw new InternalServerErrorException('Unable to generate practice; no activity was published');
