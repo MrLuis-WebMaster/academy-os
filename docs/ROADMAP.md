@@ -8,11 +8,12 @@ Cada marca `[x]` indica funcionalidad codificada en el repo, **no un lanzamiento
 - [x] Normalización compartida de slug y cliente HTTP único usado por varias pantallas.
 - [x] DDD/hexagonal en Academics (materias, cursos, inscripciones), Scheduling (reservas, reprogramaciones) y Learning (IA, tutor); pruebas con puertos fake.
 - [x] Control de fronteras arquitectónicas en CI (`pnpm arch:check`).
-- [~] Migrar el resto de los contextos (tenancy, disponibilidad recurrente, asistencia, commerce, publishing) sin cambiar contratos HTTP.
+- [~] Migrar el resto de los contextos (tenancy, asistencia, commerce, publishing) sin cambiar contratos HTTP.
 - [x] Migraciones versionadas y validación con PostgreSQL 19 en CI.
 - [x] PWA estática con fallback offline sin caché de información privada.
 - [~] Pruebas de aislamiento en PostgreSQL y sobrecupo concurrente (verificar CI más reciente).
-- [ ] Fijar lockfile reproducible, staging HTTPS y backups automáticos.
+- [x] Versionar `pnpm-lock.yaml` y utilizar instalación congelada en CI.
+- [ ] Staging HTTPS, backups automáticos y restauración probada.
 
 ## Etapa 1 — MVP operativo
 - [x] Better Auth + Google, sesiones y onboarding self-service OWNER implementados en código.
@@ -23,7 +24,7 @@ Cada marca `[x]` indica funcionalidad codificada en el repo, **no un lanzamiento
 - [x] Registro manual de cobros; no captura pagos externos.
 - [x] Profe Studio con catálogo público, precio COP y contacto externo, desactivado por defecto.
 - [ ] E2E de Google OAuth con credenciales reales y despliegue staging.
-- [~] Reprogramación con auditoría, reservas existentes y aviso manual de cambios; faltan disponibilidad recurrente, sedes/aulas, notificaciones automáticas y calendario de grupos.
+- [~] Reprogramación con auditoría, reservas existentes y aviso manual de cambios; franjas semanales por profesor implementadas y aplicadas; faltan excepciones/feriados, sedes/aulas, notificaciones automáticas y calendario de grupos.
 - [ ] Checkout con pasarela, conciliación, reembolsos y facturación.
 - [ ] E2E de flujos, privacidad/menores y auditoría multi-tenant integral.
 

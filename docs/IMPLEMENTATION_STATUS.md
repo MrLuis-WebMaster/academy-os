@@ -2,7 +2,7 @@
 
 ## Entregas codificadas en `main`
 - Login Better Auth + Google: flujo implementado, necesita credenciales OAuth, base real y validación E2E; registro de propietario mediante onboarding de tres pasos.
-- Persistencia Prisma/PostgreSQL con migraciones `0_init` a `6_manual_payments`, guards de sesiones y permisos tenant.
+- Persistencia Prisma/PostgreSQL con migraciones `0_init` a `9_weekly_availability`, guards de sesiones y permisos tenant.
 - Profesores, alumnos, cursos, materias, asignación de profesores, temas y matrículas.
 - Clases virtuales/presenciales/híbridas, enlaces manuales, detección básica de choques, cancelaciones, reserva de cupos transaccional y asistencia.
 - Aula Digital protegida para inscripciones y publicaciones de materiales HTTPS.
@@ -28,7 +28,9 @@
 - Nuevo módulo Learning basado en puertos: generación opcional de ejercicios mediante OpenAI Responses API (Structured Outputs), siempre en borrador editable y con publicación docente.
 - Tutor Profe SOS sin historial de conversaciones, solo con notas aprobadas por el profesor y acceso por matrícula, validación de citas y derivación si faltan pruebas.
 - Proveedor IA desactivado por defecto, aprobación expresa del docente/alumno y límite de 10 intentos por academia y día.
-- Migraciones PostgreSQL `7_session_reschedule` y `8_ai_generation`.
+- Migraciones PostgreSQL `7_session_reschedule`, `8_ai_generation` y `9_weekly_availability`.
+- Disponibilidad semanal por docente/academia, comprobación por zona horaria al crear o reprogramar sesiones, interfaz de administración de franjas.
+- `pnpm-lock.yaml` generado en GitHub Actions y versionado; instalación congelada para CI.
 - Cliente HTTP compartido ahora completa encabezados de JSON omitidos por pantallas antiguas.
 
 ## Límites no resueltos
@@ -46,7 +48,7 @@ Credenciales privadas necesarias en el entorno, nunca en GitHub. Ver `GOOGLE_LOG
 
 ## QA local
 ```bash
-pnpm install
+pnpm install --frozen-lockfile
 docker compose up -d
 pnpm db:validate
 pnpm db:generate

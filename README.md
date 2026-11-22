@@ -8,14 +8,14 @@
 - **Web:** Vue 3, TypeScript 6, Tailwind CSS 4, Vite 8, Pinia, Vue Query.
 - **API:** NestJS 12, TypeScript 7, Zod 4, Better Auth 1.7.27.
 - **Datos:** PostgreSQL 19, Prisma 7.10, migraciones SQL versionadas.
-- **Infraestructura:** Node.js 26 LTS, pnpm workspaces, Docker, GitHub Actions.
+- **Infraestructura:** Node.js 26 LTS, pnpm workspaces con `pnpm-lock.yaml` versionado, Docker, GitHub Actions.
 - **PWA:** manifest + servicio de caché **solo para activos públicos**, pantalla offline. Las páginas y respuestas privadas no se almacenan offline.
 
 ## Primera instalación
 
 ```bash
 corepack enable
-pnpm install
+pnpm install --frozen-lockfile
 docker compose up -d
 cp .env.example apps/api/.env
 pnpm db:validate
@@ -42,6 +42,7 @@ En producción usa migraciones revisadas con `prisma migrate deploy`, HTTPS y co
 
 - **Academics/Enrollment** ahora tiene dominio, caso de uso, puertos y repositorio Prisma; la baja de un alumno cancela sus reservas futuras sin borrar historial.
 - **Scheduling/Reschedule y Booking** tienen reglas de dominio, casos de uso y adaptadores transaccionales. La reprogramación conserva reservas y graba el historial; si hay alumnos reservados, se muestra un aviso de notificación manual.
+- **Disponibilidad semanal:** franjas recurrentes por profesor y día, verificadas con la zona horaria de su academia. Nuevas sesiones y reprogramaciones comprueban esas franjas; sin configuración, el profesor sigue teniendo agenda libre.
 - **Grupos:** el formulario de clases acepta de 1 a 500 cupos, no solo sesiones individuales.
 - **Clase Viva con IA (opt-in):** el profesor solicita una práctica a partir de sus notas, revisa cada respuesta, edita el borrador y lo publica explícitamente. El proveedor de OpenAI está desactivado por defecto.
 - **Profe SOS (opt-in):** un tutor utiliza únicamente notas aprobadas del curso en el que está inscrito el alumno y devuelve las clases consultadas; sin proveedor configurado no responde.
@@ -68,10 +69,12 @@ academy-os/
 ├── apps/
 │   ├── api/                 NestJS + Prisma + módulos por dominio
 │   └── web/                 Vue + Tailwind + PWA + aulas
+├── packages/ui/             Primitivas Vue, temas y tokens semánticos
 ├── docs/                    arquitectura, seguridad, roadmap, setup
 ├── .github/workflows/       validación en PostgreSQL 19 y CI
 ├── compose.yaml
 ├── package.json
+├── pnpm-lock.yaml           Dependencias reproducibles
 └── pnpm-workspace.yaml
 ```
 
