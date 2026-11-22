@@ -1,4 +1,4 @@
-import { Body, ConflictException, Controller, ForbiddenException, Get, HttpException, HttpStatus, InternalServerErrorException, Param, Post, Req } from '@nestjs/common';
+import { Body, ConflictException, Controller, Get, HttpException, HttpStatus, InternalServerErrorException, Param, Post, Req } from '@nestjs/common';
 import type { AuthenticatedRequest } from '../auth/session.guard.js';
 import { prisma } from '../lib/prisma.js';
 import { parseWorkspaceInput, slugify } from './inputs.js';
@@ -44,25 +44,4 @@ export class WorkspaceController {
     }
   }
 
-  @Get(':workspaceId/subjects')
-  async subjects(@Req() req: AuthenticatedRequest, @Param('workspaceId') workspaceId: string) {
-    await this.authorize(workspaceId, req.academyUser!.id);
-    return prisma.subject.findMany({ where: { workspaceId }, orderBy: { name: 'asc' } });
-  }
-
-  @Post(':workspaceId/subjects')
-  async addSubject(@Req() req: AuthenticatedRequest, @Param('workspaceId') workspaceId: string, @Body() body: unknown) {
-    await this.authorize(workspaceId, req.academyUser!.id, ['OWNER','ADMIN','TEACHER']);
-    if (typeof body !== 'object' || body === null || !('name' in body) || typeof body.name !== 'string') throw new HttpException('Subject name required', 400);
-    const name = body.name.trim();
-    const slug = slugify(name);
-    if (name.length < 2 || name.length > 75 || slug.length < 2) throw new HttpException('Invalid subject', 400);
-    try { return await prisma.subject.create({ data: { workspaceId, name, slug } }); }
-    catch (e) { if (typeof e==='object' && e!==null && 'code' in e && e.code==='P2002') throw new ConflictException('Subject already exists'); throw e; }
-  }
-
-  private async authorize(workspaceId: string, userId: string, roles?: Array<'OWNER'|'ADMIN'|'TEACHER'>) {
-    const membership = await prisma.workspaceMember.findFirst({ where: { workspaceId, userId, ...(roles ? { role: { in: roles } } : {}) } });
-    if (!membership) throw new ForbiddenException('Workspace not accessible');
-  }
 }
