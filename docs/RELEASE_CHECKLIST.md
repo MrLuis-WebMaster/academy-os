@@ -7,6 +7,8 @@
 - [ ] Migraciones versionadas revisadas y `prisma migrate deploy` aplicado sin drift.
 - [ ] Proteger secretos, rate limiting, protección CSRF/CORS, audit logs y métricas.
 - [ ] Evaluación de accesibilidad mobile, recuperación de cuentas, eliminación de datos y exportación.
+- [ ] Pruebas visuales automatizadas en claro/oscuro/sistema, contraste WCAG AA y navegación por teclado.
+- [ ] Migrar componentes de negocio restantes a los primitives reutilizables de `@academy-os/ui`.
 - [ ] Mantener dashboard demo separado y no poner datos ficticios ante clientes.
 
 ## Seguridad funcional

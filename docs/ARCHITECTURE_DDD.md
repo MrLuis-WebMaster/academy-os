@@ -2,7 +2,7 @@
 
 ## Estado
 
-El backend se está migrando **por verticales funcionales**, sin romper endpoints ya existentes. La primera vertical migrada es `academics/subjects`. Los otros controladores aún son legado y están pendientes de refactor; no se deben presentar como DDD completos.
+El backend se está migrando **por verticales funcionales**, sin romper endpoints ya existentes. Las primeras dos verticales migradas son `academics/subjects` y `academics/courses`. Los otros controladores aún son legado y están pendientes de refactor; no se deben presentar como DDD completos.
 
 ## Dependencias y capas
 
@@ -22,7 +22,7 @@ apps/api/src/
 
 Las dependencias apuntan hacia dentro: HTTP → aplicación → dominio; infraestructura implementa los puertos definidos por la aplicación. **El dominio y la aplicación no importan NestJS, Prisma, HTTP ni implementaciones de almacenamiento.**
 
-El controlador de materias recibe `SubjectUseCases`; éstos usan interfaces `SubjectRepository` y `MembershipPort`, que en producción se conectan a `PrismaSubjectRepository` y `PrismaMembershipAdapter`. Las pruebas sustituyen esos adaptadores por implementaciones en memoria.
+Los controladores de materias y cursos reciben `SubjectUseCases` y `CourseUseCases`. Estos casos de uso usan puertos (`SubjectRepository`, `CourseRepository`, `MembershipPort`) implementados por adaptadores Prisma. Las pruebas sustituyen esos adaptadores por implementaciones en memoria.
 
 ## Bounded contexts previstos
 
@@ -53,4 +53,4 @@ Los contextos se relacionan a través de casos de uso, puertos y eventos; **no**
 
 ## Próximas extracciones
 
-Academics course/enrollment → Scheduling reservations/availability → Learning activities → Tenancy provisioning/invitations → Finance → Integrations. Cada extracción conserva la ruta HTTP y va acompañada de pruebas de regresión.
+Academics enrollment → Scheduling reservations/availability → Learning activities → Tenancy provisioning/invitations → Finance → Integrations. Cada extracción conserva la ruta HTTP y va acompañada de pruebas de regresión.

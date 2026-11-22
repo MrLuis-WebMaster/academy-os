@@ -30,6 +30,14 @@ El acceso real necesita configurar `BETTER_AUTH_SECRET`, `GOOGLE_CLIENT_ID`, `GO
 
 En producción usa migraciones revisadas con `prisma migrate deploy`, HTTPS y copias de seguridad; no ejecutes migraciones destructivas directamente sobre datos reales.
 
+## Arquitectura y sistema visual
+
+- **DDD / hexagonal:** [`docs/ARCHITECTURE_DDD.md`](docs/ARCHITECTURE_DDD.md). El contexto Academics ya separa los submódulos **materias y cursos** mediante dominio, casos de uso, puertos e infraestructura Prisma. La migración de los demás contextos es progresiva.
+- **Design System:** [`docs/DESIGN_SYSTEM.md`](docs/DESIGN_SYSTEM.md). Paquete de workspace `@academy-os/ui` con 14 primitivas, variables semánticas Tailwind 4, Lucide Icons y apariencia **clara, oscura o automática según el sistema**. La preferencia se conserva localmente.
+- **Galería de componentes (solo desarrollo):** ejecutar `pnpm dev` y abrir `http://localhost:5173/?design-system=1`.
+- **HTTP compartido:** `apps/web/src/shared/api-client.ts` centraliza transporte, errores y rutas por workspace, evitando implementaciones duplicadas en las pantallas.
+- **Reglas obligatorias en CI:** `pnpm arch:check` evita dependencias de NestJS/Prisma en los módulos de dominio/aplicación nuevos y acoplamientos entre `@academy-os/ui` y las apps.
+
 ## Funciones presentes en código
 
 - **Identidad y espacios:** Google/Better Auth alojado en el propio servidor, setup guiado de tres pasos, rol OWNER, múltiples workspaces, permisos y enlaces de invitación de un solo uso.
@@ -60,6 +68,7 @@ academy-os/
 ```bash
 pnpm db:validate
 pnpm db:generate
+pnpm arch:check
 pnpm typecheck
 pnpm test
 pnpm build

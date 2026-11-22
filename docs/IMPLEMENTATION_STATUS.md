@@ -12,6 +12,14 @@
 - PWA con precaché de activos públicos y pantalla offline; nada privado se guarda en caché.
 - CI: Prisma validate/generate/migrate + tests + build + smoke checks; prueba nueva de aislamiento y concurrencia añadida (última ejecución pendiente de confirmación).
 
+## Hito 2: arquitectura reusable y sistema visual
+
+- Añadido workspace `packages/ui` (`@academy-os/ui`) con 14 componentes y tokens de diseño, incluyendo modo claro, oscuro y automático; selector accesible y galería local en Vite.
+- Pantallas existentes migradas parcialmente a primitives (`AuthGate`, `OperationsPanel`, `StudentClassroom`, `StudioEditor`, `PublicStorefront`). El refactor visual total está pendiente.
+- Cliente HTTP común `apps/web/src/shared/api-client.ts` aplicado a siete pantallas para no duplicar serialización y manejo de errores.
+- DDD/hexagonal implementado en Academics para subjects/courses con valor de dominio, aplicación independiente, puertos, adaptadores Prisma y controladores NestJS; el resto del backend sigue en proceso de migración.
+- GitHub CI ahora ejecuta un verificador de límites arquitectónicos y tests de resolución de preferencias de tema.
+
 ## Límites no resueltos
 - OAuth Google en entorno real, test del callback, cookies, sesiones y logout end-to-end.
 - Meet/Zoom/Drive, correo transaccional, sync calendario, app almacenamiento no conectado.

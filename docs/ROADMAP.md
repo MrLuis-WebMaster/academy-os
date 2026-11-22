@@ -4,6 +4,11 @@ Cada marca `[x]` indica funcionalidad codificada en el repo, **no un lanzamiento
 
 ## Etapa 0 — Foundation
 - [x] Repositorio independiente y monorepo pnpm (Vue 3, NestJS, Tailwind 4, Prisma 7).
+- [x] Paquete `@academy-os/ui`: 14 primitivas, estilos semánticos, tema claro/oscuro/sistema, galería en desarrollo.
+- [x] Normalización compartida de slug y cliente HTTP único usado por varias pantallas.
+- [x] DDD/hexagonal en Academics: materias y cursos; pruebas con puertos fake.
+- [x] Control de fronteras arquitectónicas en CI (`pnpm arch:check`).
+- [ ] Migrar los demás contextos (tenancy, scheduling, learning, commerce) sin cambiar el contrato HTTP existente.
 - [x] Migraciones versionadas y validación con PostgreSQL 19 en CI.
 - [x] PWA estática con fallback offline sin caché de información privada.
 - [~] Pruebas de aislamiento en PostgreSQL y sobrecupo concurrente (verificar CI más reciente).
