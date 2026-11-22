@@ -45,7 +45,7 @@ export class PrismaWeeklySeriesRepository implements WeeklySeriesRepository {
    ]);
    for(const [i,window] of windows.entries()){
     if(!withinWeeklyAvailability(regularHours,window.startsAt,window.endsAt,timeZone))
-     throw new WeeklySeriesConflict('Occurrence '+(i+1)+' is outside this teacher\\'s weekly hours');
+     throw new WeeklySeriesConflict('Occurrence '+(i+1)+' is outside regular teaching hours');
     if(timeOff.some(x=>intervalsOverlap(x,window)))
      throw new WeeklySeriesConflict('Occurrence '+(i+1)+' overlaps a scheduled absence');
     if(existing.some(x=>intervalsOverlap(x,window)))
