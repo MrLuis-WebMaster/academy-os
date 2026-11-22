@@ -8,7 +8,9 @@ import {CoursesController} from '../modules/academics/presentation/courses.contr
 import {CourseUseCases} from '../modules/academics/application/course-use-cases.js';
 import {PrismaCourseRepository} from '../modules/academics/infrastructure/prisma-course-repository.js';
 import {PrismaMembershipAdapter} from '../modules/academics/infrastructure/prisma-subject-repository.js';
-import {BookingsController} from '../scheduling/bookings.controller.js';
+import {BookingActionsController} from '../modules/scheduling/presentation/booking-actions.controller.js';
+import {BookingUseCases} from '../modules/scheduling/application/booking-use-cases.js';
+import {PrismaBookingRepository} from '../modules/scheduling/infrastructure/prisma-booking-repository.js';
 import {FinanceController} from '../finance/controller.js';
 import type {AuthenticatedRequest} from '../auth/session.guard.js';
 
@@ -55,14 +57,15 @@ test('PostgreSQL multi-tenant guards and booking capacity',async()=>{
         capacity:1,meetingUrl:'https://meet.example.invalid/test',
       },
     });
+    const bookingActions=new BookingActionsController(new BookingUseCases(new PrismaBookingRepository(),new PrismaMembershipAdapter()));
     const reservations=await Promise.allSettled([
-      new BookingsController().reserve(request(student1.id),b.id,{sessionId:session.id}),
-      new BookingsController().reserve(request(student2.id),b.id,{sessionId:session.id}),
+      bookingActions.reserve(request(student1.id),b.id,{sessionId:session.id}),
+      bookingActions.reserve(request(student2.id),b.id,{sessionId:session.id}),
     ]);
     assert.equal(reservations.filter(r=>r.status==='fulfilled').length,1, 'only one student can reserve the last seat: '+JSON.stringify(reservations.map(r=>r.status==='rejected'?String(r.reason):'ok')));
     assert.equal(reservations.filter(r=>r.status==='rejected').length,1);
     assert.equal(await prisma.classBooking.count({where:{sessionId:session.id,status:'BOOKED'}}),1);
-    await assert.rejects(()=>new BookingsController().reserve(request(owner.id),b.id,{sessionId:session.id}),ForbiddenException);
+    await assert.rejects(()=>bookingActions.reserve(request(owner.id),b.id,{sessionId:session.id}),ForbiddenException);
   }finally{
     await prisma.workspace.deleteMany({where:{id:{in:ids}}});
     await prisma.user.deleteMany({where:{id:{in:users}}});

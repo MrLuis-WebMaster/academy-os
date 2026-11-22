@@ -1,0 +1,57 @@
+import {prisma} from '../../../lib/prisma.js';
+import type {BookingReservationPort} from '../application/booking-ports.js';
+import {BookingPolicyViolation,ensureReservable,ensureCancellable} from '../domain/booking-policy.js';
+import {BookingCourseNotAllowed,BookingMissing,BookingCapacityConflict} from '../application/booking-use-cases.js';
+
+export class PrismaBookingRepository implements BookingReservationPort {
+  async reserve(workspaceId:string,sessionId:string,userId:string){
+    return prisma.$transaction(async tx=>{
+      await tx.$queryRaw`SELECT pg_advisory_xact_lock(hashtext(${'academy-os:booking:'+sessionId}))::text AS lock_acquired`;
+      const session=await tx.classSession.findFirst({
+        where:{id:sessionId,workspaceId},
+        select:{id:true,courseId:true,capacity:true,status:true,startsAt:true},
+      });
+      if(!session)throw new BookingMissing();
+      // An existing booking must be idempotent even when all seats are now occupied.
+      const previous=await tx.classBooking.findUnique({
+        where:{sessionId_userId:{sessionId,userId}},select:{id:true,status:true},
+      });
+      if(previous?.status==='BOOKED'){
+        if(session.status!=='CONFIRMED')throw new BookingCapacityConflict('Class is no longer open');
+        return {id:previous.id,sessionId,status:'BOOKED' as const,alreadyBooked:true};
+      }
+      const enrolled=session.courseId
+        ? await tx.enrollment.findFirst({where:{courseId:session.courseId,userId,course:{workspaceId}},select:{id:true}})
+        : null;
+      if(!enrolled)throw new BookingCourseNotAllowed();
+      const occupied=await tx.classBooking.count({where:{sessionId,status:'BOOKED'}});
+      try{ensureReservable({...session,occupied});}
+      catch(error){if(error instanceof BookingPolicyViolation)throw new BookingCapacityConflict(error.message);throw error;}
+      if(previous){
+        await tx.classBooking.update({
+          where:{id:previous.id},data:{status:'BOOKED',bookedAt:new Date(),cancelledAt:null},
+        });
+        return {id:previous.id,sessionId,status:'BOOKED' as const,alreadyBooked:false};
+      }
+      const created=await tx.classBooking.create({
+        data:{workspaceId,sessionId,userId},select:{id:true,sessionId:true,status:true},
+      });
+      return {id:created.id,sessionId:created.sessionId,status:'BOOKED' as const,alreadyBooked:false};
+    });
+  }
+  async cancel(workspaceId:string,bookingId:string,userId:string){
+    const booking=await prisma.classBooking.findFirst({
+      where:{id:bookingId,workspaceId,userId},
+      select:{id:true,status:true,session:{select:{startsAt:true}}},
+    });
+    if(!booking)throw new BookingMissing();
+    if(booking.status==='CANCELLED')return {id:booking.id,status:'CANCELLED' as const};
+    try{ensureCancellable(booking.session.startsAt);}
+    catch(error){if(error instanceof BookingPolicyViolation)throw new BookingCapacityConflict(error.message);throw error;}
+    const updated=await prisma.classBooking.updateMany({
+      where:{id:booking.id,workspaceId,userId,status:'BOOKED'},data:{status:'CANCELLED',cancelledAt:new Date()},
+    });
+    if(updated.count!==1)throw new BookingCapacityConflict();
+    return {id:booking.id,status:'CANCELLED' as const};
+  }
+}
