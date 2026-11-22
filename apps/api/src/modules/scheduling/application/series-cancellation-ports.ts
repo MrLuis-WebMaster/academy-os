@@ -1,7 +1,7 @@
 export interface WeeklySeriesCancellationReceipt {
  seriesId:string;
  cancelledSessions:number;
- notifiedStudents:number;
+ inAppNotificationsCreated:number;
  historicalSessionsPreserved:boolean;
 }
 export interface WeeklySeriesCancellationRepository {

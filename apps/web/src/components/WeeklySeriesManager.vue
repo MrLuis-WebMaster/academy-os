@@ -26,10 +26,10 @@ async function cancelFuture(seriesId:string,title:string,count:number){
  if(!window.confirm('¿Cancelar las '+count+' próximas clases de "'+title+'"? Las clases anteriores y las actividades ya realizadas se conservan. Los alumnos con reservas recibirán un aviso dentro de AcademyOS.'))return;
  busy.value=seriesId;error.value='';message.value='';
  try{
-  const result=await apiJson<{cancelledSessions:number;notifiedStudents:number}>(
+  const result=await apiJson<{cancelledSessions:number;inAppNotificationsCreated:number}>(
    workspacePath(props.workspaceId,'/sessions/weekly-series/'+encodeURIComponent(seriesId)+'/cancel-future'),'PATCH',
   );
-  message.value='Se cancelaron '+result.cancelledSessions+' clases futuras. Avisos entregados a '+result.notifiedStudents+' alumno(s) dentro de AcademyOS.';
+  message.value='Se cancelaron '+result.cancelledSessions+' clases futuras. Se crearon '+result.inAppNotificationsCreated+' avisos dentro de AcademyOS para las reservas afectadas.';
   emit('updated');
  }catch(e){error.value=e instanceof Error?e.message:'No se pudieron cancelar las clases pendientes.';}
  finally{busy.value='';}

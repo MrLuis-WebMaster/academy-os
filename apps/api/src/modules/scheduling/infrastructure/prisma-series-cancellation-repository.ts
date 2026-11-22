@@ -29,7 +29,7 @@ export class PrismaWeeklySeriesCancellationRepository implements WeeklySeriesCan
     where:{workspaceId,seriesId,status:'CONFIRMED',startsAt:{gt:new Date()}},
     select:{id:true,title:true},orderBy:{id:'asc'},
    });
-   let cancelledSessions=0,notifiedStudents=0;
+   let cancelledSessions=0,inAppNotificationsCreated=0;
    for(const session of latest){
     // Safeguard against a status update while acquiring locks.
     const changed=await tx.classSession.updateMany({
@@ -38,12 +38,12 @@ export class PrismaWeeklySeriesCancellationRepository implements WeeklySeriesCan
     });
     if(changed.count!==1)continue;
     cancelledSessions++;
-    notifiedStudents+=await notifyBookedStudents(tx,{
+    inAppNotificationsCreated+=await notifyBookedStudents(tx,{
      workspaceId,sessionId:session.id,sessionTitle:session.title,
      kind:'SESSION_CANCELLED',eventKey:'cancelled:'+session.id,
     });
    }
-   return {seriesId,cancelledSessions,notifiedStudents,historicalSessionsPreserved:true};
+   return {seriesId,cancelledSessions,inAppNotificationsCreated,historicalSessionsPreserved:true};
   },{timeout:15000});
  }
 }

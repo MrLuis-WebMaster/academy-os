@@ -21,7 +21,7 @@ test('cancel future requires a manager or the series assigned teacher',async()=>
   belongsToAssignedTeacher:async(_w,_u,id)=>id==='own-series',
   cancelFuture:async(_w,id)=>{
    called.push(id);
-   return {seriesId:id,cancelledSessions:2,notifiedStudents:1,historicalSessionsPreserved:true};
+   return {seriesId:id,cancelledSessions:2,inAppNotificationsCreated:1,historicalSessionsPreserved:true};
   },
  };
  const member=(role:WorkspaceRole):MembershipPort=>({hasAnyRole:async(_w,_u,roles)=>roles.includes(role)});

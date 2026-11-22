@@ -88,7 +88,7 @@ test('PostgreSQL: weekly series is atomic and respects teacher vacation blocks',
   );
   const receipt=await canceller.execute(workspace.id,owner.id,created.seriesId);
   assert.equal(receipt.cancelledSessions,2);
-  assert.equal(receipt.notifiedStudents,1);
+  assert.equal(receipt.inAppNotificationsCreated,1);
   assert.equal(await prisma.classSession.count({
    where:{workspaceId:workspace.id,seriesId:created.seriesId,status:'COMPLETED'},
   }),1);
@@ -101,7 +101,7 @@ test('PostgreSQL: weekly series is atomic and respects teacher vacation blocks',
   assert.ok(notification);
   const duplicate=await canceller.execute(workspace.id,owner.id,created.seriesId);
   assert.equal(duplicate.cancelledSessions,0);
-  assert.equal(duplicate.notifiedStudents,0);
+  assert.equal(duplicate.inAppNotificationsCreated,0);
  }finally{
   if(workspaceId)await prisma.workspace.deleteMany({where:{id:workspaceId}});
   await prisma.user.deleteMany({where:{id:{in:[owner.id,student.id]}}});
