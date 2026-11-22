@@ -1,6 +1,8 @@
 import { Body, Controller, Get, Post } from '@nestjs/common';
 import { validateSession } from '../domain/sessions.js';
+import { Public } from '../auth/public.js';
 
+@Public()
 @Controller()
 export class DemoController {
   @Get('health')

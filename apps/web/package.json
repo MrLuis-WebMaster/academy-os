@@ -13,7 +13,8 @@
     "pinia": "4.1.0",
     "vue-router": "5.5.1",
     "@tanstack/vue-query": "5.108.1",
-    "lucide-vue-next": "1.0.0"
+    "lucide-vue-next": "1.0.0",
+    "better-auth": "1.7.27"
   },
   "devDependencies": {
     "@vitejs/plugin-vue": "6.0.11",

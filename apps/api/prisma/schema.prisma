@@ -59,8 +59,14 @@ enum ResourceSource {
 model User {
   id          String           @id @default(cuid())
   email       String           @unique
-  displayName String
+  name        String
+  emailVerified Boolean       @default(false)
+  image       String?
   createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+  sessions    Session[]
+  accounts    Account[]
+  setupRequests SetupRequest[]
   memberships WorkspaceMember[]
   teaching    TeacherProfile[]
   enrollments Enrollment[]
@@ -85,6 +91,7 @@ model Workspace {
   sessions    ClassSession[]
   resources   Resource[]
   connections ExternalConnection[]
+  setupRequests SetupRequest[]
 }
 
 model WorkspaceMember {
@@ -262,4 +269,60 @@ model ExternalConnection {
   workspace         Workspace  @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
   user              User       @relation(fields: [userId], references: [id], onDelete: Cascade)
   @@unique([workspaceId, userId, provider])
+}
+
+// Required Better Auth 1.7 authentication records, separate from tenant roles.
+model Session {
+  id         String   @id
+  token      String   @unique
+  userId     String
+  expiresAt  DateTime
+  ipAddress  String?
+  userAgent  String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  @@index([userId])
+  @@map("session")
+}
+
+model Account {
+  id                    String   @id
+  accountId             String
+  providerId            String
+  userId                String
+  accessToken           String?  @db.Text
+  refreshToken          String?  @db.Text
+  accessTokenExpiresAt  DateTime?
+  refreshTokenExpiresAt DateTime?
+  scope                 String?
+  idToken               String?  @db.Text
+  password              String?
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+  user                  User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  @@index([userId])
+  @@unique([providerId, accountId])
+  @@map("account")
+}
+
+model Verification {
+  id         String   @id
+  identifier String
+  value      String   @db.Text
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  @@index([identifier])
+  @@map("verification")
+}
+
+model SetupRequest {
+  id          String @id @default(cuid())
+  userId      String
+  requestId   String
+  workspaceId String @unique
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  user        User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  @@unique([userId, requestId])
 }

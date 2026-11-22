@@ -7,7 +7,7 @@
     "build": "tsc -p tsconfig.json",
     "start": "node dist/main.js",
     "typecheck": "tsc --noEmit -p tsconfig.json",
-    "test": "tsx --test src/domain/*.test.ts",
+    "test": "tsx --test src/domain/*.test.ts src/workspaces/*.test.ts",
     "db:generate": "prisma generate",
     "db:validate": "prisma validate",
     "db:migrate": "prisma migrate dev"
@@ -22,13 +22,16 @@
     "pg": "^8.16.0",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.0",
-    "zod": "^4.0.0"
+    "zod": "^4.0.0",
+    "better-auth": "1.7.27",
+    "express": "^5.1.0"
   },
   "devDependencies": {
     "@types/node": "^26.0.0",
     "@types/pg": "^8.15.0",
     "prisma": "7.10.1",
     "tsx": "^4.20.0",
-    "typescript": "7.0.2"
+    "typescript": "7.0.2",
+    "@types/express": "^5.0.0"
   }
 }

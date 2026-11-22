@@ -1,7 +1,7 @@
 import { createApp } from 'vue';
 import { createPinia } from 'pinia';
 import { VueQueryPlugin } from '@tanstack/vue-query';
-import App from './App.vue';
+import AuthGate from './components/AuthGate.vue';
 import './styles.css';
 
-createApp(App).use(createPinia()).use(VueQueryPlugin).mount('#app');
+createApp(AuthGate).use(createPinia()).use(VueQueryPlugin).mount('#app');

@@ -23,10 +23,12 @@ const navigation = [
   { id: 'studio', title: 'Mi academia', icon: Store },
 ] as const;
 
+const props = defineProps<{ activeWorkspace?: { id: string; name: string; slug: string; type: 'SOLO'|'ACADEMY'; brandColor: string } | null; viewerName?: string }>();
 const page = ref<View>('dashboard');
 const sidebarOpen = ref(false);
 const workspaceMode = ref<WorkspaceMode>('SOLO');
-const workspaceName = computed(() => workspaceMode.value === 'SOLO' ? 'Academia de Laura' : 'Academia Horizonte');
+const workspaceName = computed(() => props.activeWorkspace?.name || (workspaceMode.value === 'SOLO' ? 'Academia de Laura' : 'Academia Horizonte'));
+const currentWorkspaceMode = computed(() => props.activeWorkspace?.type || workspaceMode.value);
 const pageTitle = computed(() => navigation.find(item => item.id === page.value)?.title ?? 'Resumen');
 const showModal = ref(false);
 const formError = ref('');
@@ -97,7 +99,7 @@ function createClass() {
       </div>
       <div class="mt-10 flex items-center gap-3 rounded-2xl border border-outline p-3">
         <div class="grid size-10 shrink-0 place-items-center rounded-xl bg-violet-100 text-brand"><BookOpen :size="19" /></div>
-        <div class="min-w-0 flex-1"><p class="truncate text-xs font-bold">{{ workspaceName }}</p><p class="mt-0.5 text-[11px] text-muted">{{ workspaceMode === 'SOLO' ? 'Espacio personal' : 'Espacio institucional' }}</p></div><ChevronDown :size="15" class="text-muted" />
+        <div class="min-w-0 flex-1"><p class="truncate text-xs font-bold">{{ workspaceName }}</p><p class="mt-0.5 text-[11px] text-muted">{{ currentWorkspaceMode === 'SOLO' ? 'Espacio personal' : 'Espacio institucional' }}</p></div><ChevronDown :size="15" class="text-muted" />
       </div>
       <p class="mt-9 px-3 text-[10px] font-extrabold tracking-[0.14em] text-muted">WORKSPACE</p>
       <nav class="mt-3 grid gap-1" aria-label="Navegación">
@@ -105,14 +107,14 @@ function createClass() {
       </nav>
       <div class="mt-auto">
         <div class="rounded-2xl bg-gradient-to-br from-violet-100 to-fuchsia-50 p-4"><Sparkles :size="20" class="text-brand" /><p class="mt-3 text-xs font-extrabold">Enseña a tu manera</p><p class="mt-1.5 text-[11px] leading-5 text-slate-500">Tu espacio, tu identidad. Una experiencia especial para tus alumnos.</p><button class="mt-3 flex items-center gap-1 text-[11px] font-bold text-brand" @click="navigate('studio')">Personalizar <ArrowUpRight :size="14" /></button></div>
-        <div class="mt-5 flex items-center gap-3 border-t border-outline pt-5"><div class="grid size-10 place-items-center rounded-full bg-violet-200 text-sm font-bold text-violet-700">LM</div><div class="min-w-0 flex-1"><p class="text-xs font-bold">Laura Martínez</p><p class="mt-0.5 text-[11px] text-muted">Cuenta demostrativa</p></div><Settings2 :size="18" class="text-muted" /></div>
+        <div class="mt-5 flex items-center gap-3 border-t border-outline pt-5"><div class="grid size-10 place-items-center rounded-full bg-violet-200 text-sm font-bold text-violet-700">LM</div><div class="min-w-0 flex-1"><p class="text-xs font-bold">{{ props.viewerName || 'Demo' }}</p><p class="mt-0.5 text-[11px] text-muted">Agenda de demostración</p></div><Settings2 :size="18" class="text-muted" /></div>
       </div>
     </aside>
 
     <div class="min-w-0 flex-1">
       <header class="flex h-18 items-center gap-3 border-b border-outline bg-white px-5 md:px-9"><button class="text-slate-600 md:hidden" aria-label="Abrir menú" @click="sidebarOpen = true"><Menu :size="23" /></button><div class="flex items-center gap-3 text-xs"><span class="text-muted">Mi espacio</span><span class="text-slate-300">/</span><strong>{{ pageTitle }}</strong></div><span class="ml-auto flex items-center gap-2 rounded-full bg-emerald-50 px-3 py-1.5 text-[10px] font-bold text-emerald-700"><span class="size-2 rounded-full bg-emerald-500"></span> Modo demostración</span></header>
       <main class="mx-auto max-w-[1500px] px-5 py-8 md:px-9 md:py-10">
-        <section class="mb-7 flex flex-wrap items-start justify-between gap-5"><div><p class="mb-2 text-[11px] font-extrabold tracking-[0.12em] text-brand">✦ TU ESPACIO EDUCATIVO</p><h1 class="text-[27px] font-extrabold tracking-tight md:text-[32px]">{{ page === 'dashboard' ? '¡Hola, Laura! 👋' : pageTitle }}</h1><p class="mt-2 text-sm text-muted">{{ page === 'dashboard' ? 'Todo lo que necesitas para enseñar, organizarte y crecer.' : 'Controla tu enseñanza desde un solo lugar.' }}</p></div><button class="inline-flex items-center gap-2 rounded-xl bg-brand px-4 py-3 text-xs font-bold text-white shadow-sm shadow-violet-200 hover:bg-brand-dark" @click="formError=''; showModal=true"><Plus :size="17" /> Nueva clase</button></section>
+        <section class="mb-7 flex flex-wrap items-start justify-between gap-5"><div><p class="mb-2 text-[11px] font-extrabold tracking-[0.12em] text-brand">✦ TU ESPACIO EDUCATIVO</p><h1 class="text-[27px] font-extrabold tracking-tight md:text-[32px]">{{ page === 'dashboard' ? `¡Hola, ${props.viewerName?.split(' ')[0] || 'profe'}! 👋` : pageTitle }}</h1><p class="mt-2 text-sm text-muted">{{ page === 'dashboard' ? 'Todo lo que necesitas para enseñar, organizarte y crecer.' : 'Controla tu enseñanza desde un solo lugar.' }}</p></div><button class="inline-flex items-center gap-2 rounded-xl bg-brand px-4 py-3 text-xs font-bold text-white shadow-sm shadow-violet-200 hover:bg-brand-dark" @click="formError=''; showModal=true"><Plus :size="17" /> Nueva clase</button></section>
 
         <template v-if="page === 'dashboard'">
           <div class="relative mb-6 flex min-h-64 overflow-hidden rounded-[22px] bg-[linear-gradient(115deg,#6048dc,#9575f1)] text-white"><div class="relative z-10 max-w-2xl p-7 md:p-9"><span class="text-[10px] font-extrabold tracking-[0.16em] text-violet-100">✦ UN NUEVO CAMINO PARA ENSEÑAR</span><h2 class="mt-3 text-[23px] font-extrabold leading-snug tracking-tight md:text-[29px]">Tu conocimiento merece<br />un espacio extraordinario.</h2><p class="mt-3 max-w-lg text-xs leading-6 text-violet-100">Organiza tus clases, acompaña a tus alumnos y haz que el aprendizaje continúe después de cada sesión.</p><button class="mt-5 inline-flex items-center gap-2 rounded-lg bg-white px-4 py-2.5 text-xs font-bold text-brand" @click="navigate('learning')">Descubrir Class Alive <ArrowRight :size="15" /></button></div><div class="pointer-events-none absolute top-5 -right-12 grid size-66 rotate-[-10deg] place-items-center rounded-full border border-white/20 md:right-12"><div class="grid size-44 place-items-center rounded-[42px] bg-white/90 text-brand shadow-2xl"><GraduationCap :size="85" :stroke-width="1.25" /></div></div></div>
