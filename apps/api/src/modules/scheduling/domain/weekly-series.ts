@@ -27,7 +27,7 @@ function zonedInstant(fields:LocalFields,timeZone:string):Date{
  // E.g. a spring DST transition skips 02:30. Never create a class at another hour silently.
  throw new InvalidWeeklySeries('This local class time does not exist on a daylight-saving transition');
 }
-function advanceLocalWeek(date:Date,index:number,timeZone:string):Date{
+export function advanceLocalWeek(date:Date,index:number,timeZone:string):Date{
  const f=localFields(date,timeZone);
  const shifted=new Date(Date.UTC(f.year,f.month-1,f.day+7*index,f.hour,f.minute,f.second));
  return zonedInstant({
