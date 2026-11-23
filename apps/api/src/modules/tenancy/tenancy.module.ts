@@ -1,4 +1,7 @@
 import {Module} from '@nestjs/common';
+import {GuardiansController} from './presentation/guardians.controller.js';
+import {GuardianUseCases} from './application/guardian-use-cases.js';
+import {PrismaGuardianRepository} from './infrastructure/prisma-guardian-repository.js';
 import {WorkspaceDirectoryController} from './presentation/workspace-directory.controller.js';
 import {WorkspaceDirectoryUseCases} from './application/workspace-directory.js';
 import {PrismaWorkspaceDirectory} from './infrastructure/prisma-workspace-directory.js';
@@ -12,8 +15,11 @@ import {SecureInvitationToken} from './infrastructure/secure-invitation-token.js
 import {InvitationsController} from './presentation/invitations.controller.js';
 
 @Module({
-  controllers:[WorkspaceDirectoryController,WorkspaceController,InvitationsController],
+  controllers:[GuardiansController,WorkspaceDirectoryController,WorkspaceController,InvitationsController],
   providers:[{
+    provide:GuardianUseCases,
+    useFactory:()=>new GuardianUseCases(new PrismaGuardianRepository(),new PrismaMembershipAdapter()),
+  },{
     provide:WorkspaceDirectoryUseCases,
     useFactory:()=>new WorkspaceDirectoryUseCases(new PrismaWorkspaceDirectory(),new PrismaMembershipAdapter()),
   },{
