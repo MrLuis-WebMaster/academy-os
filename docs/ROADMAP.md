@@ -141,3 +141,19 @@ Cumplir [RELEASE_CHECKLIST.md](RELEASE_CHECKLIST.md). Nunca considerar CI verde 
 - [x] API limitada a OWNER/ADMIN o docente asignado al curso, panel de oportunidades y selección del tema para planificar refuerzo en Clase Viva.
 - [x] Pruebas del dominio y con PostgreSQL para cálculos reales, cambios de metas y permisos.
 - [ ] Generar propuestas diferenciadas por especialidad educativa (audio/speaking, matemáticas guiadas, música, arte, simulacros) y validar prácticas con profes reales.
+
+## Hito 20 — Bonos de clases manuales (2026-11-23)
+- [x] Catálogo por academia con curso, cantidad de sesiones, vigencia, precio de referencia y activación.
+- [x] Emisión manual a alumnos bajo rol OWNER/ADMIN con clave idempotente y validación de matrícula.
+- [x] Saldo privado, aplicación de crédito a reservas y bloqueo concurrente por asignación.
+- [x] Devolución de créditos en cancelación de reserva, cancelación de clase y series futuras, dentro de las mismas transacciones.
+- [x] Interfaces de administración y estudiante y pruebas PostgreSQL de aislamiento, idempotencia y concurrencia.
+- [ ] Compras autoservicio, validación de pagos, requisitos de acceso a clases de pago, renovaciones automáticas y membresías recurrentes reales.
+
+## Hito 21 — Clase Viva: tarjetas y microlecciones (2026-11-23)
+- [x] Borradores de flashcards y microlecciones editables por profesores, con publicación humana y contenidos validados.
+- [x] Publicación únicamente tras publicar las notas de clase vinculadas; estudiantes inscritos solo ven recursos publicados de su curso.
+- [x] Tarjetas interactivas de repaso, pasos guiados y seguimiento temporal de autoevaluación, sin sumar a dominio certificado.
+- [~] Generador IA opcional de ambos tipos con cuota por academia, minimización best-effort, consentimiento por acción y aprobación docente. Pendiente probar proveedor externo real.
+- [x] Pruebas de esquema y autorización, y pruebas PostgreSQL sobre aislamiento y publicación.
+- [ ] Audios, transcripción, repetición espaciada persistente, actividades especializadas y multimedia accesible.

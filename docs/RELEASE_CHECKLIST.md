@@ -61,3 +61,11 @@ No anunciar el sistema como terminado ni aceptar datos sensibles de clientes sin
 - [ ] Revisar seguridad del prompt del profesor, ataques de inyección de notas, retención de dudas, política IA y pruebas con proveedor real.
 - [ ] Probar instalación PWA en Android/iOS, generar iconos PNG y verificar propiedades de caché y URLs.
 - [ ] Dominios personalizados, DNS, certificados, cuota SaaS y planes comerciales; no marcar como configurados.
+
+## Paquetes, repaso y material pedagógico
+- [x] Asignaciones manuales de créditos idempotentes y consumos concurrentes bloqueados en PostgreSQL.
+- [x] Devolución transaccional de créditos al cancelar reservas y clases, también series futuras.
+- [x] Flashcards y microlecciones privadas mientras son borradores; publicación humana y aislamiento de matrículas.
+- [ ] Confirmación financiera real de pagos, revocaciones auditadas, políticas de reembolso monetario y consumos obligatorios en clases de pago.
+- [ ] Validación E2E de todos los caminos de consumo y devolución, incluidos feriados, reprogramaciones y cambios de membresía.
+- [ ] Evaluación de tarjetas IA con contenido docente real y consentimiento, seguridad de audio y recursos multimedia antes de piloto.

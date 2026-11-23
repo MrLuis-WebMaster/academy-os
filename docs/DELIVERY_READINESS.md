@@ -33,3 +33,9 @@ Consultar también STAGING_DEPLOYMENT.md, SECURITY.md, ROADMAP.md y RELEASE_CHEC
 - Perfil educativo privado y objetivos siguientes basados solo en evaluación humana y metas.
 - Identidad instalable de catálogo para academias publicadas mediante ruta y manifiesto PWA por slug; todavía sin DNS propio ni prueba de instalación real.
 - Prioridad de entrega siguiente: paquetes/membresías, cobro real con autorización externa, Clase Viva audio/flashcards, políticas de protección de menores y QA.
+
+## Nuevos módulos (2026-11-23)
+- Paquetes manuales de créditos por clases, con saldo, canje idempotente y devolución automática de créditos tras cancelaciones. **No es un sistema de cobro real**, aunque muestre precios.
+- Tarjetas interactivas y microlecciones validadas, solo para alumnos matriculados tras aprobación de notas y recursos.
+- Borradores con IA opcional, sin proveedor real validado, aprobación humana obligatoria y límites compartidos por academia.
+- Pendiente comercial esencial: pagos reales, entitlement de acceso a clases de pago, facturación y renovaciones automáticas.

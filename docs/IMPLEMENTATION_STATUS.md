@@ -138,6 +138,14 @@
 - Solo docentes asignados y gestores de la academia pueden consultarlas; se deriva del mismo modelo de lectura de curso y no se ejecuta IA.
 - La creación y aprobación real de actividades continúa ocurriendo en Clase Viva; no existen ejercicios automáticos enviados a alumnos a partir de estas señales.
 
+## Hito 20/21 — Paquetes manuales y recursos de Clase Viva (2026-11-23)
+
+- Los paquetes de clases tienen catálogo, emisión manual idempotente, saldos por estudiante y canje de créditos con bloqueo PostgreSQL; la cancelación devuelve créditos en transacción. No cobran dinero ni bloquean reservas sin paquete.
+- Los administradores gestionan paquetes y precios orientativos; los alumnos pueden ver y aplicar sus créditos. El sistema no comprueba pagos de una pasarela.
+- Clase Viva ahora permite flashcards y microlecciones con borradores editables, aprobación/publicación docente, validación de contenido y acceso solo para estudiantes matriculados.
+- Las tarjetas de repaso son interactivas, pero su autoclasificación no se convierte automáticamente en evaluación humana del Pasaporte.
+- Se añadió adaptador IA opcional para proponer ambos recursos bajo consentimiento explícito, cuota compartida y publicación exclusivamente humana; falta validar proveedor real.
+
 ## Límites no resueltos
 - OAuth Google en entorno real, test del callback, cookies, sesiones y logout end-to-end.
 - Meet/Zoom/Drive, correo transaccional, sync calendario, app almacenamiento no conectado.

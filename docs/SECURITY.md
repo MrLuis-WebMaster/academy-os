@@ -67,3 +67,10 @@ Las rutas de creación, listado y cancelación de sesiones están aisladas por a
 - Las preguntas no se transmiten al proveedor de IA y las notificaciones no incluyen su texto. El filtrado básico de teléfonos y correos **no equivale** a una desidentificación segura: falta política de retención, eliminación y pruebas con menores.
 - El perfil de aprendizaje se calcula con metas y evaluaciones humanas, no con perfilado psicológico; Profe SOS lo presenta localmente, sin enviarlo al proveedor.
 - La PWA de catálogo solo expone nombre, color e iconos de academias publicadas; no incluye datos de alumnado ni contenido privado en caché. Revisar protección de instalación y HTTPS antes del lanzamiento.
+
+## Créditos y recursos docentes (2026-11-23)
+- Otorgar créditos de paquete requiere rol OWNER/ADMIN y membresía STUDENT en la misma academia; paquetes de curso también exigen matrícula. No hay confirmación de pago ni transferencia monetaria: los precios no son prueba contable.
+- Los canjes exigen booking propio, clase futura CONFIRMED, vigencia válida, curso permitido y saldo. Los locks serializan créditos y se alinean con locks de reservas; cancelaciones devuelven créditos transaccionalmente y de forma idempotente.
+- Los materiales de estudio exigen una reflexión de clase existente y docentes autorizados. Borradores no llegan a alumnos. El recurso y la reflexión deben estar publicados para la lectura del estudiante matriculado.
+- El contenido del profesor no puede invalidar límites de datos sensibles ni convertirse en instrucciones de seguridad del proveedor IA. El texto se minimiza best-effort (correos/teléfonos), pero los docentes deben retirar datos identificables manualmente.
+- Los controles de tarjetas son autoevaluaciones temporales y nunca modifican competencias humanas. Pendientes: política de retención, límites de menores, QA E2E y certificación externa de seguridad.

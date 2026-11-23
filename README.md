@@ -127,6 +127,11 @@ AcademyOS sirve a profesores independientes (**SOLO**) y pequeñas academias con
 - [Visión de producto y tres fases comerciales](docs/PRODUCT_VISION.md)
 - [Integración entre metodología, perfil, SOS y PWA](docs/MODULE_INTEGRATION.md)
 
+## Paquetes de clases y recursos de Clase Viva
+
+- [Bonos de clases, créditos y devolución en cancelaciones](docs/CLASS_PACKAGES.md) — registros manuales, sin checkout real.
+- [Tarjetas de estudio, microlecciones y propuestas con IA supervisadas](docs/CLASS_ALIVE_STUDY.md) — solo los recursos publicados llegan a estudiantes matriculados.
+
 ## Estado y próximos pasos
 
 - [Roadmap actualizado](docs/ROADMAP.md)
