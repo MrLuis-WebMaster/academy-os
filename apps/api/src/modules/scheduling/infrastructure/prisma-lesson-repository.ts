@@ -21,7 +21,7 @@ export class PrismaLessonRepository implements LessonRepository {
       where:{workspaceId,...(!isManager?{teacher:{workspaceId,userId:actorId}}:{})},
       select:{
         id:true,title:true,status:true,mode:true,startsAt:true,endsAt:true,
-        location:true,meetingUrl:true,teacherProfileId:true,courseId:true,
+        location:true,meetingUrl:true,capacity:true,teacherProfileId:true,courseId:true,
         seriesId:true,seriesIndex:true,
       },
       orderBy:{startsAt:'asc'},take:100,

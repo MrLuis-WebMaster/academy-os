@@ -3,7 +3,7 @@ import type {LessonDraft,LessonStatus} from '../domain/lesson.js';
 export type LessonMode='ONLINE'|'ONSITE'|'HYBRID';
 export interface LessonListRow {
   id:string;title:string;status:LessonStatus;mode:LessonMode;
-  startsAt:Date;endsAt:Date;location:string|null;meetingUrl:string|null;
+  startsAt:Date;endsAt:Date;location:string|null;meetingUrl:string|null;capacity:number;
   teacherProfileId:string|null;courseId:string|null;seriesId:string|null;seriesIndex:number|null;
 }
 export interface CreatedLesson {

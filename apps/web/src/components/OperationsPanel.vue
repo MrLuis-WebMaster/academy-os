@@ -17,7 +17,7 @@ const props = defineProps<{ workspace: { id: string; name: string; type: 'SOLO'|
 type Subject = { id:string; name:string };
 type Course = { id:string; title:string; summary:string|null; subjectId:string|null };
 type Teacher = { id:string; userId:string; user:{name:string} };
-type Lesson = { id:string;courseId:string|null; title:string; startsAt:string; endsAt:string; mode:'ONLINE'|'ONSITE'|'HYBRID'; status:string; location:string|null;seriesId?:string|null;seriesIndex?:number|null };
+type Lesson = { id:string;courseId:string|null; title:string; startsAt:string; endsAt:string; mode:'ONLINE'|'ONSITE'|'HYBRID'; status:string; location:string|null;meetingUrl:string|null;capacity:number;seriesId?:string|null;seriesIndex?:number|null };
 const subjects=ref<Subject[]>([]), courses=ref<Course[]>([]), teachers=ref<Teacher[]>([]), sessions=ref<Lesson[]>([]);
 type Member={role:string;user:{id:string;name:string;email:string}};
 const members=ref<Member[]>([]);
@@ -285,7 +285,7 @@ const input='mt-2 w-full rounded-xl border border-outline bg-surface p-3 text-sm
     </section>
   <WeeklyAvailability v-if="status==='ready' && ['OWNER','ADMIN'].includes(role)" :workspace-id="workspace.id" :teachers="teachers" />
     <TeacherTimeOff v-if="status==='ready' && ['OWNER','ADMIN'].includes(role)" :workspace-id="workspace.id" :teachers="teachers" />
-    <WeeklySeriesManager v-if="status==='ready' && ['OWNER','ADMIN'].includes(role)" :workspace-id="workspace.id" :sessions="sessions" @updated="refresh" />
+    <WeeklySeriesManager v-if="status==='ready' && ['OWNER','ADMIN','TEACHER'].includes(role)" :workspace-id="workspace.id" :sessions="sessions" @updated="refresh" />
     <RescheduleSession v-if="status==='ready' && ['OWNER','ADMIN'].includes(role)" :workspace-id="workspace.id" :sessions="sessions" @updated="refresh" />
   <PracticeTeacher v-if="status==='ready'" :workspace-id="workspace.id" :sessions="sessions" />
     <AiPracticeAssistant v-if="status==='ready'" :workspace-id="workspace.id" :sessions="sessions" />
