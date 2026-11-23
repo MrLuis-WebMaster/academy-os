@@ -80,3 +80,9 @@ Las rutas de creación, listado y cancelación de sesiones están aisladas por a
 - Reserva individual y de serie toman advisory locks de sesión(es), después política de curso, luego asignaciones de bono. El cambio de política toma el mismo lock de curso. No se crea una reserva de pago sin débito de un crédito en la misma transacción.
 - Los docentes no pueden regalar créditos ni modificar la política, y un alumno no puede usar créditos del alumno o academia ajenos.
 - La etiqueta «requiere paquete» no implica pago financiero validado; todavía no hay protección equivalente del material premium o acceso al curso por pago confirmado.
+
+## Auditoría y revocaciones (2026-11-23)
+- La lectura de emisores y estudiantes de cada bono es exclusiva de OWNER/ADMIN del espacio. La consulta y la revocación revalidan el rol contra PostgreSQL y filtran por `workspaceId`.
+- El motivo es obligatorio, el actor y la fecha quedan persistidos, la revocación es idempotente y tiene un lock compartido con los canjes.
+- Una asignación ligada a una reserva futura confirmada no puede revocarse antes de cancelar y devolver su crédito. La notificación al estudiante no incluye el motivo administrativo.
+- El historial registra créditos, no conciliación bancaria ni soporte de reembolsos monetarios. Requiere política de retención y exportación verificable para usos comerciales.

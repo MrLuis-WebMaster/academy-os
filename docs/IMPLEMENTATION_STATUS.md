@@ -154,6 +154,13 @@
 - Los alumnos ven la condición y los créditos se descuentan automáticamente; las cancelaciones devuelven los créditos.
 - La condición no significa que exista checkout, verificación de pago, conciliación financiera, restricción de recursos premium ni suscripciones automáticas reales.
 
+## Hito 23 — Historial administrativo de créditos (2026-11-23)
+
+- Administradores autorizados pueden revisar las últimas 200 asignaciones manuales de la academia, su emisor, estudiante, vigencia, estado y reservas futuras con crédito.
+- La revocación requiere motivo y registra responsable y fecha. No puede revocar saldos ligados a reservas futuras confirmadas; primero deben cancelarse esas reservas.
+- Los alumnos reciben notificación interna de revocación. Reintentos conservan el motivo original y no duplican notificaciones.
+- No representa una devolución de dinero, una factura, un cobro verificado ni un ledger financiero certificado.
+
 ## Límites no resueltos
 - OAuth Google en entorno real, test del callback, cookies, sesiones y logout end-to-end.
 - Meet/Zoom/Drive, correo transaccional, sync calendario, app almacenamiento no conectado.

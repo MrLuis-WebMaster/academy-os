@@ -76,3 +76,8 @@ No anunciar el sistema como terminado ni aceptar datos sensibles de clientes sin
 - [x] Series de clases de pago completamente atómicas, incluidas reprogramaciones y cancelaciones existentes.
 - [x] Activación prohibida si existen reservas futuras no pagadas con créditos.
 - [ ] Pago real, conciliación, anulaciones financieras, acceso pagado a materiales/cursos y pruebas E2E con comprador y administrador reales.
+
+## Auditoría administrativa de bonos
+- [x] Acceso aislado por academia a emisiones y saldos, con revalidación del permiso administrativo.
+- [x] Revocación con motivo y responsable, rechazo si hay reservas futuras y notificación interna idempotente.
+- [ ] Exportación, firmas de aprobación financiera, política legal de conservación de registros y pruebas E2E con usuarios reales.

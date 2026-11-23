@@ -43,6 +43,17 @@ Al reservar una clase de un curso con paquete obligatorio, se verifica nuevament
 
 Desactivar el requisito permite nuevas reservas gratuitas; no implica devolver automáticamente créditos ya gastados por clases existentes ni devolver dinero. Cualquier cambio de modelo financiero deberá revisarse con los alumnos.
 
+## Historial administrativo y revocación segura
+`GET /api/v1/workspaces/:workspaceId/packages/issuances` devuelve a OWNER/ADMIN las **últimas 200** asignaciones de créditos de su academia, con nombre del alumno y emisor, paquete, créditos consumidos, créditos realmente utilizables, fecha de vencimiento, reservas futuras cubiertas y datos de revocación. El endpoint vuelve a comprobar los permisos dentro de PostgreSQL, sin exponer registros de otras academias.
+
+`PATCH /api/v1/workspaces/:workspaceId/packages/entitlements/:entitlementId/revoke`:
+
+```json
+{"reason":"Corrección administrativa autorizada"}
+```
+
+La revocación registra fecha, usuario responsable y razón (6–300 caracteres) y notifica internamente al alumno. No afecta reservas ya realizadas: si el bono aún respalda reservas futuras confirmadas, **rechaza la revocación** hasta que esas reservas hayan sido canceladas y los créditos devueltos. El bloqueo de asignación está compartido con el débito automático/manual de créditos, de forma que la acción no puede adelantarse a un canje concurrente. Reintentar la misma revocación no cambia el motivo original ni duplica notificaciones. Es una operación administrativa de créditos, **no reembolsa dinero**.
+
 ## Uso del alumno
 
 `GET /api/v1/workspaces/:workspaceId/packages/mine` lista únicamente las asignaciones del alumno autenticado, sus créditos totales, usados, no consumidos (\`remaining\`), actualmente aplicables (\`available\`), vencimiento y `activeBookingIds\`. Los créditos vencidos pueden seguir sin consumir, pero su cantidad aplicable es cero. No muestra transacciones ni asignaciones de otros alumnos.
@@ -61,7 +72,7 @@ Cuando el alumno cancela una reserva individual, cancela una serie futura, o el 
 - [Resuelto para reservas] Exigir un crédito asignado manualmente cuando el curso requiere paquete. **Pendiente**: ligarlo a confirmación bancaria/pasarela real, matrícula pagada y contenido premium protegido.
 - Integración de pasarela (orden, webhook firmado, confirmación, conciliación), comprobantes legales y reembolsos de dinero.
 - Adquisición autoservicio y renovaciones recurrentes de membresías.
-- Política para alumnos que dejan de estar matriculados, modificaciones posteriores de planes y revocación de créditos con historial contable.
+- Política para alumnos que dejan de estar matriculados, modificaciones posteriores de planes, exportación paginada y conciliación contable externa de emisiones y revocaciones.
 - QA E2E de interfaz en staging e informe auditable de emisiones y consumos.
 
 Las pruebas automatizadas cubren integridad del crédito, concurrencia, duplicados, permisos multi-tenant, cancelación y conservación de los derechos existentes. CI no es certificación contable.

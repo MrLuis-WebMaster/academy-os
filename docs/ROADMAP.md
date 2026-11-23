@@ -167,3 +167,11 @@ Cumplir [RELEASE_CHECKLIST.md](RELEASE_CHECKLIST.md). Nunca considerar CI verde 
 - [x] Devoluciones automáticas y permiso/matrícula revalidados. Interfaz de administrador y avisos de consumo para alumnos.
 - [x] Suite PostgreSQL para política, carreras por último crédito y series de pago.
 - [ ] Checkout validado, conciliación monetaria, suscripción recurrente y protección de materiales de cursos premium.
+
+## Hito 23 — Auditoría y revocación de paquetes (2026-11-23)
+- [x] Historial administrativo aislado por academia y rol OWNER/ADMIN, con emisor, estudiante, paquete, saldo, consumos y reservas futuras.
+- [x] Revocación con motivo, fecha e identidad del administrador; notificación privada al alumno e idempotencia.
+- [x] Revocación prohibida si existen reservas futuras confirmadas respaldadas por el paquete; debe cancelarse y devolverse primero.
+- [x] Bloqueo concurrente por asignación compartido con consumo automático de crédito y revalidación en transacción.
+- [x] UI administrativa, pruebas de control de acceso, reconciliación de saldo y no duplicar avisos.
+- [ ] Exportación CSV de auditoría, conciliación bancaria real, soporte de reembolso monetario, múltiples roles de contabilidad y política legal de retención.
