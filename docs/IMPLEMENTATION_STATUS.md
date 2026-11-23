@@ -122,6 +122,15 @@
 - Cobros: solo montos de recibos manuales no anulados, nunca facturación verificada ni ingresos bancarios conciliados. Aprendizaje: promedios reales por intento, distintos a competencias humanas.
 - Aún no hay dominios DNS validados, pago en línea, estadísticas avanzadas ni reportes generados automáticamente.
 
+## Hito 18 — Visión modular conectada y personalización (2026-11-23)
+
+- Configuración de metodología por docente (especialidad, enfoque, idioma, texto de orientación), distinta para cada profesor, incluso dentro de la misma academia.
+- Clase Viva y Profe SOS consumen esas preferencias bajo reglas de privacidad y fuentes publicadas; la IA sigue inactiva sin proveedor real.
+- Profe SOS requiere habilitación del docente y consentimiento por consulta; además admite consultas directas al docente por curso, con respuestas y avisos internos.
+- Perfil privado educativo basado en metas y evidencias verificadas: próximos pasos y logros confirmados; no genera etiquetas psicológicas ni evaluación IA.
+- Catálogo público con ruta `/academy/:slug/`, manifiesto instalable y SVG de marca distintos por academia. Sin dominios personalizados reales ni instalación verificada en dispositivos.
+- Producto diseñado para SOLO y ACADEMY sobre el mismo monorepo. Véase `PRODUCT_VISION.md` y `MODULE_INTEGRATION.md`.
+
 ## Límites no resueltos
 - OAuth Google en entorno real, test del callback, cookies, sesiones y logout end-to-end.
 - Meet/Zoom/Drive, correo transaccional, sync calendario, app almacenamiento no conectado.

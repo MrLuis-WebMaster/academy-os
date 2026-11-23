@@ -123,3 +123,13 @@ Cumplir [RELEASE_CHECKLIST.md](RELEASE_CHECKLIST.md). Nunca considerar CI verde 
 - [x] Panel web de KPIs de estudiantes, docentes, cursos, sesiones, reservas, asistencia, intentos, evidencias y recibos manuales.
 - [x] Pruebas de validación de branding, roles, aislamientos y consultas PostgreSQL.
 - [ ] Dominios personalizados verificados, informes exportables, planes y entitlements, almacenamiento propio de logos y métricas de operación.
+
+## Hito 18 — Producto modular conectado y metodología docente (2026-11-23)
+- [x] Decisión de producto: una plataforma multi-tenant para SOLO y ACADEMY; cinco módulos integrados, sin apps/código exclusivos por cliente.
+- [x] Metodología por profesor: especialidad, estilo, idioma, instrucciones y habilitación individual de Profe SOS, con permisos backend por academia/docente.
+- [x] Clase Viva considera la metodología del docente al proponer borradores; Profe SOS la usa como preferencia no privilegiada y solo si el profesor habilita su asistente.
+- [x] Dudas del alumno enviadas manualmente al profesor de su curso, respuestas privadas y avisos internos transaccionales, con cuota de pendientes y permisos multi-tenant.
+- [x] Perfil educativo derivado de metas y evidencias humanas, próximos pasos y logros sin perfilado psicológico; visible localmente en Pasaporte y Profe SOS.
+- [x] Ruta pública por academia, manifiesto e icono PWA personalizados; cada academia publicada tiene id y alcance de instalación propios.
+- [ ] Validación de PWA instalable en dispositivos reales, iconos PNG/Apple, dominios HTTPS personalizados y DNS propio.
+- [ ] Audio, transcripción, flashcards, microlecciones, enseñanza especializada, pagos por pasarela, paquetes/membresías e integración del proveedor IA real.

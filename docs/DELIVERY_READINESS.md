@@ -27,3 +27,9 @@
 CI verde valida código y pruebas automatizadas, no demuestra operación real de OAuth, pagos, emails o hosting. No anunciar AcademyOS como terminado hasta pasar el checklist de lanzamiento.
 
 Consultar también STAGING_DEPLOYMENT.md, SECURITY.md, ROADMAP.md y RELEASE_CHECKLIST.md.
+## Conexión de producto y academia propia (2026-11-23)
+- Metodología por profesor y asistentes especializados en estilo/idioma, con activación de SOS independiente.
+- Dudas directas al profesor y respuestas internas, protegidas por curso y matrícula.
+- Perfil educativo privado y objetivos siguientes basados solo en evaluación humana y metas.
+- Identidad instalable de catálogo para academias publicadas mediante ruta y manifiesto PWA por slug; todavía sin DNS propio ni prueba de instalación real.
+- Prioridad de entrega siguiente: paquetes/membresías, cobro real con autorización externa, Clase Viva audio/flashcards, políticas de protección de menores y QA.

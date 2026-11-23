@@ -52,3 +52,12 @@ No anunciar el sistema como terminado ni aceptar datos sensibles de clientes sin
 - [x] Indicadores por rol OWNER/ADMIN y academia; sin exponer datos personales en respuestas agregadas.
 - [ ] Verificar propiedad y privacidad de imágenes externas, DNS, accesibilidad y restricciones de dominios personalizados.
 - [ ] Auditoría formal de métricas financieras, reconciliación e impuestos antes de llamarlas ingresos.
+
+## Metodología y PWA de academia
+- [x] Diferenciación de profesor independiente y pequeña academia con permisos por docente/curso.
+- [x] Metodología aislada por docente y SOS opt-in, avisos de dudas docentes sin proveedores externos.
+- [x] Perfil educativo determinista sobre evidencias docentes, sin inferencias psicológicas.
+- [x] Metadatos PWA y ruta pública única por academia publicada.
+- [ ] Revisar seguridad del prompt del profesor, ataques de inyección de notas, retención de dudas, política IA y pruebas con proveedor real.
+- [ ] Probar instalación PWA en Android/iOS, generar iconos PNG y verificar propiedades de caché y URLs.
+- [ ] Dominios personalizados, DNS, certificados, cuota SaaS y planes comerciales; no marcar como configurados.

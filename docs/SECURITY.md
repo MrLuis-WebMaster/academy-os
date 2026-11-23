@@ -59,3 +59,11 @@ Las rutas de creación, listado y cancelación de sesiones están aisladas por a
 - Los informes institucionales están restringidos a OWNER/ADMIN, revalidan la membresía en el repositorio y usan filtros de academia. No contienen email, identificadores ni filas individuales de estudiantes.
 - El logo HTTPS externo puede recibir solicitudes de navegadores: debe alojarse de forma confiable, respetando privacidad y CORS/CSP del dominio público.
 - El registro de pagos es manual y no supone movimiento bancario o facturación; las métricas no deben utilizarse como estados contables.
+
+## Metodologías, dudas y perfiles (2026-11-23)
+- Cada perfil docente se autoriza también dentro de su repositorio transaccional; Profe SOS está deshabilitado por defecto por profesor, además de la configuración global y consentimiento de alumno.
+- La metodología y las notas publicadas son contexto no confiable para la IA, nunca instrucciones de seguridad. Ninguna puntuación generada por IA se agrega al registro humano de competencias.
+- Las dudas enviadas a un profesor se guardan únicamente tras acción explícita del estudiante y revalidación de matrícula. Docentes solo ven preguntas de cursos asignados, propietarios/administradores ven el espacio, alumnos solo sus preguntas.
+- Las preguntas no se transmiten al proveedor de IA y las notificaciones no incluyen su texto. El filtrado básico de teléfonos y correos **no equivale** a una desidentificación segura: falta política de retención, eliminación y pruebas con menores.
+- El perfil de aprendizaje se calcula con metas y evaluaciones humanas, no con perfilado psicológico; Profe SOS lo presenta localmente, sin enviarlo al proveedor.
+- La PWA de catálogo solo expone nombre, color e iconos de academias publicadas; no incluye datos de alumnado ni contenido privado en caché. Revisar protección de instalación y HTTPS antes del lanzamiento.

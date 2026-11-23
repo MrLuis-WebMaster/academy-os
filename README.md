@@ -120,6 +120,13 @@ pnpm build
 
 GitHub Actions ejecuta migraciones en PostgreSQL temporal, pruebas de reglas de negocio, compilación y smoke tests de API. Se incorporó una prueba de aislamiento entre academias y sobrecupo simultáneo; verificar que su última ejecución esté verde antes de desplegar.
 
+## Cinco módulos integrados y academia propia
+
+AcademyOS sirve a profesores independientes (**SOLO**) y pequeñas academias con varios docentes (**ACADEMY**). El producto conecta Gestión tradicional, Clase Viva, Pasaporte, Profe Studio y Profe SOS. Cada profesor configura su metodología, el alumno conserva una ficha basada en evidencias docentes, y sus dudas pueden llegar a profesores asignados. La ruta de catálogo `/academy/:slug/` tiene metadatos PWA y marca individuales cuando está publicada. **No es aún un dominio independiente ni una app móvil nativa.**
+
+- [Visión de producto y tres fases comerciales](docs/PRODUCT_VISION.md)
+- [Integración entre metodología, perfil, SOS y PWA](docs/MODULE_INTEGRATION.md)
+
 ## Estado y próximos pasos
 
 - [Roadmap actualizado](docs/ROADMAP.md)
@@ -129,4 +136,4 @@ GitHub Actions ejecuta migraciones en PostgreSQL temporal, pruebas de reglas de 
 - [Integraciones externas](docs/INTEGRATIONS.md)
 - [Seguridad y privacidad](docs/SECURITY.md)
 
-**No completado:** OAuth y sincronización de Google Meet/Calendar, Zoom o Drive; verificación con credenciales reales de Clase Viva con IA y Profe SOS; procesamiento de pagos, recordatorios automáticos, acceso por dominio propio, recuperación de cuentas e instalación dedicada por token. Estas capacidades requieren código adicional, verificación con proveedores y en algunos casos credenciales privadas.
+**No completado:** OAuth y sincronización de Google Meet/Calendar, Zoom o Drive; verificación con credenciales reales de Clase Viva con IA y Profe SOS; procesamiento de pagos, recordatorios automáticos, acceso por dominio propio, recuperación de cuentas, iconos PWA multi-dispositivo y dominios independientes certificados. Estas capacidades requieren código adicional, verificación con proveedores y en algunos casos credenciales privadas.
