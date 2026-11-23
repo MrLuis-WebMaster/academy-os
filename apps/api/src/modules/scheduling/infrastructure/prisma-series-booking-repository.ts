@@ -2,6 +2,7 @@ import {prisma} from '../../../lib/prisma.js';
 import type {Prisma} from '../../../generated/prisma/client.js';
 import {bookingNotice} from '../../notifications/domain/notification.js';
 import {refundStudentSeriesCredits} from '../../commerce/infrastructure/package-credits.js';
+import {reserveBookingCredit,PackageCreditRequired} from '../../commerce/infrastructure/reserve-booking-credit.js';
 import {notifyUser} from '../../notifications/infrastructure/personal-notice-publisher.js';
 import type {SeriesBookingRepository} from '../application/series-booking-ports.js';
 import {
@@ -62,6 +63,11 @@ export class PrismaSeriesBookingRepository implements SeriesBookingRepository {
         select:{id:true},
       });
       if(!enrolled)throw new SeriesBookingNotEnrolled();
+      await tx.$queryRaw`SELECT pg_advisory_xact_lock(hashtext(${'academy-os:course-policy:'+courseIds[0]!}))::text AS lock_acquired`;
+      const course=await tx.course.findFirst({
+        where:{workspaceId,id:courseIds[0]!},select:{requiresPackage:true},
+      });
+      if(!course)throw new SeriesBookingNotEnrolled();
       const current=await tx.classBooking.findMany({
         where:{workspaceId,userId,sessionId:{in:sessions.map(s=>s.id)}},
         select:{id:true,sessionId:true,status:true},
@@ -69,7 +75,18 @@ export class PrismaSeriesBookingRepository implements SeriesBookingRepository {
       const bySession=new Map(current.map(item=>[item.sessionId,item]));
       // Preflight ALL seats before writing any booking or notification.
       for(const session of sessions){
-        if(bySession.get(session.id)?.status==='BOOKED')continue;
+        if(bySession.get(session.id)?.status==='BOOKED'){
+          if(course.requiresPackage){
+            const existingCredit=await tx.classPackageRedemption.findUnique({
+              where:{bookingId:bySession.get(session.id)!.id},
+              select:{id:true,refundedAt:true},
+            });
+            if(!existingCredit||existingCredit.refundedAt){
+              throw new SeriesBookingConflict('Existing paid class booking has no active credit');
+            }
+          }
+          continue;
+        }
         const occupied=await tx.classBooking.count({
           where:{workspaceId,sessionId:session.id,status:'BOOKED'},
         });
@@ -91,6 +108,17 @@ export class PrismaSeriesBookingRepository implements SeriesBookingRepository {
             data:{workspaceId,sessionId:session.id,userId},
             select:{id:true,bookedAt:true},
           });
+        if(course.requiresPackage){
+          try{
+            await reserveBookingCredit(tx,{
+              workspaceId,userId,bookingId:record.id,courseId:courseIds[0]!,
+              startsAt:session.startsAt,
+            });
+          }catch(error){
+            if(error instanceof PackageCreditRequired)throw new SeriesBookingConflict(error.message);
+            throw error;
+          }
+        }
         booked++;
         inAppNotificationsCreated+=await notifyUser(tx,{
           workspaceId,userId,sessionId:session.id,kind:'BOOKING_CONFIRMED',
