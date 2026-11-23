@@ -16,10 +16,17 @@ type Student={
  goals:Goal[];
 };
 type CourseProgress={courseId:string;topics:Topic[];students:Student[]};
+type Insight={
+ topicId:string;topicTitle:string;belowTargetCount:number;awaitingEvidenceCount:number;
+ studentCount:number;action:'PREPARE_REINFORCEMENT'|'COLLECT_EVIDENCE';
+};
+type Insights={courseId:string;insights:Insight[];disclaimer:string};
+
 const props=defineProps<{
  workspaceId:string;courses:Array<{id:string;title:string}>;
 }>();
 const courseId=ref(''),course=ref<CourseProgress|null>(null),loading=ref(false);
+const insights=ref<Insights|null>(null);
 const studentId=ref(''),topicId=ref(''),score=ref(80),note=ref('');
 const goalTitle=ref(''),goalDescription=ref(''),goalTarget=ref(80),goalTopic=ref('');
 const goalDate=ref(''),statusReason=ref('Dominio revisado con evidencia docente');
@@ -38,15 +45,17 @@ const selectedStudent=computed(()=>course.value?.students.find(s=>s.id===student
 const selectedTopic=computed(()=>course.value?.topics.find(t=>t.id===topicId.value)??null);
 async function refresh(){
   const workspaceId=props.workspaceId,selected=courseId.value,version=++loadVersion;
-  course.value=null;error.value='';message.value='';
+  course.value=null;insights.value=null;error.value='';message.value='';
   if(!selected)return;
   loading.value=true;
   try{
-    const data=await api<CourseProgress>(
-      workspaceId,'/courses/'+encodeURIComponent(selected),
-    );
+    const [data,insightData]=await Promise.all([
+      api<CourseProgress>(workspaceId,'/courses/'+encodeURIComponent(selected)),
+      api<Insights>(workspaceId,'/courses/'+encodeURIComponent(selected)+'/insights'),
+    ]);
     if(version!==loadVersion||workspaceId!==props.workspaceId||selected!==courseId.value)return;
     course.value=data;
+    insights.value=insightData;
     if(!data.students.some(s=>s.id===studentId.value)){
       studentId.value=data.students[0]?.id??'';
     }
@@ -59,6 +68,11 @@ async function refresh(){
       error.value=e instanceof Error?e.message:'No se pudo consultar el avance de este curso.';
     }
   }finally{if(version===loadVersion)loading.value=false;}
+}
+function focusInsight(insight:Insight){
+ topicId.value=insight.topicId;
+ goalTopic.value=insight.topicId;
+ message.value='Seleccionaste '+insight.topicTitle+'. Puedes registrar una evaluación o preparar una práctica de refuerzo desde Clase Viva.';
 }
 async function addEvidence(){
  if(busy.value||!topicId.value||!studentId.value)return;
@@ -122,7 +136,7 @@ async function changeGoal(goal:Goal,status:'ACHIEVED'|'CANCELLED'){
  }finally{busy.value=false;}
 }
 watch(()=>props.workspaceId,()=>{
- ++loadVersion;course.value=null;busy.value=false;error.value='';message.value='';
+ ++loadVersion;course.value=null;insights.value=null;busy.value=false;error.value='';message.value='';
  courseId.value=props.courses[0]?.id??'';studentId.value='';topicId.value='';
  requestId='';void refresh();
 });
@@ -155,6 +169,23 @@ onMounted(()=>{
   </label>
   <p v-if="loading" class="mt-3 text-xs text-muted">Consultando avance del curso…</p>
   <div v-else-if="course" class="mt-4 space-y-5">
+   <section v-if="insights?.insights.length" class="rounded-xl border border-outline bg-surface-muted p-4">
+    <h3 class="text-sm font-extrabold">Posibles actividades de refuerzo del grupo</h3>
+    <p class="mt-2 text-xs text-muted">Estas señales provienen exclusivamente de metas con porcentaje objetivo y evaluaciones registradas por docentes.</p>
+    <div class="mt-3 space-y-2">
+     <article v-for="insight in insights.insights" :key="insight.topicId" class="flex flex-wrap items-start justify-between gap-3 rounded-lg border border-outline bg-surface p-3">
+      <div>
+       <p class="text-sm font-bold">{{insight.topicTitle}}</p>
+       <p v-if="insight.belowTargetCount" class="mt-1 text-xs text-muted">{{insight.belowTargetCount}} alumnos con evaluación docente por debajo de su meta definida.</p>
+       <p v-if="insight.awaitingEvidenceCount" class="mt-1 text-xs text-muted">{{insight.awaitingEvidenceCount}} alumnos con meta, pero sin evaluación docente registrada.</p>
+      </div>
+      <UiButton size="sm" variant="secondary" @click="focusInsight(insight)">
+       {{insight.action==='PREPARE_REINFORCEMENT'?'Planificar refuerzo':'Registrar evaluación'}}
+      </UiButton>
+     </article>
+    </div>
+    <p class="mt-3 text-xs text-muted">{{insights.disclaimer}}</p>
+   </section>
    <p v-if="!course.students.length" class="text-xs text-muted">No hay estudiantes matriculados.</p>
    <div v-else>
     <label class="block text-xs font-semibold">Estudiante
