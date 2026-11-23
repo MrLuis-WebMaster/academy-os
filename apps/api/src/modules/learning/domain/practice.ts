@@ -23,7 +23,7 @@ export function gradePractice(questions:QuizQuestion[], answers:number[]) {
   const correct=matches.filter(Boolean).length;
   return {
     correct,total:questions.length,score:Math.round(100*correct/questions.length),
-    feedback:questions.map((q,i)=>({correct:matches[i],correctIndex:q.correctIndex,explanation:q.explanation??''})),
+    feedback:questions.map((q,i)=>({correct:Boolean(matches[i]),correctIndex:q.correctIndex,explanation:q.explanation??''})),
   };
 }
 export function publicQuestions(questions:QuizQuestion[]) {
