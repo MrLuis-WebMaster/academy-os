@@ -1,4 +1,4 @@
-export type NotificationKind = 'SESSION_CANCELLED'|'SESSION_RESCHEDULED'|'COURSE_ENROLLED'|'BOOKING_CONFIRMED';
+export type NotificationKind = 'SESSION_CANCELLED'|'SESSION_RESCHEDULED'|'COURSE_ENROLLED'|'BOOKING_CONFIRMED'|'CLASS_REMINDER';
 type ScheduleChangeKind = Extract<NotificationKind,'SESSION_CANCELLED'|'SESSION_RESCHEDULED'>;
 
 export class InvalidNotificationIdentifier extends Error {
