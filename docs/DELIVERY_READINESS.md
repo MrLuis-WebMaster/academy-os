@@ -5,8 +5,8 @@
 - Better Auth/Google configurables; onboarding OWNER idempotente e invitaciones seguras.
 - Academics: materias, cursos, matrículas, docentes, temarios y permisos por curso.
 - Scheduling: clases híbridas/virtuales/presenciales, reservas individuales y recurrentes, edición masiva de series, disponibilidad, ausencias, feriados nacionales de Colombia opcionales, sedes y aulas con disponibilidad física, reprogramación, cancelación y asistencia.
-- Classroom y Learning: materiales, Clase Viva, prácticas, tres intentos máximos concurrentes y Pasaporte inicial.
-- IA opt-in en código, bandeja interna, ICS privado y finanzas manuales.
+- Classroom y Learning: materiales, Clase Viva, prácticas, tres intentos máximos concurrentes, Pasaporte, evidencias docentes por competencia y metas auditadas.
+- IA opt-in en código, bandeja interna, preferencias de recordatorios 24h/1h y worker in-app desactivado hasta configurar hosting, ICS privado y finanzas manuales.
 - Profe Studio con servicios, catálogo público opt-in y gestión por academia.
 - Staging Docker/Caddy con HTTPS y scripts de respaldo/restauración (NO desplegado).
 
@@ -18,7 +18,7 @@
 
 ## Bloqueadores P1/P2 para lanzamiento comercial avanzado
 - Elegir y conectar pasarela de pagos; firmar webhooks, implementar reembolsos, conciliación e impuestos.
-- Configurar correo, push o WhatsApp con consentimiento, colas y recordatorios programados.
+- Activar y supervisar recordatorios internos en servidor; correo, push o WhatsApp con consentimientos independientes, outbox externo y reintentos.
 - OAuth de Calendar/Meet, Zoom y Drive, revocación, refresco y permisos separados del login.
 - Probar IA con proveedor real y política de minimización de datos; resúmenes IA pendientes.
 - Acudientes, suplencias, feriados de otros países y regionales, dominios/white-label, multimoneda y analítica avanzada.

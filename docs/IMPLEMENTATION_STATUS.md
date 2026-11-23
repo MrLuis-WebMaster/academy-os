@@ -101,6 +101,13 @@
 - Sedes y aulas con disponibilidad y capacidad física, validación de academia y bloqueo de choques horarios entre profesores distintos.
 - Gestión visual de estas funciones desde los paneles de profesores, administradores y alumnos; no equivale a pruebas manuales de usuarios.
 
+## Hitos 14–15 — recordatorios, evidencias y metas (2026-11-23)
+
+- Recordatorios internos opt-in para estudiantes, de 24 y 1 hora antes de clases confirmadas con reserva activa y matrícula; generación por worker independiente, idempotente y desactivado por defecto. No implica envíos por correo, push ni WhatsApp.
+- Competencias evaluadas humanamente: evidencias inmutables y deduplicadas por requestId, cálculo transaccional de promedios y recuentos, aislamiento académico y del alumno.
+- Metas por curso/alumno/tema con porcentaje objetivo y fecha opcional, estados ACTIVE/ACHIEVED/CANCELLED, motivo y eventos de auditoría.
+- Interfaces docente y alumno conectadas con estas rutas. Se requiere QA manual, supervisión de worker y revisión de privacidad antes de pilotaje.
+
 ## Límites no resueltos
 - OAuth Google en entorno real, test del callback, cookies, sesiones y logout end-to-end.
 - Meet/Zoom/Drive, correo transaccional, sync calendario, app almacenamiento no conectado.

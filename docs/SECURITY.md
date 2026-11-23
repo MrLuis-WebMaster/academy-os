@@ -36,3 +36,11 @@ Las rutas de creación, listado y cancelación de sesiones están aisladas por a
 - Las aulas están asociadas a una academia y los locks físicos impiden asignar la misma sala simultáneamente a dos docentes.
 - La política de feriados se activa expresamente y no cancela clases ya existentes.
 - Continúan pendientes E2E, protección de menores, revisión de privacidad y servicios externos.
+
+## Evidencia académica y recordatorios (2026-11-23)
+
+- La evidencia de competencias es humana, con puntuación entera, fecha y revisor identificados, operaciones idempotentes y agregación bajo lock por estudiante/tema.
+- Las metas tienen eventos de auditoría de estado; no se completan automáticamente por IA ni por resultados de ejercicios.
+- Solo el docente asignado o un administrador puede consultar registros de un curso y publicar evidencias. Los alumnos acceden únicamente a su progreso en los cursos donde mantienen matrícula.
+- Los recordatorios son voluntarios, nunca mensajes externos. Se revalida matrícula, reserva BOOKED y consentimiento opt-in antes de crear un aviso, bajo lock de reserva.
+- Faltan políticas de protección infantil, eliminación/retención de datos y auditoría de seguridad integral.

@@ -30,6 +30,10 @@ El acceso real necesita configurar `BETTER_AUTH_SECRET`, `GOOGLE_CLIENT_ID`, `GO
 
 En producción usa migraciones revisadas con `prisma migrate deploy`, HTTPS y copias de seguridad; no ejecutes migraciones destructivas directamente sobre datos reales.
 
+## Seguimiento educativo y recordatorios — 2026-11-23
+
+El Pasaporte incorpora competencias verificadas por profesores y metas auditadas. Los estudiantes pueden activar avisos in-app 24 horas y 1 hora antes de sus reservas. La tarea generadora está apagada por defecto y no envía mensajes externos. Ver [Seguimiento](docs/LEARNING_PROGRESS.md) y [Recordatorios](docs/REMINDER_DELIVERY.md).
+
 ## Agenda avanzada — 2026-11-23
 
 Se integraron reservas de series para estudiantes, edición masiva de clases futuras, festivos nacionales de Colombia opt-in y sedes/aulas con exclusión de horario físico. Documentación: [Agenda avanzada](docs/SCHEDULING_FEATURES.md). Los servicios externos y las pruebas manuales continúan pendientes.

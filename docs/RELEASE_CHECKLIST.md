@@ -35,7 +35,9 @@
 - [ ] Google Drive Picker, access revocation y protección de documentos.
 - [x] Bandeja in-app y avisos transaccionales de cancelación/reprogramación, aislados por usuario/academia.
 - [x] Exportación manual ICS con roles, sin OAuth ni enlaces públicos.
-- [ ] Envío real de confirmaciones y recordatorios por email.
+- [x] Lógica y worker de recordatorios internos opt-in con pruebas de PostgreSQL; permanece apagado por defecto.
+- [ ] Ejecutar worker bajo supervisión, comprobar recuperación de interrupciones y activar métricas.
+- [ ] Envío real de confirmaciones y recordatorios por email/push/WhatsApp.
 - [x] Código de generador de borradores de IA, proveedor adaptable, consentimiento por acción, revisión docente y tope de diez solicitudes/día/academia.
 - [ ] Verificar OpenAI Responses API con una clave y facturación reales, políticas de datos, monitoreo de costes y logs redactados.
 - [ ] Revisar cumplimiento para menores y políticas de privacidad antes de habilitar IA en producción.

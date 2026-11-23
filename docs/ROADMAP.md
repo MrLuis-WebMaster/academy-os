@@ -31,14 +31,14 @@ Cada marca `[x]` indica funcionalidad codificada en el repo, **no un lanzamiento
 ## Etapa 2 — aprendizaje e integraciones
 - [x] Clase Viva: observaciones y publicación de notas bajo supervisión humana.
 - [x] Prácticas redactadas por profesores, corrección automática y hasta tres intentos.
-- [x] Pasaporte inicial: media de resultados reales de prácticas por curso (no inferir dominio integral).
+- [x] Pasaporte inicial con resultados de prácticas y competencias basadas únicamente en evidencias revisadas por docentes, además de metas con estados auditables.
 - [~] Generación de **prácticas** con OpenAI Responses API, opt-in y revisión/edición docente, diez usos diarios compartidos por academia; pendiente validar con API key real. Resúmenes generados automáticamente aún no implementados.
 - [~] Profe SOS con acceso limitado a **notas publicadas** de cursos inscritos, referencias a las clases y derivación al profesor; pendiente probar API externa y añadir otros materiales autorizados.
 - [x] Exportación privada de calendario `.ics` filtrada por rol (importación manual, sin OAuth).
 - [ ] OAuth Meet/Calendar, Zoom y Google Drive con lifecycle, revocación y tests.
 - [ ] Almacenamiento propio y revisión de seguridad de recursos.
 - [x] Bandeja in-app con leído/no leído y notificaciones de matrículas, reservas y cambios de clases, con entrega transaccional e idempotente, sin envíos externos.
-- [ ] Recordatorios programados y avisos por correo/push/WhatsApp con consentimiento explícito.
+- [~] Preferencias opt-in por estudiante y academia, worker de recordatorios 24h/1h internos e idempotencia PostgreSQL. Falta activación en servidor, email/push/WhatsApp con consentimiento externo y monitoreo.
 
 ## Etapa 3 — academia y white-label avanzados
 - [ ] Roles de acudientes verificados, privacidad para menores y reportes familiares.
@@ -94,3 +94,17 @@ Cumplir [RELEASE_CHECKLIST.md](RELEASE_CHECKLIST.md). Nunca considerar CI verde 
 - [x] Sedes y aulas, aforo y exclusión de horario físico; selección en la gestión de clases y series.
 - [x] Pruebas PostgreSQL y CI de reservas concurrentes, calendario, series y aulas.
 - [ ] Ferias/feriados de otros países y regiones, suplencias, integraciones de proveedores y QA manual.
+
+## Hito 14 — Recordatorios internos opt-in (2026-11-23)
+- [x] Preferencias de recordatorio independientes por estudiante y academia, desactivadas por defecto.
+- [x] Avisos internos para clases reservadas 24h y/o 1h antes, sin duplicación por reintentos.
+- [x] Worker independiente, no conectado a un proveedor externo y desactivado por defecto.
+- [x] Pruebas PostgreSQL de consentimiento, matrícula, reservas activas e aislamiento multi-tenant.
+- [ ] Configurar proceso supervisado, métricas, alarmas y continuidad antes de activar; canales externos por integrar.
+
+## Hito 15 — Evidencias y metas de aprendizaje (2026-11-23)
+- [x] Evidencias docentes append-only por competencia/tema; registro idempotente, evaluador y fecha.
+- [x] Dominio de competencias con promedio de valoraciones humanas (0–100) y cantidad de evidencias; nunca atribuir dominio a IA.
+- [x] Metas de aprendizaje por alumno/curso/tema, estados controlados y auditoría de transiciones.
+- [x] Acceso restringido por matrícula y docente asignado, paneles de docentes/alumnos y pruebas PostgreSQL.
+- [ ] Rubricas complejas, plazos automatizados, corrección de evidencia con registro de reversión, analítica institucional y QA de usuarios.
