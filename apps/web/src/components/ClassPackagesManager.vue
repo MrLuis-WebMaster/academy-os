@@ -5,7 +5,7 @@ import {UiAlert,UiButton,UiCard} from '@academy-os/ui';
 import {apiJson,workspacePath} from '../shared/api-client';
 
 type Plan={
- id:string;title:string;courseId:string|null;sessionCredits:number;
+ id:string;title:string;courseId:string|null;courseRestricted:boolean;sessionCredits:number;
  priceCOP:number;validDays:number;active:boolean;createdAt:string;
 };
 type Member={role:string;user:{id:string;name:string;email:string}};
@@ -147,7 +147,7 @@ onMounted(()=>void load());
    <div v-else class="mt-3 space-y-2">
     <div v-for="plan in plans" :key="plan.id" class="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-outline p-3">
      <div><p class="text-sm font-bold">{{plan.title}}</p>
-      <p class="mt-1 text-xs text-muted">{{plan.sessionCredits}} clases · {{plan.validDays}} días · {{money(plan.priceCOP)}} · {{plan.courseId?courses.find(c=>c.id===plan.courseId)?.title??'Curso':'Todos los cursos'}}</p>
+      <p class="mt-1 text-xs text-muted">{{plan.sessionCredits}} clases · {{plan.validDays}} días · {{money(plan.priceCOP)}} · {{plan.courseRestricted?(plan.courseId?courses.find(c=>c.id===plan.courseId)?.title??'Curso':'Curso eliminado · no válido'):'Todos los cursos'}}</p>
      </div>
      <UiButton size="sm" variant="secondary" :disabled="busy" @click="toggle(plan)">
       {{plan.active?'Suspender emisión':'Reactivar'}}

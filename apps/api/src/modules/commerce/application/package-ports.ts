@@ -1,7 +1,7 @@
 import type {PackageIssueInput,PackagePlanInput,PackageRedemptionInput} from '../domain/class-package.js';
 
 export interface PackagePlanView{
- id:string;title:string;courseId:string|null;sessionCredits:number;
+ id:string;title:string;courseId:string|null;courseRestricted:boolean;sessionCredits:number;
  priceCOP:number;validDays:number;active:boolean;createdAt:Date;
 }
 export interface PackageEntitlementView{

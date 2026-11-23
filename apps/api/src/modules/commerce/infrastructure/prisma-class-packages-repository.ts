@@ -7,7 +7,7 @@ import type {Prisma} from '../../../generated/prisma/client.js';
 import {notifyUser} from '../../notifications/infrastructure/personal-notice-publisher.js';
 
 const planSelect={
- id:true,title:true,courseId:true,sessionCredits:true,priceCOP:true,
+ id:true,title:true,courseId:true,courseRestricted:true,sessionCredits:true,priceCOP:true,
  validDays:true,active:true,createdAt:true,
 } as const;
 const grantSelect={
@@ -61,7 +61,7 @@ export class PrismaClassPackagesRepository implements ClassPackagesRepository{
    }))throw new PackageNotFound();
    return tx.classPackage.create({
     data:{
-     workspaceId,courseId:input.courseId??null,title:input.title,
+     workspaceId,courseId:input.courseId??null,courseRestricted:Boolean(input.courseId),title:input.title,
      sessionCredits:input.sessionCredits,priceCOP:input.priceCOP,validDays:input.validDays,
     },select:planSelect,
    });
@@ -91,7 +91,7 @@ export class PrismaClassPackagesRepository implements ClassPackagesRepository{
    }
    const [plan,member]=await Promise.all([
     tx.classPackage.findFirst({where:{workspaceId,id:packageId},select:{
-     id:true,title:true,courseId:true,active:true,validDays:true,sessionCredits:true,
+     id:true,title:true,courseId:true,courseRestricted:true,active:true,validDays:true,sessionCredits:true,
     }}),
     tx.workspaceMember.findFirst({
      where:{workspaceId,userId:input.studentUserId,role:'STUDENT'},select:{id:true},
@@ -99,6 +99,7 @@ export class PrismaClassPackagesRepository implements ClassPackagesRepository{
    ]);
    if(!plan)throw new PackageNotFound();
    if(!plan.active)throw new PackageConflict('Package is not available for new issuance');
+   if(plan.courseRestricted&&!plan.courseId)throw new PackageConflict('The course-specific package is no longer available');
    if(!member)throw new PackageAccessDenied();
    if(plan.courseId&&!await tx.enrollment.findFirst({
     where:{courseId:plan.courseId,userId:input.studentUserId,course:{workspaceId}},
@@ -154,7 +155,7 @@ export class PrismaClassPackagesRepository implements ClassPackagesRepository{
       id:input.entitlementId,workspaceId,studentUserId:userId,package:{workspaceId},
      },
      select:{id:true,credits:true,expiresAt:true,revokedAt:true,
-      package:{select:{courseId:true}},
+      package:{select:{courseId:true,courseRestricted:true}},
      },
     }),
     tx.classPackageRedemption.findUnique({
@@ -167,7 +168,8 @@ export class PrismaClassPackagesRepository implements ClassPackagesRepository{
    if(booking.status!=='BOOKED'||booking.session.status!=='CONFIRMED'
      ||booking.session.startsAt.getTime()<=Date.now())
     throw new PackageConflict('Only future confirmed class bookings can redeem credits');
-   if(grant.package.courseId!==null&&grant.package.courseId!==booking.session.courseId)
+   if(grant.package.courseRestricted&&
+    (!grant.package.courseId||grant.package.courseId!==booking.session.courseId))
     throw new PackageAccessDenied();
    if(grant.expiresAt.getTime()<=Date.now()||booking.session.startsAt>grant.expiresAt
      ||grant.revokedAt!==null)throw new PackageConflict('Package is expired or unavailable');

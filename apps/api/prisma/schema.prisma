@@ -781,6 +781,7 @@ model ClassPackage {
  id String @id @default(cuid())
  workspaceId String
  courseId String?
+ courseRestricted Boolean @default(false)
  title String
  sessionCredits Int
  priceCOP Int
