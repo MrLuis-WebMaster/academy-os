@@ -2,7 +2,7 @@ import {prisma} from '../../../lib/prisma.js';
 import type {AiPracticeRepository,TeacherNoteSnapshot} from '../application/ports.js';
 import type {PracticeSuggestion} from '../domain/suggestion.js';
 import {AiQuotaReached} from '../application/suggest-practice-use-case.js';
-import {defaultTeachingMethodology} from '../domain/teaching-methodology.js';
+import {defaultTeachingMethodology,parseTeachingMethodology} from '../domain/teaching-methodology.js';
 
 const DAILY_LIMIT=10;
 export class PrismaAiPracticeRepository implements AiPracticeRepository {
@@ -19,7 +19,8 @@ export class PrismaAiPracticeRepository implements AiPracticeRepository {
     return reflection?{
       reflectionId:reflection.id,notes:reflection.notes,sessionTitle:reflection.session.title,
       subjectName:reflection.session.course?.subject?.name??'General',
-      methodology:reflection.session.teacher?.methodology??{...defaultTeachingMethodology},
+      methodology:reflection.session.teacher?.methodology?
+        parseTeachingMethodology(reflection.session.teacher.methodology):{...defaultTeachingMethodology},
     }:null;
   }
   async reserveDailyAttempt(workspaceId:string,userId:string,sessionId:string,model:string){

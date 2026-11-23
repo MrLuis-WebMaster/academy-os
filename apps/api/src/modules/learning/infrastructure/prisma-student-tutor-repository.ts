@@ -2,7 +2,7 @@ import {prisma} from '../../../lib/prisma.js';
 import {PrismaAiPracticeRepository} from './prisma-ai-practice-repository.js';
 import type {StudentTutoringRepository} from '../application/tutor-ports.js';
 import type {CourseEvidence} from '../domain/tutor-answer.js';
-import {defaultTeachingMethodology} from '../domain/teaching-methodology.js';
+import {defaultTeachingMethodology,parseTeachingMethodology} from '../domain/teaching-methodology.js';
 
 export class PrismaStudentTutorRepository implements StudentTutoringRepository {
   private readonly quota=new PrismaAiPracticeRepository();
@@ -26,7 +26,7 @@ export class PrismaStudentTutorRepository implements StudentTutoringRepository {
       select:{specialty:true,style:true,language:true,guidance:true,sosEnabled:true},
       orderBy:{teacherProfileId:'asc'},
     });
-    return enabled??{...defaultTeachingMethodology};
+    return enabled?parseTeachingMethodology(enabled):{...defaultTeachingMethodology};
   }
   async publishedEvidence(workspaceId:string,courseId:string):Promise<CourseEvidence[]>{
     const notes=await prisma.classReflection.findMany({
