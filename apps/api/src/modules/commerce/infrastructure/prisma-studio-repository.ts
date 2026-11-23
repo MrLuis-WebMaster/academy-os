@@ -16,7 +16,7 @@ export class PrismaStudioRepository implements StudioRepository {
     const workspace=await prisma.workspace.findFirst({
       where:{slug,publicEnabled:true},
       select:{
-        id:true,name:true,slug:true,description:true,brandColor:true,contactUrl:true,timezone:true,
+        id:true,name:true,slug:true,description:true,brandColor:true,logoUrl:true,contactUrl:true,timezone:true,
       },
     });
     if(!workspace)return null;
@@ -45,7 +45,7 @@ export class PrismaStudioRepository implements StudioRepository {
       where:{id:workspaceId},
       select:{
         id:true,name:true,slug:true,description:true,contactUrl:true,
-        publicEnabled:true,brandColor:true,timezone:true,
+        publicEnabled:true,brandColor:true,logoUrl:true,timezone:true,
       },
     });
     if(!workspace)throw new StudioUnavailable('Workspace does not exist');
@@ -57,12 +57,13 @@ export class PrismaStudioRepository implements StudioRepository {
       await this.requireManager(tx,workspaceId,actorId);
       const changed=await tx.workspace.updateMany({
         where:{id:workspaceId},
-        data:{...input,...(input.contactUrl!==undefined?{contactUrl:input.contactUrl||null}:{})},
+        data:{...input,...(input.contactUrl!==undefined?{contactUrl:input.contactUrl||null}:{}),
+          ...(input.logoUrl!==undefined?{logoUrl:input.logoUrl||null}:{})},
       });
       if(changed.count!==1)throw new StudioUnavailable('Workspace does not exist');
       return tx.workspace.findUniqueOrThrow({
         where:{id:workspaceId},
-        select:{id:true,slug:true,name:true,description:true,contactUrl:true,publicEnabled:true},
+        select:{id:true,slug:true,name:true,description:true,contactUrl:true,publicEnabled:true,brandColor:true,logoUrl:true},
       });
     });
   }

@@ -6,6 +6,12 @@ export const studioSettingsInput=z.object({
     z.literal(''),z.null()
   ]).optional(),
   publicEnabled:z.boolean().optional(),
+  brandColor:z.string().regex(/^#[0-9a-fA-F]{6}$/,'Provide a six-digit HEX brand color')
+    .transform(value=>value.toLowerCase()).optional(),
+  logoUrl:z.union([
+    z.url().max(2048).refine(value=>value.startsWith('https://'),'HTTPS image URL required'),
+    z.literal(''),z.null(),
+  ]).optional(),
 }).refine(v=>Object.values(v).some(x=>x!==undefined),'At least one setting is required');
 
 export const offeringInput=z.object({

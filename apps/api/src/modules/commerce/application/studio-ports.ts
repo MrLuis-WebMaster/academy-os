@@ -5,11 +5,11 @@ export type StudioSettings=z.infer<typeof studioSettingsInput>;
 export type StudioNewOffering=z.infer<typeof offeringInput>;
 export interface StudioConfig {
   id:string;name:string;slug:string;description:string|null;contactUrl:string|null;
-  publicEnabled:boolean;brandColor:string;timezone:string;
+  publicEnabled:boolean;brandColor:string;logoUrl:string|null;timezone:string;
 }
 export interface StudioUpdateResult {
   id:string;slug:string;name:string;description:string|null;
-  contactUrl:string|null;publicEnabled:boolean;
+  contactUrl:string|null;publicEnabled:boolean;brandColor:string;logoUrl:string|null;
 }
 export interface StudioOffer {
   id:string;title:string;description:string|null;priceCOP:number;durationMinutes:number;
@@ -22,7 +22,7 @@ export interface PublicOffer {
 }
 export interface PublicStudio {
   name:string;slug:string;description:string|null;brandColor:string;
-  contactUrl:string|null;timezone:string;offerings:PublicOffer[];
+  contactUrl:string|null;timezone:string;logoUrl:string|null;offerings:PublicOffer[];
 }
 export interface StudioRepository {
   publicStore(slug:string):Promise<PublicStudio|null>;

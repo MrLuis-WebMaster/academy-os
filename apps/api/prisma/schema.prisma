@@ -115,6 +115,7 @@ model Workspace {
   name        String
   type        WorkspaceType
   brandColor  String         @default("#7059e8")
+  logoUrl     String?
   description String?
   contactUrl  String?
   publicEnabled Boolean      @default(false)
