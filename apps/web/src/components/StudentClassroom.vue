@@ -4,6 +4,7 @@ import {UiAlert,UiEmptyState} from '@academy-os/ui';
 import {apiJson,workspacePath} from '../shared/api-client';
 import {BookOpen,CalendarDays,ExternalLink,FolderOpen,GraduationCap,MapPin,Video} from 'lucide-vue-next';
 import StudentPractice from './StudentPractice.vue';
+import LearningAssetsStudent from './LearningAssetsStudent.vue';
 import StudentBookings from './StudentBookings.vue';
 import StudentTutor from './StudentTutor.vue';
 
@@ -54,6 +55,7 @@ watch(()=>props.workspace.id,()=>void load());
 <div class="mt-7 grid gap-5 md:grid-cols-2"><div><h3 class="flex items-center gap-2 text-sm font-extrabold"><CalendarDays :size="17"/> Sesiones</h3><div v-for="session in enrollment.course.sessions" :key="session.id" class="mt-3 rounded-xl bg-surface-muted p-4"><p class="text-sm font-semibold">{{ session.title }}</p><p class="mt-1 text-xs text-muted">{{ new Date(session.startsAt).toLocaleString('es-CO') }}</p><p v-if="session.location" class="mt-2 flex items-center gap-1 text-xs text-muted"><MapPin :size="13"/>{{ session.location }}</p><a v-if="session.meetingUrl" :href="session.meetingUrl" target="_blank" rel="noopener noreferrer" class="mt-3 inline-flex items-center gap-2 rounded-lg bg-brand px-3 py-2 text-xs font-bold text-white"><Video :size="14"/> Entrar a la clase <ExternalLink :size="13"/></a></div><p v-if="!enrollment.course.sessions.length" class="mt-3 text-xs text-muted">Todavía no hay sesiones agendadas.</p></div><div><h3 class="flex items-center gap-2 text-sm font-extrabold"><FolderOpen :size="17"/> Materiales</h3><div v-for="resource in enrollment.course.resources" :key="resource.id" class="mt-3 rounded-xl border border-outline p-4"><p class="text-sm font-medium">{{ resource.title }}</p><a v-if="resource.url" :href="resource.url" target="_blank" rel="noopener noreferrer" class="mt-2 inline-flex items-center gap-1 text-xs font-bold text-brand">Abrir recurso <ExternalLink :size="13"/></a></div><p v-if="!enrollment.course.resources.length" class="mt-3 text-xs text-muted">Aún no hay materiales publicados.</p></div></div></section></div>
 <div v-if="!loading && !error" class="mt-8"><StudentBookings :workspace-id="workspace.id" :sessions="courses.flatMap(enrollment=>enrollment.course.sessions)" />
 <StudentPractice :workspace-id="workspace.id" />
+<LearningAssetsStudent :workspace-id="workspace.id" />
 <StudentTutor :workspace-id="workspace.id" :courses="courses.map(x=>x.course)" /></div>
 </main>
 </template>
