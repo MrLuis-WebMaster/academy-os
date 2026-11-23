@@ -30,7 +30,35 @@ const mode=ref<'ONLINE'|'ONSITE'|'HYBRID'>('ONLINE'), meetingUrl=ref(''), locati
 async function request<T>(path:string,options?:RequestInit):Promise<T>{
   return apiRequest<T>(workspacePath(props.workspace.id,path),options);
 }
-async function refresh(){status.value='loading';error.value='';try{const [s,c,t,l]=await Promise.all([request<Subject[]>('/subjects'),request<Course[]>('/courses'),request<Teacher[]>('/teachers'),request<Lesson[]>('/sessions')]);subjects.value=s;courses.value=c;teachers.value=t;sessions.value=l;if(!sessionTeacherId.value)sessionTeacherId.value=t[0]?.id||'';if(['OWNER','ADMIN'].includes(props.role))members.value=await request<Member[]>('/people');else members.value=[];status.value='ready';}catch(e){error.value=e instanceof Error?e.message:'No se pudieron cargar los datos';status.value='error';}}
+let refreshVersion=0;
+async function refresh(){
+  const version=++refreshVersion;
+  const workspaceId=props.workspace.id;
+  status.value='loading';
+  error.value='';
+  // Do not leave another academy's lessons visible while switching.
+  subjects.value=[];courses.value=[];teachers.value=[];sessions.value=[];members.value=[];
+  try{
+    const scoped=<T>(suffix:string)=>apiRequest<T>(workspacePath(workspaceId,suffix));
+    const [s,c,t,l]=await Promise.all([
+      scoped<Subject[]>('/subjects'),scoped<Course[]>('/courses'),
+      scoped<Teacher[]>('/teachers'),scoped<Lesson[]>('/sessions'),
+    ]);
+    if(version!==refreshVersion||workspaceId!==props.workspace.id)return;
+    const people=['OWNER','ADMIN'].includes(props.role)
+      ?await scoped<Member[]>('/people'):[] as Member[];
+    if(version!==refreshVersion||workspaceId!==props.workspace.id)return;
+    subjects.value=s;courses.value=c;teachers.value=t;sessions.value=l;members.value=people;
+    if(!t.some(teacher=>teacher.id===sessionTeacherId.value)){
+      sessionTeacherId.value=t[0]?.id??'';
+    }
+    status.value='ready';
+  }catch(e){
+    if(version!==refreshVersion||workspaceId!==props.workspace.id)return;
+    error.value=e instanceof Error?e.message:'No se pudieron cargar los datos';
+    status.value='error';
+  }
+}
 async function addSubject(){busy.value=true;message.value='';error.value='';try{await request('/subjects',{method:'POST',body:JSON.stringify({name:subjectName.value})});subjectName.value='';await refresh();message.value='Materia guardada correctamente.';}catch(e){error.value=e instanceof Error?e.message:'No se pudo crear la materia';}finally{busy.value=false;}}
 async function addCourse(){busy.value=true;message.value='';error.value='';try{await request('/courses',{method:'POST',body:JSON.stringify({title:courseTitle.value, ...(courseSubjectId.value?{subjectId:courseSubjectId.value}:{})})});courseTitle.value='';await refresh();message.value='Curso creado.';}catch(e){error.value=e instanceof Error?e.message:'No se pudo crear el curso';}finally{busy.value=false;}}
 async function addSession(){busy.value=true;message.value='';error.value='';try{
@@ -48,7 +76,17 @@ async function addSession(){busy.value=true;message.value='';error.value='';try{
   sessionTitle.value='';await refresh();
   message.value=isSeries?repeatWeeks.value+' clases semanales guardadas en la agenda.':'Clase guardada en la agenda.';
 }catch(e){error.value=e instanceof Error?e.message:'No se pudo agendar la clase';}finally{busy.value=false;}}
-watch(()=>props.workspace.id,async()=>{++materialLoadVersion;materials.value=[];await refresh();await loadMaterials();await loadReflections();});
+watch(()=>props.workspace.id,async()=>{
+  ++refreshVersion;
+  ++materialLoadVersion;
+  ++reflectionLoadVersion;
+  subjects.value=[];courses.value=[];teachers.value=[];sessions.value=[];members.value=[];
+  materials.value=[];reflections.value=[];
+  sessionTeacherId.value='';sessionCourseId.value='';courseSubjectId.value='';
+  enrollmentCourse.value='';enrollmentStudent.value='';materialCourseId.value='';reflectSessionId.value='';
+  message.value='';error.value='';
+  await refresh();await loadMaterials();await loadReflections();
+});
 onMounted(async()=>{await refresh();await loadMaterials();await loadReflections();});
 async function enroll(){busy.value=true;error.value='';message.value='';try{await request('/enrollments',{method:'POST',body:JSON.stringify({courseId:enrollmentCourse.value,studentUserId:enrollmentStudent.value})});message.value='Alumno inscrito correctamente.';}catch(e){error.value=e instanceof Error?e.message:'No se pudo inscribir';}finally{busy.value=false;}}
 async function cancelSession(session:Lesson){
@@ -115,9 +153,21 @@ async function setMaterialPublication(materialId:string,published:boolean){
 type Reflection={id:string;sessionId:string;status:'DRAFT'|'REVIEW'|'PUBLISHED';notes:string};
 const reflections=ref<Reflection[]>([]);
 const reflectSessionId=ref(''),reflectNotes=ref('');
+let reflectionLoadVersion=0;
 async function loadReflections(){
-  try{reflections.value=await request<Reflection[]>('/class-alive/notes');}
-  catch(e){error.value=e instanceof Error?e.message:'No se pudieron cargar las notas de Clase Viva';}
+  const version=++reflectionLoadVersion;
+  const workspaceId=props.workspace.id;
+  try{
+    const notes=await apiRequest<Reflection[]>(workspacePath(workspaceId,'/class-alive/notes'));
+    if(version===reflectionLoadVersion&&workspaceId===props.workspace.id){
+      reflections.value=notes;
+    }
+  }catch(e){
+    if(version===reflectionLoadVersion&&workspaceId===props.workspace.id){
+      reflections.value=[];
+      error.value=e instanceof Error?e.message:'No se pudieron cargar las notas de Clase Viva';
+    }
+  }
 }
 async function saveReflection(){
   busy.value=true;error.value='';message.value='';
