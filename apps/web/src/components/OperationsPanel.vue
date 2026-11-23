@@ -6,6 +6,7 @@ import PracticeTeacher from './PracticeTeacher.vue';
 import StudioEditor from './StudioEditor.vue';
 import StaffAttendance from './StaffAttendance.vue';
 import FinanceLedger from './FinanceLedger.vue';
+import ClassPackagesManager from './ClassPackagesManager.vue';
 import CurriculumManager from './CurriculumManager.vue';
 import LearningProgressManager from './LearningProgressManager.vue';
 import GuardianManager from './GuardianManager.vue';
@@ -325,6 +326,7 @@ const input='mt-2 w-full rounded-xl border border-outline bg-surface p-3 text-sm
     <StudioEditor v-if="status==='ready' && ['OWNER','ADMIN'].includes(role)" :workspace="workspace" :courses="courses" />
     <StaffAttendance v-if="status==='ready'" :workspace-id="workspace.id" />
     <FinanceLedger v-if="status==='ready' && ['OWNER','ADMIN'].includes(role)" :workspace-id="workspace.id" :role="role" :students="members" :courses="courses" />
+    <ClassPackagesManager v-if="status==='ready' && ['OWNER','ADMIN'].includes(role)" :workspace-id="workspace.id" :students="members" :courses="courses" />
     <CurriculumManager v-if="status==='ready'" :workspace-id="workspace.id" :role="role" :courses="courses" :teachers="teachers" />
     <LearningProgressManager v-if="status==='ready'" :workspace-id="workspace.id" :courses="courses" />
     <GuardianManager v-if="status==='ready' && ['OWNER','ADMIN'].includes(role)" :workspace-id="workspace.id" :members="members" />
