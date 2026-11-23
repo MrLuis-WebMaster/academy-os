@@ -61,21 +61,44 @@ async function refresh(){
 }
 async function addSubject(){busy.value=true;message.value='';error.value='';try{await request('/subjects',{method:'POST',body:JSON.stringify({name:subjectName.value})});subjectName.value='';await refresh();message.value='Materia guardada correctamente.';}catch(e){error.value=e instanceof Error?e.message:'No se pudo crear la materia';}finally{busy.value=false;}}
 async function addCourse(){busy.value=true;message.value='';error.value='';try{await request('/courses',{method:'POST',body:JSON.stringify({title:courseTitle.value, ...(courseSubjectId.value?{subjectId:courseSubjectId.value}:{})})});courseTitle.value='';await refresh();message.value='Curso creado.';}catch(e){error.value=e instanceof Error?e.message:'No se pudo crear el curso';}finally{busy.value=false;}}
-async function addSession(){busy.value=true;message.value='';error.value='';try{
-  const startsAt=new Date(`${sessionDate.value}T${startTime.value}:00`),endsAt=new Date(`${sessionDate.value}T${endTime.value}:00`);
-  if(Number.isNaN(startsAt.getTime()) || Number.isNaN(endsAt.getTime()))throw Error('Elige una fecha y un horario válido.');
-  const isSeries=repeatWeeks.value>1;
-  await request(isSeries?'/sessions/weekly-series':'/sessions',{method:'POST',body:JSON.stringify({
-    title:sessionTitle.value,teacherProfileId:sessionTeacherId.value,
-    courseId:sessionCourseId.value||undefined,mode:mode.value,
-    startsAt:startsAt.toISOString(),endsAt:endsAt.toISOString(),
-    capacity:capacity.value,location:mode.value==='ONLINE'?undefined:location.value,
-    meetingUrl:mode.value==='ONSITE'?undefined:meetingUrl.value,
-    ...(isSeries?{repeatWeeks:repeatWeeks.value}:{}),
-  })});
-  sessionTitle.value='';await refresh();
-  message.value=isSeries?repeatWeeks.value+' clases semanales guardadas en la agenda.':'Clase guardada en la agenda.';
-}catch(e){error.value=e instanceof Error?e.message:'No se pudo agendar la clase';}finally{busy.value=false;}}
+async function addSession(){
+  if(busy.value)return;
+  const workspaceId=props.workspace.id;
+  const weeks=repeatWeeks.value;
+  busy.value=true;message.value='';error.value='';
+  try{
+    const startsAt=new Date(`${sessionDate.value}T${startTime.value}:00`);
+    const endsAt=new Date(`${sessionDate.value}T${endTime.value}:00`);
+    if(Number.isNaN(startsAt.getTime())||Number.isNaN(endsAt.getTime())){
+      throw Error('Elige una fecha y un horario válido.');
+    }
+    const isSeries=weeks>1;
+    await apiRequest(workspacePath(workspaceId,isSeries?'/sessions/weekly-series':'/sessions'),{
+      method:'POST',
+      body:JSON.stringify({
+        title:sessionTitle.value,teacherProfileId:sessionTeacherId.value,
+        courseId:sessionCourseId.value||undefined,mode:mode.value,
+        startsAt:startsAt.toISOString(),endsAt:endsAt.toISOString(),
+        capacity:capacity.value,
+        location:mode.value==='ONLINE'?undefined:location.value,
+        meetingUrl:mode.value==='ONSITE'?undefined:meetingUrl.value,
+        ...(isSeries?{repeatWeeks:weeks}:{}),
+      }),
+    });
+    if(workspaceId!==props.workspace.id)return;
+    sessionTitle.value='';
+    await refresh();
+    if(workspaceId===props.workspace.id){
+      message.value=isSeries
+        ?weeks+' clases semanales guardadas en la agenda.'
+        :'Clase guardada en la agenda.';
+    }
+  }catch(e){
+    if(workspaceId===props.workspace.id){
+      error.value=e instanceof Error?e.message:'No se pudo agendar la clase';
+    }
+  }finally{busy.value=false;}
+}
 watch(()=>props.workspace.id,async()=>{
   ++refreshVersion;
   ++materialLoadVersion;
@@ -90,11 +113,19 @@ watch(()=>props.workspace.id,async()=>{
 onMounted(async()=>{await refresh();await loadMaterials();await loadReflections();});
 async function enroll(){busy.value=true;error.value='';message.value='';try{await request('/enrollments',{method:'POST',body:JSON.stringify({courseId:enrollmentCourse.value,studentUserId:enrollmentStudent.value})});message.value='Alumno inscrito correctamente.';}catch(e){error.value=e instanceof Error?e.message:'No se pudo inscribir';}finally{busy.value=false;}}
 async function cancelSession(session:Lesson){
-  if(!window.confirm('¿Cancelar esta clase? Se liberará el horario y los alumnos con reserva recibirán un aviso dentro de AcademyOS. No se enviarán correos ni mensajes externos.'))return;
+  if(busy.value||!window.confirm('¿Cancelar esta clase? Se liberará el horario y los alumnos con reserva recibirán un aviso dentro de AcademyOS. No se enviarán correos ni mensajes externos.'))return;
+  const workspaceId=props.workspace.id;
   busy.value=true;error.value='';message.value='';
-  try{await request('/sessions/'+session.id+'/cancel',{method:'PATCH'});await refresh();message.value='Clase cancelada correctamente.';}
-  catch(e){error.value=e instanceof Error?e.message:'No se pudo cancelar la clase';}
-  finally{busy.value=false;}
+  try{
+    await apiRequest(workspacePath(workspaceId,'/sessions/'+encodeURIComponent(session.id)+'/cancel'),{method:'PATCH'});
+    if(workspaceId!==props.workspace.id)return;
+    await refresh();
+    if(workspaceId===props.workspace.id)message.value='Clase cancelada correctamente.';
+  }catch(e){
+    if(workspaceId===props.workspace.id){
+      error.value=e instanceof Error?e.message:'No se pudo cancelar la clase';
+    }
+  }finally{busy.value=false;}
 }
 const inviteEmail=ref(''),inviteRole=ref<'TEACHER'|'STUDENT'|'ADMIN'>('TEACHER'),inviteLink=ref('');
 async function invite(){busy.value=true;error.value='';inviteLink.value='';try{const r=await request<{inviteUrl:string}>('/invitations',{method:'POST',body:JSON.stringify({email:inviteEmail.value,role:inviteRole.value})});inviteLink.value=r.inviteUrl;message.value='Invitación generada. Compártela con la persona indicada.';}catch(e){error.value=e instanceof Error?e.message:'No se pudo invitar';}finally{busy.value=false;}}

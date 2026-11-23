@@ -4,7 +4,7 @@ import {
 } from '@nestjs/common';
 import {z} from 'zod';
 import type {AuthenticatedRequest} from '../../../auth/session.guard.js';
-import {bookingInput} from '../../../scheduling/input.js';
+import {bookingInput} from '../domain/lesson.js';
 import {InvalidWeeklySeries} from '../domain/weekly-series.js';
 import {
  CreateWeeklySeriesUseCase,WeeklySeriesConflict,WeeklySeriesNotAllowed,WeeklySeriesReferenceInvalid,
