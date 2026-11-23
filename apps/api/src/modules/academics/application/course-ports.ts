@@ -1,7 +1,7 @@
 import type { CourseDraft } from '../domain/course-draft.js';
 
 export interface CourseListItem {
-  id:string;title:string;summary:string|null;published:boolean;subjectId:string|null;
+  id:string;title:string;summary:string|null;published:boolean;requiresPackage:boolean;subjectId:string|null;
   subject:{id:string;name:string}|null;
 }
 export interface CourseCreated {
@@ -11,4 +11,5 @@ export interface CourseRepository {
   listByWorkspace(workspaceId:string):Promise<CourseListItem[]>;
   subjectExists(workspaceId:string,subjectId:string):Promise<boolean>;
   create(workspaceId:string, draft:CourseDraft):Promise<CourseCreated>;
+  setPackageRequirement(workspaceId:string,actorId:string,courseId:string,required:boolean):Promise<{id:string;requiresPackage:boolean}>;
 }

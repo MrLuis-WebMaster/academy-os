@@ -13,7 +13,7 @@ export class PrismaStudentClassroomRead implements StudentClassroomReadRepositor
       select:{
         id:true,
         course:{select:{
-          id:true,title:true,summary:true,subject:{select:{name:true}},
+          id:true,title:true,summary:true,requiresPackage:true,subject:{select:{name:true}},
           resources:{
             where:{workspaceId,published:true},
             select:{id:true,title:true,source:true,url:true},
