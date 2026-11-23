@@ -106,6 +106,8 @@ model User {
   guardianLinksAsStudent GuardianLink[] @relation("GuardianIsStudent")
   guardianLinksRequested GuardianLink[] @relation("GuardianLinkRequester")
   guardianLinksApproved GuardianLink[] @relation("GuardianLinkApprover")
+  sosReferralsAsStudent SosReferral[] @relation("SosReferralStudent")
+  sosReferralsAsTeacher SosReferral[] @relation("SosReferralReviewer")
   connections ExternalConnection[]
 }
 
@@ -148,6 +150,7 @@ model Workspace {
   learningGoals LearningGoal[]
   guardianLinks GuardianLink[]
   teachingMethodologies TeachingMethodology[]
+  sosReferrals SosReferral[]
 }
 
 model WorkspaceMember {
@@ -736,4 +739,28 @@ model TeachingMethodology {
   workspace Workspace @relation(fields:[workspaceId],references:[id],onDelete:Cascade)
   teacher TeacherProfile @relation(fields:[teacherProfileId],references:[id],onDelete:Cascade)
   @@index([workspaceId])
+}
+
+enum SosReferralStatus {
+ OPEN
+ RESOLVED
+}
+
+model SosReferral {
+ id String @id @default(cuid())
+ workspaceId String
+ courseId String
+ studentUserId String
+ question String
+ status SosReferralStatus @default(OPEN)
+ reply String?
+ resolvedByUserId String?
+ createdAt DateTime @default(now())
+ resolvedAt DateTime?
+ workspace Workspace @relation(fields:[workspaceId],references:[id],onDelete:Cascade)
+ course Course @relation(fields:[courseId],references:[id],onDelete:Cascade)
+ student User @relation("SosReferralStudent",fields:[studentUserId],references:[id],onDelete:Cascade)
+ reviewer User? @relation("SosReferralReviewer",fields:[resolvedByUserId],references:[id])
+ @@index([workspaceId,courseId,status,createdAt])
+ @@index([workspaceId,studentUserId,createdAt])
 }
