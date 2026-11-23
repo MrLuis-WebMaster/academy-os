@@ -5,7 +5,6 @@ import { MeController } from './controllers/me.controller.js';
 import { WorkspaceController } from './workspaces/controller.js';
 import { SessionGuard } from './auth/session.guard.js';
 import { CatalogController } from './workspaces/catalog.controller.js';
-import { PracticeController } from './learning/practice.controller.js';
 import { StudioController } from './studio/controller.js';
 import { BookingsController } from './scheduling/bookings.controller.js';
 import { CurriculumController } from './workspaces/curriculum.controller.js';
@@ -21,7 +20,7 @@ import {TenancyModule} from './modules/tenancy/tenancy.module.js';
 
 @Module({
   imports: [AcademicsModule,SchedulingModule,LearningModule,NotificationsModule,CalendarModule,FinanceModule,AttendanceModule,ClassroomModule,TenancyModule],
-  controllers: [DemoController, MeController, WorkspaceController, CatalogController, PracticeController, StudioController, BookingsController, CurriculumController],
+  controllers: [DemoController, MeController, WorkspaceController, CatalogController, StudioController, BookingsController, CurriculumController],
   providers: [{ provide: APP_GUARD, useClass: SessionGuard }],
 })
 export class AppModule {}

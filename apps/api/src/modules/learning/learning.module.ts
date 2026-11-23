@@ -1,4 +1,7 @@
 import {Module} from '@nestjs/common';
+import {PracticeController} from './presentation/practice.controller.js';
+import {PracticeUseCases} from './application/practice-use-cases.js';
+import {PrismaPracticeRepository} from './infrastructure/prisma-practice-repository.js';
 import {ClassAliveController} from './presentation/class-alive.controller.js';
 import {ReflectionUseCases} from './application/reflection-use-cases.js';
 import {PrismaReflectionRepository} from './infrastructure/prisma-reflection-repository.js';
@@ -13,8 +16,11 @@ import {PrismaStudentTutorRepository} from './infrastructure/prisma-student-tuto
 import {OpenAiTutorAdapter} from './infrastructure/openai-tutor-adapter.js';
 
 @Module({
- controllers:[ClassAliveController,AiClassAliveController,ProfeSosController],
+ controllers:[PracticeController,ClassAliveController,AiClassAliveController,ProfeSosController],
  providers:[{
+  provide:PracticeUseCases,
+  useFactory:()=>new PracticeUseCases(new PrismaPracticeRepository(),new PrismaMembershipAdapter()),
+ },{
     provide:ReflectionUseCases,
     useFactory:()=>new ReflectionUseCases(new PrismaReflectionRepository(),new PrismaMembershipAdapter()),
   },{
