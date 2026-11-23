@@ -13,6 +13,7 @@ import GuardianManager from './GuardianManager.vue';
 import AnalyticsDashboard from './AnalyticsDashboard.vue';
 import RescheduleSession from './RescheduleSession.vue';
 import AiPracticeAssistant from './AiPracticeAssistant.vue';
+import LearningAssetsTeacher from './LearningAssetsTeacher.vue';
 import TeachingMethodologyManager from './TeachingMethodologyManager.vue';
 import SosTeacherInbox from './SosTeacherInbox.vue';
 import WeeklyAvailability from './WeeklyAvailability.vue';
@@ -323,6 +324,7 @@ const input='mt-2 w-full rounded-xl border border-outline bg-surface p-3 text-sm
     <TeachingMethodologyManager v-if="status==='ready'" :workspace-id="workspace.id" :role="role" :actor-id="actorId" :teachers="teachers" />
     <SosTeacherInbox v-if="status==='ready'" :workspace-id="workspace.id" />
     <AiPracticeAssistant v-if="status==='ready'" :workspace-id="workspace.id" :sessions="sessions" />
+    <LearningAssetsTeacher v-if="status==='ready'" :workspace-id="workspace.id" :sessions="sessions" />
     <StudioEditor v-if="status==='ready' && ['OWNER','ADMIN'].includes(role)" :workspace="workspace" :courses="courses" />
     <StaffAttendance v-if="status==='ready'" :workspace-id="workspace.id" />
     <FinanceLedger v-if="status==='ready' && ['OWNER','ADMIN'].includes(role)" :workspace-id="workspace.id" :role="role" :students="members" :courses="courses" />
