@@ -199,3 +199,92 @@ test('deleting a course never broadens an issued course-specific package to othe
   await prisma.$disconnect();
  }
 });
+
+test('academy credit audit and revocation require management permissions and preserve future bookings',async()=>{
+ const nonce=randomUUID().replaceAll('-','').slice(0,13);
+ const people=await Promise.all([
+  prisma.user.create({data:{name:'Manager',email:'audit-manager-'+nonce+'@example.invalid'}}),
+  prisma.user.create({data:{name:'Student',email:'audit-student-'+nonce+'@example.invalid'}}),
+  prisma.user.create({data:{name:'Foreign',email:'audit-foreign-'+nonce+'@example.invalid'}}),
+ ]);
+ const [owner,student,foreign]=people;
+ const ids:string[]=[];
+ try{
+  const school=await prisma.workspace.create({data:{
+   slug:'audit-school-'+nonce,name:'Audit School',type:'ACADEMY',
+   members:{create:[{userId:owner!.id,role:'OWNER'},{userId:student!.id,role:'STUDENT'}]},
+  }});
+  ids.push(school.id);
+  const other=await prisma.workspace.create({data:{
+   slug:'audit-other-'+nonce,name:'Other School',type:'SOLO',
+   members:{create:{userId:foreign!.id,role:'OWNER'}},
+  }});
+  ids.push(other.id);
+  const course=await prisma.course.create({data:{workspaceId:school.id,title:'Ciencias'}}); 
+  await prisma.enrollment.create({data:{courseId:course.id,userId:student!.id}});
+  const time=new Date(Date.now()+5*86400000);
+  const session=await prisma.classSession.create({data:{
+   workspaceId:school.id,courseId:course.id,title:'Física',mode:'ONLINE',
+   status:'CONFIRMED',timezone:'America/Bogota',capacity:3,
+   startsAt:time,endsAt:new Date(time.getTime()+3600000),
+  }});
+  const packages=new ClassPackagesController(
+   new ClassPackagesUseCases(new PrismaClassPackagesRepository(),new PrismaMembershipAdapter()),
+  );
+  const bookings=new BookingActionsController(
+   new BookingUseCases(new PrismaBookingRepository(),new PrismaMembershipAdapter()),
+  );
+  const plan=await packages.create(req(owner!),school.id,{
+   title:'Dos sesiones de física',courseId:course.id,
+   sessionCredits:2,validDays:30,priceCOP:45000,
+  });
+  const grant=await packages.issue(req(owner!),school.id,plan.id,{
+   studentUserId:student!.id,requestId:randomUUID(),note:'Aprobado tras comprobante externo',
+  });
+  await assert.rejects(()=>packages.issuances(req(student!),school.id),ForbiddenException);
+  await assert.rejects(()=>packages.revoke(req(student!),school.id,grant.id,{
+   reason:'Sin permiso',
+  }),ForbiddenException);
+  assert.equal((await packages.issuances(req(foreign!),other.id)).length,0);
+  await assert.rejects(()=>packages.revoke(req(foreign!),other.id,grant.id,{
+   reason:'Motivo sin acceso',
+  }),NotFoundException);
+  const reservation=await bookings.reserve(req(student!),school.id,{sessionId:session.id});
+  await packages.redeem(req(student!),school.id,{
+   entitlementId:grant.id,bookingId:reservation.id,
+  });
+  const activeLedger=(await packages.issuances(req(owner!),school.id))[0]!;
+  assert.equal(activeLedger.student.name,'Student');
+  assert.equal(activeLedger.issuer.name,'Manager');
+  assert.equal(activeLedger.used,1);
+  assert.equal(activeLedger.futureBookings,1);
+  await assert.rejects(()=>packages.revoke(req(owner!),school.id,grant.id,{
+   reason:'Corregir paquete',
+  }),ConflictException);
+  assert.equal((await packages.mine(req(student!),school.id))[0]?.available,1);
+  await bookings.cancel(req(student!),school.id,reservation.id);
+  assert.equal((await packages.issuances(req(owner!),school.id))[0]?.futureBookings,0);
+  const result=await packages.revoke(req(owner!),school.id,grant.id,{
+   reason:'Corrección administrativa autorizada',
+  });
+  assert.equal(result.revokeReason,'Corrección administrativa autorizada');
+  const repeat=await packages.revoke(req(owner!),school.id,grant.id,{
+   reason:'Otro motivo no debe sobrescribir el original',
+  });
+  assert.equal(repeat.revokeReason,result.revokeReason);
+  const audited=(await packages.issuances(req(owner!),school.id))[0]!;
+  assert.equal(audited.revokedByUserId,owner!.id);
+  assert.equal(audited.revokeReason,result.revokeReason);
+  assert.equal(audited.available,0);
+  assert.equal(await prisma.notification.count({where:{
+   workspaceId:school.id,userId:student!.id,kind:'PACKAGE_REVOKED',
+  }}),1);
+  const unused=await packages.mine(req(student!),school.id);
+  assert.equal(unused[0]?.remaining,2);
+  assert.equal(unused[0]?.available,0,'unused does not mean spendable after revocation');
+ }finally{
+  await prisma.workspace.deleteMany({where:{id:{in:ids}}});
+  await prisma.user.deleteMany({where:{id:{in:people.map(p=>p.id)}}});
+  await prisma.$disconnect();
+ }
+});
