@@ -53,18 +53,32 @@ export class PrismaBookingRepository implements BookingReservationPort {
     });
   }
   async cancel(workspaceId:string,bookingId:string,userId:string){
-    const booking=await prisma.classBooking.findFirst({
-      where:{id:bookingId,workspaceId,userId},
-      select:{id:true,status:true,session:{select:{startsAt:true}}},
+    // Locate a candidate only to find the shared session-lock key.
+    // Revalidate every property once the booking lock is held.
+    const candidate=await prisma.classBooking.findFirst({
+      where:{id:bookingId,workspaceId,userId},select:{sessionId:true},
     });
-    if(!booking)throw new BookingMissing();
-    if(booking.status==='CANCELLED')return {id:booking.id,status:'CANCELLED' as const};
-    try{ensureCancellable(booking.session.startsAt);}
-    catch(error){if(error instanceof BookingPolicyViolation)throw new BookingCapacityConflict(error.message);throw error;}
-    const updated=await prisma.classBooking.updateMany({
-      where:{id:booking.id,workspaceId,userId,status:'BOOKED'},data:{status:'CANCELLED',cancelledAt:new Date()},
+    if(!candidate)throw new BookingMissing();
+    return prisma.$transaction(async tx=>{
+      await tx.$queryRaw`SELECT pg_advisory_xact_lock(hashtext(${'academy-os:booking:'+candidate.sessionId}))::text AS lock_acquired`;
+      const booking=await tx.classBooking.findFirst({
+        where:{id:bookingId,workspaceId,userId,session:{workspaceId}},
+        select:{id:true,status:true,session:{select:{startsAt:true}}},
+      });
+      if(!booking)throw new BookingMissing();
+      // Preserve idempotence even if the session has already started.
+      if(booking.status==='CANCELLED')return {id:booking.id,status:'CANCELLED' as const};
+      try{ensureCancellable(booking.session.startsAt);}
+      catch(error){
+        if(error instanceof BookingPolicyViolation)throw new BookingCapacityConflict(error.message);
+        throw error;
+      }
+      const updated=await tx.classBooking.updateMany({
+        where:{id:booking.id,workspaceId,userId,status:'BOOKED'},
+        data:{status:'CANCELLED',cancelledAt:new Date()},
+      });
+      if(updated.count!==1)throw new BookingCapacityConflict();
+      return {id:booking.id,status:'CANCELLED' as const};
     });
-    if(updated.count!==1)throw new BookingCapacityConflict();
-    return {id:booking.id,status:'CANCELLED' as const};
   }
 }
