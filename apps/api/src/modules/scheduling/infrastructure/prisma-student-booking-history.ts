@@ -14,7 +14,7 @@ export class PrismaStudentBookingHistory implements StudentBookingHistoryReposit
       select:{
         id:true,status:true,sessionId:true,bookedAt:true,
         session:{select:{
-          title:true,startsAt:true,mode:true,location:true,status:true,
+          title:true,startsAt:true,mode:true,location:true,status:true,courseId:true,
           changes:{
             orderBy:{changedAt:'desc'},take:3,
             select:{

@@ -1,17 +1,70 @@
 <script setup lang="ts">
 import {apiJson,workspacePath} from '../shared/api-client';
 import {computed,onMounted,ref,watch} from 'vue';
-import {BellRing,CalendarCheck,CheckCircle2,Layers3} from 'lucide-vue-next';
+import {BellRing,CalendarCheck,CheckCircle2,Layers3,Ticket,Gift} from 'lucide-vue-next';
 import {UiAlert,UiButton,UiSwitch} from '@academy-os/ui';
 
 type ClassSession={id:string;title:string;startsAt:string;seriesId:string|null;seriesIndex:number|null};
 type Booking={id:string;sessionId:string;status:'BOOKED'|'CANCELLED';bookedAt:string;
- session:{title:string;status:string;startsAt:string;changes:Array<{
+ session:{title:string;courseId:string|null;status:string;startsAt:string;changes:Array<{
   id:string;changedAt:string;reason:string;oldStartsAt:string;newStartsAt:string;
  }>};
 };
 const props=defineProps<{workspaceId:string;sessions:ClassSession[]}>();
 const mine=ref<Booking[]>([]),loading=ref(false),busy=ref(''),error=ref(''),notice=ref('');
+type Entitlement={
+ id:string;studentUserId:string;credits:number;used:number;remaining:number;
+ activeBookingIds:string[];expiresAt:string;revokedAt:string|null;
+ package:{title:string;courseId:string|null;priceCOP:number};
+};
+const entitlements=ref<Entitlement[]>([]),creditsLoading=ref(false),creditsError=ref('');
+const chosenGrant=ref<Record<string,string>>({});
+let creditsVersion=0;
+async function loadCredits(){
+ const workspace=props.workspaceId,version=++creditsVersion;
+ creditsLoading.value=true;creditsError.value='';entitlements.value=[];
+ try{
+  const list=await apiJson<Entitlement[]>(workspacePath(workspace,'/packages/mine'));
+  if(version!==creditsVersion||workspace!==props.workspaceId)return;
+  entitlements.value=list;
+ }catch(e){
+  if(version===creditsVersion&&workspace===props.workspaceId)
+   creditsError.value=e instanceof Error?e.message:'No se pudieron consultar los créditos de clase.';
+ }finally{if(version===creditsVersion)creditsLoading.value=false;}
+}
+function redeemedBy(bookingId:string){
+ return entitlements.value.find(grant=>grant.activeBookingIds.includes(bookingId))??null;
+}
+function availableFor(booking:Booking){
+ const startsAt=new Date(booking.session.startsAt).getTime(),now=Date.now();
+ return entitlements.value.filter(grant=>
+  !grant.revokedAt&&grant.remaining>0&&new Date(grant.expiresAt).getTime()>=startsAt
+  &&new Date(grant.expiresAt).getTime()>now
+  &&(!grant.package.courseId||grant.package.courseId===booking.session.courseId),
+ );
+}
+async function redeemCredit(booking:Booking){
+ if(busy.value)return;
+ const entitlementId=chosenGrant.value[booking.id]||availableFor(booking)[0]?.id;
+ if(!entitlementId)return;
+ const workspace=props.workspaceId;
+ busy.value='credit:'+booking.id;error.value='';notice.value='';
+ try{
+  const result=await apiJson<{remaining:number;alreadyRedeemed:boolean}>(
+   workspacePath(workspace,'/packages/redeem'),'POST',
+   {bookingId:booking.id,entitlementId},
+  );
+  if(workspace!==props.workspaceId)return;
+  await loadCredits();
+  if(workspace===props.workspaceId){
+   notice.value=result.alreadyRedeemed?'Ya habías usado un crédito en esta reserva.':
+    'Se aplicó un crédito a tu clase reservada. Te quedan '+result.remaining+' en este paquete.';
+  }
+ }catch(e){
+  if(workspace===props.workspaceId)error.value=e instanceof Error?e.message:'No se pudo aplicar el crédito.';
+ }finally{busy.value='';}
+}
+
 type ReminderPrefs={remind24h:boolean;remind1h:boolean};
 const preferences=ref<ReminderPrefs>({remind24h:false,remind1h:false});
 const preferencesLoading=ref(true),preferencesSaving=ref(false),preferencesError=ref('');
@@ -109,6 +162,7 @@ async function cancel(booking:Booking){
   await requestFor(workspaceId,'/'+encodeURIComponent(booking.id)+'/cancel','PATCH');
   if(workspaceId!==props.workspaceId)return;
   await load();
+  await loadCredits();
   if(workspaceId===props.workspaceId)notice.value='Reserva cancelada.';
  }catch(e){
   if(workspaceId===props.workspaceId)error.value=e instanceof Error?e.message:'No se pudo cancelar.';
@@ -145,6 +199,7 @@ async function cancelSeries(seriesId:string,title:string){
   );
   if(workspaceId!==props.workspaceId)return;
   await load();
+  await loadCredits();
   if(workspaceId===props.workspaceId){
    notice.value='Se cancelaron '+result.cancelledBookings+' reservas futuras de la serie.';
   }
@@ -157,14 +212,17 @@ async function cancelSeries(seriesId:string,title:string){
 watch(()=>props.workspaceId,()=>{
  ++requestVersion;
  ++preferenceVersion;
+ ++creditsVersion;entitlements.value=[];chosenGrant.value={};creditsError.value='';
  mine.value=[];busy.value='';notice.value='';error.value='';
  preferences.value={remind24h:false,remind1h:false};preferencesError.value='';
  void load();
  void loadPreferences();
+ void loadCredits();
 });
 onMounted(()=>{
  void load();
  void loadPreferences();
+ void loadCredits();
 });
 </script>
 <template>
@@ -173,6 +231,23 @@ onMounted(()=>{
  <p v-if="error" role="alert" class="mt-4 rounded-xl bg-danger-soft p-3 text-xs text-danger">{{ error }}</p>
  <p v-if="notice" role="status" class="mt-4 flex items-center gap-2 rounded-xl bg-success-soft p-3 text-xs text-success"><CheckCircle2 :size="15"/>{{ notice }}</p>
  <p v-if="loading" class="mt-4 text-xs text-muted">Consultando tus reservas...</p>
+ <section class="mt-5 rounded-xl border border-outline bg-surface-muted p-4" aria-label="Créditos de paquetes">
+  <div class="flex items-center gap-2"><Ticket :size="17" class="text-brand"/><h3 class="text-sm font-extrabold">Mis paquetes de clases</h3></div>
+  <p class="mt-2 text-xs text-muted">Tu academia puede asignarte créditos manualmente. El precio de referencia no demuestra un pago procesado por AcademyOS.</p>
+  <p v-if="creditsLoading" class="mt-3 text-xs text-muted">Consultando créditos…</p>
+  <div v-else-if="entitlements.length" class="mt-3 grid gap-2 sm:grid-cols-2">
+   <article v-for="grant in entitlements" :key="grant.id" class="rounded-xl border border-outline bg-surface p-3">
+    <p class="flex items-center gap-2 text-xs font-bold"><Gift :size="14" class="text-brand"/>{{grant.package.title}}</p>
+    <p class="mt-2 text-2xl font-extrabold">{{grant.remaining}} <span class="text-xs font-normal text-muted">de {{grant.credits}} créditos disponibles</span></p>
+    <p class="mt-1 text-xs text-muted">Vigencia: {{new Date(grant.expiresAt).toLocaleDateString('es-CO')}}
+     <span v-if="grant.revokedAt"> · Revocado</span>
+     <span v-else-if="new Date(grant.expiresAt).getTime()<Date.now()"> · Vencido</span>
+    </p>
+   </article>
+  </div>
+  <p v-else class="mt-3 text-xs text-muted">No tienes paquetes asignados por esta academia.</p>
+  <UiAlert v-if="creditsError" tone="warning" class="mt-3">{{creditsError}}</UiAlert>
+ </section>
  <section class="mt-5 rounded-xl border border-outline bg-surface-muted p-4" aria-label="Preferencias de recordatorios">
   <div class="flex items-center gap-2"><BellRing :size="16" class="text-brand"/><h3 class="text-sm font-extrabold">Recordatorios de clase</h3></div>
   <p class="mt-2 text-xs text-muted">Recibe avisos dentro de AcademyOS para las clases que hayas reservado. Están desactivados hasta que los autorices. No se enviarán correos ni WhatsApp.</p>
