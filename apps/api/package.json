@@ -10,7 +10,8 @@
     "test": "tsx --test src/domain/*.test.ts src/workspaces/*.test.ts src/scheduling/*.test.ts src/learning/*.test.ts src/studio/*.test.ts src/finance/*.test.ts src/integration/*.test.ts",
     "db:generate": "prisma generate",
     "db:validate": "prisma validate",
-    "db:migrate": "prisma migrate dev"
+    "db:migrate": "prisma migrate dev",
+    "worker:reminders": "node dist/workers/reminders.js"
   },
   "dependencies": {
     "@nestjs/common": "12.6.0",
