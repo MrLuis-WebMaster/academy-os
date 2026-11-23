@@ -16,4 +16,8 @@ Este proyecto **sí** contiene autenticación Better Auth, guard de sesión, aut
 
 ## Módulo de finanzas
 
-El contexto `modules/finance` sigue DDD/hexagonal: reglas y validación de comprobantes en dominio, autorización por casos de uso, puertos de membresía y datos, Prisma en infraestructura, rutas NestJS en presentación. Las rutas siguen bajo `/api/v1/workspaces/:workspaceId/finance`. Incluye pruebas de aislamiento y de permisos con dobles de repositorio; la suite no sustituye pruebas reales de PostgreSQL ni una auditoría de operaciones financieras.
+El contexto `modules/finance` sigue DDD/hexagonal: reglas y validación de comprobantes en dominio, autorización por casos de uso, puertos de membresía y datos, Prisma en infraestructura, rutas NestJS en presentación. Las rutas siguen bajo `/api/v1/workspaces/:workspaceId/finance`. Incluye pruebas de aislamiento y permisos con dobles y PostgreSQL real. Esto no sustituye auditoría financiera, pruebas E2E ni controles de producción.
+
+## Sesiones, profesores y notificaciones
+
+Las rutas de creación, listado y cancelación de sesiones están aisladas por academia y rol. En el listado, un TEACHER solo ve las clases vinculadas a su perfil. La creación valida referencias del mismo workspace y evita solapamientos bajo un lock transaccional de docente. La cancelación valida el estado y al actor tras los locks de reservas/docente, publica avisos internos dentro de la transacción y no admite modificar clases `COMPLETED`. Las pruebas PostgreSQL cubren múltiples academias, acceso de docentes diferentes y solicitudes simultáneas, pero no equivalen a una auditoría integral de todas las rutas.

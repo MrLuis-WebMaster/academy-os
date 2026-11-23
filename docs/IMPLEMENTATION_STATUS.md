@@ -1,4 +1,4 @@
-# AcademyOS — Implementation status (2026-11-22)
+# AcademyOS — Implementation status (2026-11-23)
 
 ## Entregas codificadas en `main`
 - Login Better Auth + Google: flujo implementado, necesita credenciales OAuth, base real y validación E2E; registro de propietario mediante onboarding de tres pasos.
@@ -68,6 +68,15 @@
 - La administración verifica OWNER/ADMIN y scope de curso en la misma transacción; los alumnos ven solamente recursos publicados de cursos inscritos.
 - La vista Gestión real incluye acciones publicar/retirar; los resultados de solicitudes antiguas no sobrescriben materiales al cambiar de academia.
 - Los enlaces externos **no** son alojamiento seguro ni implican permisos garantizados de Drive/Dropbox. Los accesos OAuth siguen pendientes.
+
+## Hito 7: sesiones individuales y cancelación (2026-11-23)
+
+- Los flujos `GET /workspaces/:workspaceId/sessions`, `POST /sessions` y `PATCH /sessions/:sessionId/cancel` están migrados a DDD/hexagonal (dominio, puertos, casos de uso, Prisma y presentación NestJS) sin alterar sus rutas HTTP.
+- La creación consulta rol, docente y curso dentro de transacción y serializa clases concurrentes por profesor. Respeta disponibilidad semanal, vacaciones/ausencias y clases existentes.
+- Los docentes solamente consultan sesiones asignadas a su perfil; propietarios y administradores ven todas las sesiones de la academia.
+- La cancelación revalida permisos, nunca cancela una clase completada, es idempotente cuando ya fue cancelada y publica avisos a estudiantes reservados en la misma transacción.
+- Se añadieron pruebas unitarias y pruebas PostgreSQL para independencia de academias, permisos, simultaneidad, ausencias y avisos.
+- **No** hay prueba real de OAuth Google ni despliegue HTTPS; CI no sustituye revisión de privacidad, permisos de enlaces externos o auditoría completa.
 
 ## Límites no resueltos
 - OAuth Google en entorno real, test del callback, cookies, sesiones y logout end-to-end.

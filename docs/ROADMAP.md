@@ -1,4 +1,4 @@
-# AcademyOS roadmap — actualizado 2026-11-22
+# AcademyOS roadmap — actualizado 2026-11-23
 
 Cada marca `[x]` indica funcionalidad codificada en el repo, **no un lanzamiento público aprobado**. `[~]` indica incompleto.
 
@@ -8,10 +8,10 @@ Cada marca `[x]` indica funcionalidad codificada en el repo, **no un lanzamiento
 - [x] Normalización compartida de slug y cliente HTTP único usado por varias pantallas.
 - [x] DDD/hexagonal en Academics, Scheduling, Attendance, Finance, Classroom (materiales), Learning, Notifications y Calendar, con pruebas de puertos falsos y algunas pruebas reales de PostgreSQL.
 - [x] Control de fronteras arquitectónicas en CI (`pnpm arch:check`).
-- [~] Migrar el resto de los contextos (tenancy, gestión de sesiones, commerce y publicación de actividades) sin cambiar contratos HTTP.
+- [~] Migrar el resto de los contextos (tenancy, commerce y publicación de actividades) sin cambiar contratos HTTP.
 - [x] Migraciones versionadas y validación con PostgreSQL 19 en CI.
 - [x] PWA estática con fallback offline sin caché de información privada.
-- [~] Pruebas de aislamiento en PostgreSQL y sobrecupo concurrente (verificar CI más reciente).
+- [~] Pruebas de aislamiento de academias, clases concurrentes y sobrecupo con PostgreSQL; falta cobertura integral de rutas y E2E.
 - [x] Versionar `pnpm-lock.yaml` y utilizar instalación congelada en CI.
 - [ ] Staging HTTPS, backups automáticos y restauración probada.
 
@@ -62,3 +62,11 @@ Cumplir [RELEASE_CHECKLIST.md](RELEASE_CHECKLIST.md). Nunca considerar CI verde 
 - [x] Endpoint de publicación/retiro con validación de permisos, academia y curso dentro de transacción.
 - [x] Control visual de publicación en Gestión real; evita respuestas tardías de otro workspace en el listado.
 - [ ] Gestión de archivos privados, permisos reales de enlaces externos y OAuth Drive/Dropbox.
+
+## Hito: sesiones individuales DDD y permisos (2026-11-23)
+- [x] GET/POST de clases y PATCH de cancelación migrados a `modules/scheduling` sin cambiar contratos HTTP.
+- [x] La vista de clases para TEACHER solo incluye sesiones asignadas a ese docente; administradores pueden ver la academia completa.
+- [x] Creación con verificación de academia, rol, profesor, curso, disponibilidad, ausencias y solapamiento dentro de transacción con lock de docente.
+- [x] Cancelación con locks de reserva y docente, avisos internos transaccionales y reintentos idempotentes.
+- [x] Pruebas unitarias y prueba de integración con PostgreSQL de autorización, aislamiento y concurrencia codificadas.
+- [ ] Verificar el CI más reciente y ejecutar pruebas reales de UI/credenciales OAuth y seguridad ampliada antes de habilitar un piloto.

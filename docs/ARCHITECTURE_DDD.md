@@ -2,7 +2,17 @@
 
 ## Estado
 
-El backend se está migrando **por verticales funcionales**, sin romper endpoints ya existentes. Las verticales migradas incluyen `academics/subjects`, `academics/courses`, `academics/enrollments`, `scheduling/bookings`, `scheduling/reschedule`, `scheduling/availability`, `scheduling/time-off`, `scheduling/weekly-series` los casos iniciales de IA en `learning`, la bandeja en `notifications` y la exportación privada en `calendar`, los recibos manuales en `finance` y la asistencia en `attendance` y la administración de materiales del Aula Digital en `classroom`. Los otros controladores aún son legado y están pendientes de refactor; no se deben presentar como DDD completos.
+El backend se migra **por verticales funcionales**, manteniendo los endpoints existentes. Los contextos con capas de dominio, aplicación, infraestructura y presentación incluyen:
+
+- `academics`: materias, cursos e inscripciones.
+- `scheduling`: creación/listado/cancelación de sesiones, reservas, reprogramaciones, disponibilidad, ausencias y series semanales.
+- `attendance`: registro privado de asistencia.
+- `classroom`: material educativo HTTPS y estado de publicación.
+- `learning`: generación opcional de prácticas y tutor con límites de acceso.
+- `finance`: comprobantes de pagos manuales.
+- `notifications` y `calendar`: bandeja privada y exportación ICS.
+
+El resto de controladores heredados sigue pendiente de extracción; **ningún módulo se considera auditado o apto para producción por el mero hecho de tener cuatro capas**.
 
 ## Dependencias y capas
 
@@ -63,7 +73,7 @@ La creación de excepciones y series semanales comparte la llave de advisory loc
 
 ## Próximas extracciones
 
-Scheduling creación/cancelación de sesiones → Learning publicación de actividades y evidencia → Tenancy provisioning/invitations → Profe Studio/Commerce → Integrations. Cada extracción conserva la ruta HTTP y va acompañada de pruebas de regresión.
+Learning publicación de actividades y evidencia → Tenancy provisioning/invitations → Profe Studio/Commerce → Integrations. Cada extracción conserva la ruta HTTP y va acompañada de pruebas de regresión.
 
 ## Asistencia aislada entre academias
 
@@ -72,3 +82,9 @@ La lectura `GET /bookings/staff` y la escritura `PATCH /bookings/:bookingId/atte
 ## Classroom / materiales externos
 
 `modules/classroom` separa reglas de enlaces HTTPS en el dominio, casos de uso en aplicación, puertos de acceso y Prisma en infraestructura, y el adaptador NestJS en presentación. Se conservan GET/POST `workspaces/:workspaceId/materials` y se incorpora PATCH `:materialId/publication` para publicar/retirar sin borrar recursos. Solo OWNER/ADMIN pueden gestionar; el repositorio revalida ese rol en la transacción junto con la pertenencia del curso. Los enlaces privados no se muestran al alumnado hasta estar publicados y matriculados; las referencias a proveedores OAuth siguen sin conectarse ni verificarse. No se autoriza procesamiento IA al agregar materiales.
+
+## Gestión de sesiones — escritura transaccional y alcance docente
+
+`modules/scheduling/domain/lesson.ts` aloja la validación de sesiones individuales y la regla de cancelación de clases completadas. `application/lesson-use-cases.ts` valida membresía; `infrastructure/prisma-lesson-repository.ts` revalida roles, profesor y curso dentro de la transacción de creación y cancelación. `presentation/lessons.controller.ts` preserva GET/POST `/sessions` y PATCH `/sessions/:sessionId/cancel`.
+
+La creación utiliza el mismo advisory lock `academy-os:teacher:<id>` que series semanales, ausencias y reprogramaciones. La cancelación bloquea primero `academy-os:booking:<sessionId>`, luego al docente, y guarda los avisos a los alumnos reservados en la misma transacción. CANCELLED es idempotente y COMPLETED no puede cancelarse. El listado del personal docente ahora se limita al profesor autenticado; OWNER/ADMIN consultan toda su academia. No hay todavía correo ni mensajería externa.

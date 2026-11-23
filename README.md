@@ -41,6 +41,7 @@ En producción usa migraciones revisadas con `prisma migrate deploy`, HTTPS y co
 ## Entregas recientes — DDD y aprendizaje
 
 - **Academics/Enrollment** ahora tiene dominio, caso de uso, puertos y repositorio Prisma; la baja de un alumno cancela sus reservas futuras sin borrar historial.
+- **Scheduling/Lessons:** GET/POST de clases y cancelación migrados a DDD/hexagonal, manteniendo las rutas existentes. Los docentes ven únicamente sus sesiones; la creación valida rol y academia dentro de una transacción con lock por docente, y la cancelación envía avisos internos atómicos a las reservas afectadas.
 - **Scheduling/Reschedule y Booking** tienen reglas de dominio, casos de uso y adaptadores transaccionales. La reprogramación conserva reservas y graba el historial; si hay alumnos reservados, se muestra un aviso de notificación manual.
 - **Disponibilidad semanal y ausencias:** franjas recurrentes por profesor y día, con vacaciones/festivos bloqueados por intervalo. La creación de excepciones impide solaparse con clases ya confirmadas; nuevas clases y reprogramaciones respetan esos bloqueos.
 - **Series semanales:** desde el formulario de Gestión real se pueden crear 2, 4, 8, 12 o 16 sesiones recurrentes en una transacción (todas o ninguna). Las horas locales se conservan al cambiar el horario de verano; las horas inexistentes se rechazan. Cada sesión puede cancelarse/reprogramarse individualmente; además existe cancelación de todas las clases futuras de la serie, conservando las anteriores y avisando dentro de AcademyOS a los alumnos con reserva.
