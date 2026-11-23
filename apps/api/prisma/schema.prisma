@@ -130,6 +130,8 @@ model Workspace {
   availabilitySlots WeeklyAvailability[]
   timeOffPeriods TeacherTimeOff[]
   classSeries ClassSeries[]
+  campuses Campus[]
+  teachingRooms TeachingRoom[]
   aiGenerations AiGeneration[]
 }
 
@@ -242,6 +244,8 @@ model ClassSession {
   bookings ClassBooking[]
   changes SessionChange[]
   aiGenerations AiGeneration[]
+  roomId String?
+  room TeachingRoom? @relation(fields:[roomId],references:[id],onDelete:SetNull)
   seriesId String?
   seriesIndex Int?
   series ClassSeries? @relation(fields:[seriesId],references:[id],onDelete:SetNull)
@@ -249,6 +253,7 @@ model ClassSession {
   resources   Resource[]
   @@index([workspaceId, startsAt])
   @@index([seriesId])
+  @@index([roomId,startsAt])
 }
 
 model ClassReflection {
@@ -537,4 +542,32 @@ model ClassSeries {
   teacher TeacherProfile @relation(fields:[teacherProfileId],references:[id],onDelete:Cascade)
   sessions ClassSession[]
   @@index([workspaceId,teacherProfileId,firstStartsAt])
+}
+
+model Campus {
+  id String @id @default(cuid())
+  workspaceId String
+  name String
+  address String
+  active Boolean @default(true)
+  createdAt DateTime @default(now())
+  workspace Workspace @relation(fields:[workspaceId],references:[id],onDelete:Cascade)
+  rooms TeachingRoom[]
+  @@unique([workspaceId,name])
+  @@index([workspaceId,active])
+}
+
+model TeachingRoom {
+  id String @id @default(cuid())
+  workspaceId String
+  campusId String
+  name String
+  capacity Int @default(1)
+  active Boolean @default(true)
+  createdAt DateTime @default(now())
+  workspace Workspace @relation(fields:[workspaceId],references:[id],onDelete:Cascade)
+  campus Campus @relation(fields:[campusId],references:[id],onDelete:Cascade)
+  sessions ClassSession[]
+  @@unique([campusId,name])
+  @@index([workspaceId,active])
 }

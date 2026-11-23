@@ -1,4 +1,7 @@
 import {Module} from '@nestjs/common';
+import {VenuesController} from './presentation/venues.controller.js';
+import {VenueUseCases} from './application/venue-use-cases.js';
+import {PrismaVenueRepository} from './infrastructure/prisma-venue-repository.js';
 import {HolidayPolicyController} from './presentation/holiday-policy.controller.js';
 import {HolidayPolicyUseCases} from './application/holiday-policy-use-cases.js';
 import {PrismaHolidayPolicyRepository} from './infrastructure/prisma-holiday-policy-repository.js';
@@ -35,8 +38,11 @@ import {CancelFutureSeriesUseCase} from './application/cancel-future-series-use-
 import {PrismaWeeklySeriesCancellationRepository} from './infrastructure/prisma-series-cancellation-repository.js';
 
 @Module({
-  controllers:[HolidayPolicyController,SeriesEditController,SeriesBookingsController,StudentBookingsController,LessonsController,RescheduleController,BookingActionsController,AvailabilityController,TeacherTimeOffController,WeeklySeriesController,SeriesCancellationController],
+  controllers:[VenuesController,HolidayPolicyController,SeriesEditController,SeriesBookingsController,StudentBookingsController,LessonsController,RescheduleController,BookingActionsController,AvailabilityController,TeacherTimeOffController,WeeklySeriesController,SeriesCancellationController],
   providers:[{
+    provide:VenueUseCases,
+    useFactory:()=>new VenueUseCases(new PrismaVenueRepository(),new PrismaMembershipAdapter()),
+  },{
     provide:HolidayPolicyUseCases,
     useFactory:()=>new HolidayPolicyUseCases(new PrismaHolidayPolicyRepository(),new PrismaMembershipAdapter()),
   },{
