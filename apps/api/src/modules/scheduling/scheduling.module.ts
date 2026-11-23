@@ -1,4 +1,7 @@
 import {Module} from '@nestjs/common';
+import {LessonsController} from './presentation/lessons.controller.js';
+import {LessonUseCases} from './application/lesson-use-cases.js';
+import {PrismaLessonRepository} from './infrastructure/prisma-lesson-repository.js';
 import {PrismaMembershipAdapter} from '../academics/infrastructure/prisma-subject-repository.js';
 import {RescheduleLessonUseCase} from './application/reschedule-use-case.js';
 import {PrismaSessionRescheduleRepository} from './infrastructure/prisma-reschedule-repository.js';
@@ -20,8 +23,11 @@ import {CancelFutureSeriesUseCase} from './application/cancel-future-series-use-
 import {PrismaWeeklySeriesCancellationRepository} from './infrastructure/prisma-series-cancellation-repository.js';
 
 @Module({
-  controllers:[RescheduleController,BookingActionsController,AvailabilityController,TeacherTimeOffController,WeeklySeriesController,SeriesCancellationController],
+  controllers:[LessonsController,RescheduleController,BookingActionsController,AvailabilityController,TeacherTimeOffController,WeeklySeriesController,SeriesCancellationController],
   providers:[{
+    provide:LessonUseCases,
+    useFactory:()=>new LessonUseCases(new PrismaLessonRepository(),new PrismaMembershipAdapter()),
+  },{
     provide:CancelFutureSeriesUseCase,
     useFactory:()=>new CancelFutureSeriesUseCase(new PrismaWeeklySeriesCancellationRepository(),new PrismaMembershipAdapter()),
   },{
