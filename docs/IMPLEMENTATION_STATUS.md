@@ -87,6 +87,12 @@
 - Plantilla staging con PostgreSQL 19, Caddy HTTPS, Dockerfiles, scripts de respaldo/restauración y validación de Compose en CI.
 - La plantilla no equivale a despliegue real; falta OAuth Google, pasarela, envíos y E2E con cuentas reales.
 
+## Hito 12 — consultas privadas (2026-11-23)
+
+- Historial personal de reservas migrado a Scheduling por capas: solo rol STUDENT, validación en Prisma y filtro por alumno y academia.
+- Catálogo interno separado: directorio por Tenancy (personal OWNER/ADMIN, docentes STAFF) y Aula Digital por Classroom (material publicado en cursos inscritos).
+- AppModule ya delega las rutas por academia a sus módulos; conserva el endpoint HTTP sin cambio de contrato.
+
 ## Límites no resueltos
 - OAuth Google en entorno real, test del callback, cookies, sesiones y logout end-to-end.
 - Meet/Zoom/Drive, correo transaccional, sync calendario, app almacenamiento no conectado.

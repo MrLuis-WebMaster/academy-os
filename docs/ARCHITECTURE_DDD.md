@@ -95,3 +95,6 @@ Prácticas serializa edición/publicación/intentos por actividad y cuenta inten
 Tenancy bloquea por hash al aceptar invitaciones, por academia al limitar invitaciones y por usuario/solicitud al crear un workspace.
 Commerce publica solo ofertas permitidas y filtra vínculos a cursos de otras academias.
 Curriculum revalida asignación de profesor y pertenencia de curso y padre dentro de cada transacción.
+
+## Proyecciones privadas por workspace
+Los modelos de consulta del directorio se gestionan desde Tenancy; los cursos/sesiones/materiales para alumnos desde Classroom; el historial de reservas personales desde Scheduling. Revalidan membresía y filtran workspace y usuario antes de leer PostgreSQL. Solo OWNER/ADMIN reciben correos de miembros, mientras STUDENT solo ve su matrícula y contenido publicado.

@@ -80,3 +80,9 @@ Cumplir [RELEASE_CHECKLIST.md](RELEASE_CHECKLIST.md). Nunca considerar CI verde 
 - [x] Temarios y asignaciones docentes por capas; solamente docentes asignados consultan/editar contenidos del curso.
 - [x] Plantilla Compose/Caddy HTTPS, backup/restore manual y validación sintáctica en CI.
 - [ ] Probar servidor real, OAuth Google, proveedores externos, pago, seguridad y restauración antes de un piloto.
+
+## Hito 12 — Modelos de lectura privados
+- [x] Historial privado de reservas migrado a caso de uso, puerto y adaptador PostgreSQL bajo rol STUDENT.
+- [x] Directorio (personas y docentes) separado en Tenancy; emails visibles únicamente a OWNER/ADMIN.
+- [x] Consulta Aula Digital del alumno en Classroom con filtro de matrícula, materiales publicados y sesiones de la academia.
+- [x] Pruebas de regresión de acceso, aislamiento de academia y ruta conservada.
