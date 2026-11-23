@@ -1,7 +1,7 @@
 import {prisma} from '../../../lib/prisma.js';
 import type {Prisma} from '../../../generated/prisma/client.js';
 import type {TeacherMethodologyRepository} from '../application/methodology-ports.js';
-import {defaultTeachingMethodology} from '../domain/teaching-methodology.js';
+import {defaultTeachingMethodology,parseTeachingMethodology} from '../domain/teaching-methodology.js';
 import type {TeachingMethodology} from '../domain/teaching-methodology.js';
 import {MethodologyAccessDenied,MethodologyNotFound} from '../application/methodology-use-cases.js';
 
@@ -27,17 +27,18 @@ export class PrismaMethodologyRepository implements TeacherMethodologyRepository
    where:{workspaceId,teacherProfileId:profileId},
    select:{specialty:true,style:true,language:true,guidance:true,sosEnabled:true},
   });
-  return method??{...defaultTeachingMethodology};
+  return method?parseTeachingMethodology(method):{...defaultTeachingMethodology};
  }
  async save(workspaceId:string,actorId:string,profileId:string,value:TeachingMethodology){
   return prisma.$transaction(async tx=>{
    await this.authorize(tx,workspaceId,actorId,profileId);
-   return tx.teachingMethodology.upsert({
+   const saved=await tx.teachingMethodology.upsert({
     where:{teacherProfileId:profileId},
     create:{workspaceId,teacherProfileId:profileId,...value},
     update:value,
     select:{specialty:true,style:true,language:true,guidance:true,sosEnabled:true},
    });
+   return parseTeachingMethodology(saved);
   });
  }
 }
