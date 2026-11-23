@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import {apiJson,workspacePath} from '../shared/api-client';
+import type {EvidenceBasedProfile} from '../shared/learner-profile';
 import {onMounted,ref,watch} from 'vue';
 import {CheckCircle2,ClipboardCheck,RotateCcw,Target,TrendingUp} from 'lucide-vue-next';
 
@@ -28,6 +29,7 @@ type AttemptResult={
 const loading=ref(true),busy=ref(''),error=ref(''),notice=ref('');
 const practices=ref<Practice[]>([]),passport=ref<Passport[]>([]);
 const verifiedSkills=ref<Skill[]>([]),goals=ref<Goal[]>([]);
+const profile=ref<EvidenceBasedProfile|null>(null);
 const selected=ref<Record<string,Record<number,number>>>({});
 const results=ref<Record<string,AttemptResult>>({});
 const optionLetters=['A','B','C','D'];
@@ -38,11 +40,12 @@ function requestFor<T>(workspaceId:string,path:string,method='GET',body?:unknown
 async function load(){
   const workspaceId=props.workspaceId,version=++loadVersion;
   loading.value=true;error.value='';
-  practices.value=[];passport.value=[];verifiedSkills.value=[];goals.value=[];
+  practices.value=[];passport.value=[];verifiedSkills.value=[];goals.value=[];profile.value=null;
   const rows=await Promise.allSettled([
     requestFor<Practice[]>(workspaceId,'/practice/student'),
     requestFor<Passport[]>(workspaceId,'/practice/passport'),
     requestFor<StudentProgress>(workspaceId,'/learning-progress/student'),
+    requestFor<EvidenceBasedProfile>(workspaceId,'/learning-progress/student/profile'),
   ]);
   if(version!==loadVersion||workspaceId!==props.workspaceId)return;
   if(rows.some(row=>row.status==='rejected')){
@@ -54,6 +57,7 @@ async function load(){
     verifiedSkills.value=rows[2].value.skills;
     goals.value=rows[2].value.goals;
   }
+  if(rows[3]?.status==='fulfilled')profile.value=rows[3].value;
   loading.value=false;
 }
 function choose(activityId:string,questionIndex:number,optionIndex:number){
@@ -102,6 +106,48 @@ onMounted(()=>void load());
 <template>
 <section class="space-y-5">
   <div class="flex items-center gap-3"><TrendingUp :size="22" class="text-brand"/><div><h2 class="text-lg font-extrabold">Mi Pasaporte</h2><p class="mt-1 text-xs text-muted">Resultados basados únicamente en ejercicios que has completado.</p></div></div>
+  <section v-if="!loading&&profile" class="space-y-3">
+   <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+    <div class="rounded-xl border border-outline bg-surface p-4">
+     <p class="text-xs text-muted">Competencias verificadas</p>
+     <p class="mt-2 text-xl font-extrabold">{{profile.verifiedCompetencies}}</p>
+    </div>
+    <div class="rounded-xl border border-outline bg-surface p-4">
+     <p class="text-xs text-muted">Evidencias docentes</p>
+     <p class="mt-2 text-xl font-extrabold">{{profile.humanEvidenceCount}}</p>
+    </div>
+    <div class="rounded-xl border border-outline bg-surface p-4">
+     <p class="text-xs text-muted">Metas activas</p>
+     <p class="mt-2 text-xl font-extrabold">{{profile.activeGoals}}</p>
+    </div>
+    <div class="rounded-xl border border-outline bg-surface p-4">
+     <p class="text-xs text-muted">Metas alcanzadas</p>
+     <p class="mt-2 text-xl font-extrabold">{{profile.achievedGoals}}</p>
+    </div>
+   </div>
+   <div v-if="profile.nextActions.length" class="rounded-xl border border-outline bg-surface p-4">
+    <h3 class="flex items-center gap-2 text-sm font-bold"><Target :size="17" class="text-brand"/> Mis próximos objetivos</h3>
+    <div v-for="next in profile.nextActions" :key="next.goalId" class="mt-3 border-t border-outline pt-3">
+     <p class="text-xs font-bold text-brand">{{next.courseTitle}}</p>
+     <p class="mt-1 text-sm font-semibold">{{next.title}}</p>
+     <p class="mt-1 text-xs text-muted">
+      {{next.reason==='BELOW_TARGET'
+       ?'Valoración docente: '+next.verifiedMastery+'% frente a una meta de '+next.targetMastery+'%.'
+       :next.reason==='NO_EVIDENCE'
+       ?'Aún no hay evidencias evaluadas de esta competencia.'
+       :'Meta definida por tu docente, pendiente de revisión.'}}
+     </p>
+    </div>
+   </div>
+   <p v-else class="text-xs text-muted">Cuando tu docente asigne metas, aquí verás los próximos objetivos basados en tus evaluaciones.</p>
+   <div v-if="profile.milestones.length" class="rounded-xl border border-outline bg-surface p-4">
+    <h3 class="text-sm font-bold">Logros confirmados por docentes</h3>
+    <p v-for="milestone in profile.milestones" :key="milestone.goalId" class="mt-2 text-xs">
+     <CheckCircle2 :size="14" class="mr-1 inline text-success"/>{{milestone.title}} · {{milestone.courseTitle}}
+    </p>
+   </div>
+   <p class="text-xs text-muted">{{profile.disclaimer}}</p>
+  </section>
   <p v-if="loading" class="rounded-xl bg-surface-muted p-5 text-xs text-muted">Preparando tus prácticas...</p>
   <p v-if="error" role="alert" class="rounded-xl bg-danger-soft p-4 text-sm text-danger">{{ error }}</p>
   <p v-if="notice" role="status" class="rounded-xl bg-success-soft p-4 text-sm text-success">{{ notice }}</p>

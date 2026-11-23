@@ -3,6 +3,7 @@ import {ref,watch,onMounted,computed} from 'vue';
 import {MessageCircleQuestion,BookOpenCheck,Send,ShieldCheck} from 'lucide-vue-next';
 import {UiAlert,UiButton,UiCard,UiField,UiSelect,UiTextarea} from '@academy-os/ui';
 import {apiJson,workspacePath} from '../shared/api-client';
+import type {EvidenceBasedProfile} from '../shared/learner-profile';
 
 type TutorAnswer={
  answer:string;referToTeacher:boolean;
@@ -18,6 +19,18 @@ type Referral={
 };
 const referrals=ref<Referral[]>([]),sending=ref(false),loadingQuestions=ref(false),notice=ref('');
 const courseReferrals=computed(()=>referrals.value.filter(item=>item.courseId===courseId.value));
+const privateProfile=ref<EvidenceBasedProfile|null>(null);
+const currentNextStep=computed(()=>privateProfile.value?.nextActions.find(item=>item.courseId===courseId.value)??null);
+async function loadPrivateProfile(){
+ const workspace=props.workspaceId;
+ try{
+  const data=await apiJson<EvidenceBasedProfile>(workspacePath(workspace,'/learning-progress/student/profile'));
+  if(workspace===props.workspaceId)privateProfile.value=data;
+ }catch{
+  // Learning profile suggestions are optional and must not block a direct teacher message.
+  if(workspace===props.workspaceId)privateProfile.value=null;
+ }
+}
 let requestVersion=0;
 async function refreshReferrals(){
  const workspace=props.workspaceId,n=++requestVersion;
@@ -63,10 +76,11 @@ async function ask(){
 }
 watch(()=>props.workspaceId,()=>{
  ++requestVersion;courseId.value='';question.value='';answer.value=null;
- consent.value=false;notice.value='';error.value='';referrals.value=[];
+ consent.value=false;notice.value='';error.value='';referrals.value=[];privateProfile.value=null;
+ void loadPrivateProfile();
  void refreshReferrals();
 });
-onMounted(()=>void refreshReferrals());
+onMounted(()=>{void refreshReferrals();void loadPrivateProfile();});
 </script>
 <template>
  <UiCard class="mt-6">
@@ -74,6 +88,18 @@ onMounted(()=>void refreshReferrals());
    <h2 class="text-lg font-extrabold">Profe SOS</h2>
    <p class="mt-1 text-xs text-muted">Tu profesor define cómo te guía Profe SOS. La IA solo consulta notas aprobadas cuando el docente la habilita y tú autorizas cada pregunta.</p>
   </div></div></template>
+  <div v-if="currentNextStep" class="mb-4 rounded-xl border border-outline bg-surface-muted p-4">
+   <p class="text-xs font-bold text-brand">Siguiente paso de tu Pasaporte</p>
+   <p class="mt-2 text-sm font-semibold">{{currentNextStep.title}}</p>
+   <p class="mt-1 text-xs text-muted">
+    {{currentNextStep.reason==='BELOW_TARGET'
+     ?'Tu última valoración de la competencia está por debajo de la meta definida por el docente.'
+     :currentNextStep.reason==='NO_EVIDENCE'
+     ?'La competencia todavía no cuenta con una evaluación docente.'
+     :'Puedes pedir una pista para avanzar en esta meta.'}}
+   </p>
+   <p class="mt-1 text-xs text-muted">Este recordatorio se calcula dentro de AcademyOS y no se envía al proveedor de IA.</p>
+  </div>
   <form class="space-y-4" @submit.prevent="ask">
    <UiField for="sos-course" label="¿Sobre qué curso necesitas ayuda?" required>
     <UiSelect id="sos-course" v-model="courseId" required>
