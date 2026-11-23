@@ -103,7 +103,7 @@ test('PostgreSQL progress: human evidence, idempotence, mastery and restricted g
     assert.equal(studentView.skills.length,1);
     assert.equal(studentView.skills[0]?.mastery,85);
     assert.equal((await api.student(req(visitor!),academy.id)).skills.length,0);
-    assert.equal((await api.student(req(foreign!),outsider.id)).skills.length,0);
+    await assert.rejects(()=>api.student(req(foreign!),outsider.id),ForbiddenException);
     assert.equal((await api.course(req(teacher!),academy.id,course.id)).students.length,1);
     assert.equal((await api.evidenceHistory(req(teacher!),academy.id,topic.id,student!.id)).length,4);
     await assert.rejects(()=>api.evidenceHistory(req(owner!),academy.id,foreignTopic.id,student!.id),NotFoundException);
