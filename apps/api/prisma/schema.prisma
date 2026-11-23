@@ -108,6 +108,8 @@ model User {
   guardianLinksApproved GuardianLink[] @relation("GuardianLinkApprover")
   sosReferralsAsStudent SosReferral[] @relation("SosReferralStudent")
   sosReferralsAsTeacher SosReferral[] @relation("SosReferralReviewer")
+  studentPackageEntitlements ClassPackageEntitlement[] @relation("PackageStudent")
+  issuedPackageEntitlements ClassPackageEntitlement[] @relation("PackageIssuer")
   connections ExternalConnection[]
 }
 
@@ -151,6 +153,8 @@ model Workspace {
   guardianLinks GuardianLink[]
   teachingMethodologies TeachingMethodology[]
   sosReferrals SosReferral[]
+  classPackages ClassPackage[]
+  packageEntitlements ClassPackageEntitlement[]
 }
 
 model WorkspaceMember {
@@ -208,6 +212,7 @@ model Course {
   sessions    ClassSession[]
   resources   Resource[]
   offerings Offering[]
+  classPackages ClassPackage[]
   paymentReceipts PaymentReceipt[]
   @@index([workspaceId])
 }
@@ -454,6 +459,7 @@ model ClassBooking {
   workspace Workspace @relation(fields:[workspaceId],references:[id],onDelete:Cascade)
   session ClassSession @relation(fields:[sessionId],references:[id],onDelete:Cascade)
   student User @relation(fields:[userId],references:[id],onDelete:Cascade)
+  packageRedemption ClassPackageRedemption?
   @@unique([sessionId,userId])
   @@index([workspaceId,status])
 }
@@ -764,4 +770,53 @@ model SosReferral {
  reviewer User? @relation("SosReferralReviewer",fields:[resolvedByUserId],references:[id])
  @@index([workspaceId,courseId,status,createdAt])
  @@index([workspaceId,studentUserId,createdAt])
+}
+
+/** Staff-issued class packages are prepaid credits recorded manually.
+ * This is NOT proof of payment or integration with a card processor.
+ */
+model ClassPackage {
+ id String @id @default(cuid())
+ workspaceId String
+ courseId String?
+ title String
+ sessionCredits Int
+ priceCOP Int
+ validDays Int
+ active Boolean @default(true)
+ createdAt DateTime @default(now())
+ workspace Workspace @relation(fields:[workspaceId],references:[id],onDelete:Cascade)
+ course Course? @relation(fields:[courseId],references:[id])
+ entitlements ClassPackageEntitlement[]
+ @@index([workspaceId,active])
+}
+
+model ClassPackageEntitlement {
+ id String @id @default(cuid())
+ workspaceId String
+ packageId String
+ studentUserId String
+ issuedByUserId String
+ credits Int
+ expiresAt DateTime
+ issuedAt DateTime @default(now())
+ revokedAt DateTime?
+ note String?
+ workspace Workspace @relation(fields:[workspaceId],references:[id],onDelete:Cascade)
+ package ClassPackage @relation(fields:[packageId],references:[id],onDelete:Cascade)
+ student User @relation("PackageStudent",fields:[studentUserId],references:[id])
+ issuer User @relation("PackageIssuer",fields:[issuedByUserId],references:[id])
+ redemptions ClassPackageRedemption[]
+ @@index([workspaceId,studentUserId,expiresAt])
+}
+
+model ClassPackageRedemption {
+ id String @id @default(cuid())
+ entitlementId String
+ bookingId String @unique
+ redeemedAt DateTime @default(now())
+ refundedAt DateTime?
+ entitlement ClassPackageEntitlement @relation(fields:[entitlementId],references:[id],onDelete:Cascade)
+ booking ClassBooking @relation(fields:[bookingId],references:[id],onDelete:Cascade)
+ @@index([entitlementId,refundedAt])
 }
