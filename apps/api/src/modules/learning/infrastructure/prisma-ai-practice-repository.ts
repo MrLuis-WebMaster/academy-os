@@ -2,6 +2,7 @@ import {prisma} from '../../../lib/prisma.js';
 import type {AiPracticeRepository,TeacherNoteSnapshot} from '../application/ports.js';
 import type {PracticeSuggestion} from '../domain/suggestion.js';
 import {AiQuotaReached} from '../application/suggest-practice-use-case.js';
+import {defaultTeachingMethodology} from '../domain/teaching-methodology.js';
 
 const DAILY_LIMIT=10;
 export class PrismaAiPracticeRepository implements AiPracticeRepository {
@@ -13,11 +14,12 @@ export class PrismaAiPracticeRepository implements AiPracticeRepository {
   async getTeacherNotes(workspaceId:string,sessionId:string):Promise<TeacherNoteSnapshot|null>{
     const reflection=await prisma.classReflection.findFirst({
       where:{sessionId,session:{workspaceId,courseId:{not:null}}},
-      select:{id:true,notes:true,session:{select:{title:true,course:{select:{subject:{select:{name:true}}}}}}},
+      select:{id:true,notes:true,session:{select:{title:true,teacher:{select:{methodology:{select:{specialty:true,style:true,language:true,guidance:true,sosEnabled:true}}}},course:{select:{subject:{select:{name:true}}}}}}},
     });
     return reflection?{
       reflectionId:reflection.id,notes:reflection.notes,sessionTitle:reflection.session.title,
       subjectName:reflection.session.course?.subject?.name??'General',
+      methodology:reflection.session.teacher?.methodology??{...defaultTeachingMethodology},
     }:null;
   }
   async reserveDailyAttempt(workspaceId:string,userId:string,sessionId:string,model:string){

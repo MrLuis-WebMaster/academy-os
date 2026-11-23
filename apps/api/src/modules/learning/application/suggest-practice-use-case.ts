@@ -41,6 +41,7 @@ export class SuggestClassPracticeUseCase {
         notes:minimizeTeachingNotes(snapshot.notes),
         sessionTitle:snapshot.sessionTitle,
         subjectName:snapshot.subjectName,
+        methodology:snapshot.methodology,
       });
       const suggestion=parseSuggestion(generated);
       const saved=await this.repository.completeAttempt(attemptId,suggestion,snapshot.reflectionId);

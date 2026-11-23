@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import {validatedTutorResponse} from '../modules/learning/domain/tutor-answer.js';
 import {AskProfeSosUseCase,TutorNotAllowed,TutorWithoutEvidence} from '../modules/learning/application/ask-profe-sos-use-case.js';
 import type {StudentTutoringRepository,TutorProvider} from '../modules/learning/application/tutor-ports.js';
+import {defaultTeachingMethodology} from '../modules/learning/domain/teaching-methodology.js';
 import type {MembershipPort,WorkspaceRole} from '../modules/academics/application/ports.js';
 
 const evidence=[{id:'s1',title:'Clase de fracciones',notes:'Hoy estudiamos numeradores y denominadores.'}];
@@ -15,6 +16,7 @@ test('tutor uses only own enrolled course and approved notes',async()=>{
  const calls:string[]=[];
  const repository:StudentTutoringRepository={
   enrolled:async(_w,_u,c)=>c==='my-course',
+  methodForCourse:async()=>({...defaultTeachingMethodology,sosEnabled:true}),
   publishedEvidence:async()=>evidence,
   reserveDailyAttempt:async()=>{calls.push('reserve');return 'g1';},
   finishAttempt:async()=>{calls.push('complete');},
@@ -37,7 +39,7 @@ test('tutor uses only own enrolled course and approved notes',async()=>{
 });
 test('tutor refuses to invent evidence when no class notes exist',async()=>{
  const repo:StudentTutoringRepository={
-  enrolled:async()=>true,publishedEvidence:async()=>[],reserveDailyAttempt:async()=>{throw Error('should not call');},
+  enrolled:async()=>true,methodForCourse:async()=>({...defaultTeachingMethodology,sosEnabled:true}),publishedEvidence:async()=>[],reserveDailyAttempt:async()=>{throw Error('should not call');},
   finishAttempt:async()=>{},failAttempt:async()=>{},
  };
  const provider:TutorProvider={model:'mock',available:()=>true,answer:async()=>({})};

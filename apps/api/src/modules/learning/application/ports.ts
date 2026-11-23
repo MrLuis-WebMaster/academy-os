@@ -1,6 +1,8 @@
+import type {TeachingMethodology} from '../domain/teaching-methodology.js';
 import type {PracticeSuggestion} from '../domain/suggestion.js';
 export interface TeacherNoteSnapshot {
   reflectionId:string;notes:string;sessionTitle:string;subjectName:string;
+  methodology?:TeachingMethodology;
 }
 export interface AiPracticeRepository {
   isAssignedTeacher(workspaceId:string,userId:string,sessionId:string):Promise<boolean>;
@@ -12,5 +14,5 @@ export interface AiPracticeRepository {
 export interface PracticeAiProvider {
   model:string;
   available():boolean;
-  generate(input:{notes:string;sessionTitle:string;subjectName:string}):Promise<unknown>;
+  generate(input:{notes:string;sessionTitle:string;subjectName:string;methodology?:TeachingMethodology}):Promise<unknown>;
 }

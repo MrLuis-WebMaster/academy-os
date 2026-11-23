@@ -2,6 +2,7 @@ import {prisma} from '../../../lib/prisma.js';
 import {PrismaAiPracticeRepository} from './prisma-ai-practice-repository.js';
 import type {StudentTutoringRepository} from '../application/tutor-ports.js';
 import type {CourseEvidence} from '../domain/tutor-answer.js';
+import {defaultTeachingMethodology} from '../domain/teaching-methodology.js';
 
 export class PrismaStudentTutorRepository implements StudentTutoringRepository {
   private readonly quota=new PrismaAiPracticeRepository();
@@ -9,6 +10,23 @@ export class PrismaStudentTutorRepository implements StudentTutoringRepository {
     return Boolean(await prisma.enrollment.findFirst({
       where:{userId,courseId,course:{workspaceId}},select:{id:true},
     }));
+  }
+  async methodForCourse(workspaceId:string,courseId:string){
+    const enabled=await prisma.teachingMethodology.findFirst({
+      where:{
+        workspaceId,sosEnabled:true,
+        teacher:{
+          workspaceId,
+          courses:{some:{courseId,course:{workspaceId}}},
+          user:{memberships:{some:{
+            workspaceId,role:{in:['OWNER','ADMIN','TEACHER']},
+          }}},
+        },
+      },
+      select:{specialty:true,style:true,language:true,guidance:true,sosEnabled:true},
+      orderBy:{teacherProfileId:'asc'},
+    });
+    return enabled??{...defaultTeachingMethodology};
   }
   async publishedEvidence(workspaceId:string,courseId:string):Promise<CourseEvidence[]>{
     const notes=await prisma.classReflection.findMany({
