@@ -110,6 +110,7 @@ model User {
   sosReferralsAsTeacher SosReferral[] @relation("SosReferralReviewer")
   studentPackageEntitlements ClassPackageEntitlement[] @relation("PackageStudent")
   issuedPackageEntitlements ClassPackageEntitlement[] @relation("PackageIssuer")
+  revokedPackageEntitlements ClassPackageEntitlement[] @relation("PackageRevoker")
   createdLearningAssets LearningAsset[]
   connections ExternalConnection[]
 }
@@ -801,6 +802,8 @@ model ClassPackageEntitlement {
  packageId String
  studentUserId String
  issuedByUserId String
+ revokedByUserId String?
+ revokeReason String?
  credits Int
  expiresAt DateTime
  issuedAt DateTime @default(now())
@@ -811,6 +814,7 @@ model ClassPackageEntitlement {
  package ClassPackage @relation(fields:[packageId],references:[id],onDelete:Cascade)
  student User @relation("PackageStudent",fields:[studentUserId],references:[id])
  issuer User @relation("PackageIssuer",fields:[issuedByUserId],references:[id])
+ revoker User? @relation("PackageRevoker",fields:[revokedByUserId],references:[id],onDelete:SetNull)
  redemptions ClassPackageRedemption[]
  @@index([workspaceId,studentUserId,expiresAt])
 }
