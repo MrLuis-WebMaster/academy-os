@@ -102,6 +102,10 @@ model User {
   skillEvidenceAsReviewer SkillEvidence[] @relation("SkillEvidenceReviewer")
   assignedLearningGoals LearningGoal[] @relation("GoalAssigner")
   studentLearningGoals LearningGoal[] @relation("GoalStudent")
+  guardianLinksAsGuardian GuardianLink[] @relation("GuardianIsGuardian")
+  guardianLinksAsStudent GuardianLink[] @relation("GuardianIsStudent")
+  guardianLinksRequested GuardianLink[] @relation("GuardianLinkRequester")
+  guardianLinksApproved GuardianLink[] @relation("GuardianLinkApprover")
   connections ExternalConnection[]
 }
 
@@ -141,6 +145,7 @@ model Workspace {
   aiGenerations AiGeneration[]
   skillEvidences SkillEvidence[]
   learningGoals LearningGoal[]
+  guardianLinks GuardianLink[]
 }
 
 model WorkspaceMember {
@@ -653,4 +658,46 @@ model LearningGoalEvent {
   createdAt DateTime @default(now())
   goal LearningGoal @relation(fields:[goalId],references:[id],onDelete:Cascade)
   @@index([goalId,createdAt])
+}
+
+enum GuardianLinkStatus {
+  PENDING
+  ACTIVE
+  REVOKED
+}
+
+model GuardianLink {
+  id String @id @default(cuid())
+  workspaceId String
+  guardianUserId String
+  studentUserId String
+  requestedByUserId String
+  approvedByUserId String?
+  status GuardianLinkStatus @default(PENDING)
+  verificationMethod String?
+  verificationNote String?
+  approvedAt DateTime?
+  revokedAt DateTime?
+  createdAt DateTime @default(now())
+  workspace Workspace @relation(fields:[workspaceId],references:[id],onDelete:Cascade)
+  guardian User @relation("GuardianIsGuardian",fields:[guardianUserId],references:[id],onDelete:Cascade)
+  student User @relation("GuardianIsStudent",fields:[studentUserId],references:[id],onDelete:Cascade)
+  requester User @relation("GuardianLinkRequester",fields:[requestedByUserId],references:[id])
+  approver User? @relation("GuardianLinkApprover",fields:[approvedByUserId],references:[id])
+  events GuardianLinkEvent[]
+  @@unique([workspaceId,guardianUserId,studentUserId])
+  @@index([workspaceId,guardianUserId,status])
+  @@index([workspaceId,studentUserId,status])
+}
+
+model GuardianLinkEvent {
+  id String @id @default(cuid())
+  linkId String
+  actorUserId String
+  fromStatus GuardianLinkStatus?
+  toStatus GuardianLinkStatus
+  reason String
+  createdAt DateTime @default(now())
+  link GuardianLink @relation(fields:[linkId],references:[id],onDelete:Cascade)
+  @@index([linkId,createdAt])
 }

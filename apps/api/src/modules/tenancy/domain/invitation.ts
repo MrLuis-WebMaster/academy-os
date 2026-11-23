@@ -1,6 +1,6 @@
 import {z} from 'zod';
 
-export const invitationRoleSchema=z.enum(['TEACHER','STUDENT','ADMIN']);
+export const invitationRoleSchema=z.enum(['TEACHER','STUDENT','ADMIN','GUARDIAN']);
 export type InvitationRole=z.infer<typeof invitationRoleSchema>;
 export const inviteInput=z.object({
   email:z.email().max(255).transform(email=>email.trim().toLowerCase()),
