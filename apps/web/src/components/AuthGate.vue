@@ -124,7 +124,7 @@ onMounted(()=>{
           <button class="rounded-lg border border-outline px-3 py-2 font-bold text-muted" @click="demo ? (demo=false,state='login') : signOut()">{{ demo ? 'Salir de la demo' : 'Cerrar sesión' }}</button>
         </div>
       </div>
-      <OperationsPanel v-if="!demo && operations && selected && ['OWNER','ADMIN','TEACHER'].includes(currentRole)" :workspace="selected" :role="currentRole" />
+      <OperationsPanel v-if="!demo && operations && selected && ['OWNER','ADMIN','TEACHER'].includes(currentRole)" :workspace="selected" :role="currentRole" :actor-id="user?.id || ''" />
       <StudentClassroom v-else-if="!demo && operations && selected && currentRole==='STUDENT'" :workspace="selected" />
       <GuardianPortal v-else-if="!demo && operations && selected && currentRole==='GUARDIAN'" :workspace-id="selected.id" />
       <App v-else :active-workspace="selected" :viewer-name="user?.name || 'Demo'" />

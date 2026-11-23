@@ -12,13 +12,14 @@ import GuardianManager from './GuardianManager.vue';
 import AnalyticsDashboard from './AnalyticsDashboard.vue';
 import RescheduleSession from './RescheduleSession.vue';
 import AiPracticeAssistant from './AiPracticeAssistant.vue';
+import TeachingMethodologyManager from './TeachingMethodologyManager.vue';
 import WeeklyAvailability from './WeeklyAvailability.vue';
 import TeacherTimeOff from './TeacherTimeOff.vue';
 import WeeklySeriesManager from './WeeklySeriesManager.vue';
 import HolidayPolicyPanel from './HolidayPolicyPanel.vue';
 import VenueManager from './VenueManager.vue';
 import { BookOpen, CalendarDays, GraduationCap, Plus, RefreshCcw, Users, Video, MapPin, CheckCircle2 } from 'lucide-vue-next';
-const props = defineProps<{ workspace: { id: string; name: string; type: 'SOLO'|'ACADEMY' }; role: string }>();
+const props = defineProps<{ workspace: { id: string; name: string; type: 'SOLO'|'ACADEMY' }; role: string; actorId: string }>();
 type Subject = { id:string; name:string };
 type Course = { id:string; title:string; summary:string|null; subjectId:string|null };
 type Teacher = { id:string; userId:string; user:{name:string} };
@@ -317,6 +318,7 @@ const input='mt-2 w-full rounded-xl border border-outline bg-surface p-3 text-sm
     <WeeklySeriesManager v-if="status==='ready' && ['OWNER','ADMIN','TEACHER'].includes(role)" :workspace-id="workspace.id" :sessions="sessions" :rooms="availableRooms" @updated="refresh" />
     <RescheduleSession v-if="status==='ready' && ['OWNER','ADMIN'].includes(role)" :workspace-id="workspace.id" :sessions="sessions" @updated="refresh" />
   <PracticeTeacher v-if="status==='ready'" :workspace-id="workspace.id" :sessions="sessions" />
+    <TeachingMethodologyManager v-if="status==='ready'" :workspace-id="workspace.id" :role="role" :actor-id="actorId" :teachers="teachers" />
     <AiPracticeAssistant v-if="status==='ready'" :workspace-id="workspace.id" :sessions="sessions" />
     <StudioEditor v-if="status==='ready' && ['OWNER','ADMIN'].includes(role)" :workspace="workspace" :courses="courses" />
     <StaffAttendance v-if="status==='ready'" :workspace-id="workspace.id" />
