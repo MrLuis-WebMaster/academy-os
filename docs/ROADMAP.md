@@ -44,10 +44,10 @@ Cada marca `[x]` indica funcionalidad codificada en el repo, **no un lanzamiento
 - [~] Roles GUARDIAN, invitaciones, aprobación manual de vínculo y portal familiar de consulta restringida. Faltan verificación legal/identidad por proveedor, consentimiento de menores, retención, auditoría externa y validación E2E.
 - [~] Series semanales de clases, todas o ninguna, con validación DST y conflictos; cancelación masiva de futuras sesiones con avisos in-app, sin alterar clases anteriores. Edición masiva de futuras sesiones y reservas recurrentes de alumnos implementadas.
 - [~] Sedes y aulas con exclusión de horarios y capacidad; faltan docentes sustitutos y recursos complementarios.
-- [ ] Dominios personalizados, branding completo, multimoneda y planes comerciales.
+- [~] Color de marca y logo HTTPS para la academia/catálogo público; faltan dominios personalizados con validación DNS, multimoneda y planes comerciales.
 - [ ] OneDrive, Dropbox, Outlook/Teams y más conectores.
 - [ ] Instancias dedicadas con activación segura del propietario.
-- [ ] Analítica avanzada, soporte, facturación, backups, observabilidad y lanzamiento.
+- [~] Dashboard institucional agregado por período con datos reales de matrículas, agenda, prácticas, evidencias y comprobantes manuales. Faltan informes avanzados, soporte, facturación, backups, observabilidad y lanzamiento.
 
 ## Condiciones de lanzamiento
 Cumplir [RELEASE_CHECKLIST.md](RELEASE_CHECKLIST.md). Nunca considerar CI verde como sustituto de pruebas de Google OAuth, pagos, seguridad y protección de alumnos.
@@ -116,3 +116,10 @@ Cumplir [RELEASE_CHECKLIST.md](RELEASE_CHECKLIST.md). Nunca considerar CI verde 
 - [x] Portal familiar limitado a cursos, competencias evaluadas y estados de metas, sin links privados, mensajes ni notas docentes.
 - [x] Pruebas de autorización y aislamiento por academia en PostgreSQL.
 - [ ] Integrar verificación legal de identidad/representación, consentimientos parentales y políticas de privacidad/retención para menores.
+
+## Hito 17 — Branding y analítica institucional (2026-11-23)
+- [x] Profe Studio permite configurar color HEX de marca y URL de logo HTTPS, con vista previa y proyección pública controlada.
+- [x] Estadísticas en tres períodos (7, 30 y 90 días), solo OWNER/ADMIN, calculadas a partir de registros reales del workspace.
+- [x] Panel web de KPIs de estudiantes, docentes, cursos, sesiones, reservas, asistencia, intentos, evidencias y recibos manuales.
+- [x] Pruebas de validación de branding, roles, aislamientos y consultas PostgreSQL.
+- [ ] Dominios personalizados verificados, informes exportables, planes y entitlements, almacenamiento propio de logos y métricas de operación.

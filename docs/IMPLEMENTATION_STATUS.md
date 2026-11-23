@@ -115,6 +115,13 @@
 - El acceso familiar comprueba el vínculo vigente, la academia, la membresía del alumno y el rol GUARDIAN; la proyección muestra únicamente nombres de cursos, métricas agregadas de competencias y estados de metas.
 - Existen paneles de gestión y portal del acudiente. La validación legal de parentesco/identidad y el consentimiento de menores deben realizarse externamente y aún **no** están probados para producción.
 
+## Hito 17 — marca e indicadores reales (2026-11-23)
+
+- El catálogo de Profe Studio admite color HEX y URL HTTPS opcional de logo. El operador controla la URL externa; el editor muestra vista previa y el catálogo publica la identidad solo cuando la academia está habilitada.
+- Los indicadores institucionales de 7/30/90 días provienen de consultas agregadas a PostgreSQL y se limitan a OWNER/ADMIN en una academia; no contienen filas personales de alumnos.
+- Cobros: solo montos de recibos manuales no anulados, nunca facturación verificada ni ingresos bancarios conciliados. Aprendizaje: promedios reales por intento, distintos a competencias humanas.
+- Aún no hay dominios DNS validados, pago en línea, estadísticas avanzadas ni reportes generados automáticamente.
+
 ## Límites no resueltos
 - OAuth Google en entorno real, test del callback, cookies, sesiones y logout end-to-end.
 - Meet/Zoom/Drive, correo transaccional, sync calendario, app almacenamiento no conectado.

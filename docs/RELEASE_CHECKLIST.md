@@ -15,7 +15,7 @@
 - [ ] Proteger secretos, rate limiting, protección CSRF/CORS, audit logs y métricas.
 - [ ] Evaluación de accesibilidad mobile, recuperación de cuentas, eliminación de datos y exportación.
 - [ ] Pruebas visuales automatizadas en claro/oscuro/sistema, contraste WCAG AA y navegación por teclado.
-- [ ] Migrar componentes de negocio restantes a los primitives reutilizables de `@academy-os/ui`.
+- [~] Más paneles de negocio usan primitives de `@academy-os/ui`; faltan refinar componentes legados, visualizaciones de datos y controles responsive.
 - [ ] Mantener dashboard demo separado y no poner datos ficticios ante clientes.
 - [~] Pruebas automáticas de series, DST, festivos de Colombia, cupos y aulas; faltan QA humano y zonas internacionales.
 - [x] Cancelación masiva de sesiones semanales futuras, transaccional y con avisos internos por reserva.
@@ -46,3 +46,9 @@
 
 ## Go/no-go
 No anunciar el sistema como terminado ni aceptar datos sensibles de clientes sin pasar toda la lista anterior. CI verde y módulos base codificados son pasos necesarios, no suficientes.
+
+## Identidad y métricas
+- [x] Color de marca validado como HEX y logo HTTPS opcional; catálogo público privado hasta activación explícita.
+- [x] Indicadores por rol OWNER/ADMIN y academia; sin exponer datos personales en respuestas agregadas.
+- [ ] Verificar propiedad y privacidad de imágenes externas, DNS, accesibilidad y restricciones de dominios personalizados.
+- [ ] Auditoría formal de métricas financieras, reconciliación e impuestos antes de llamarlas ingresos.

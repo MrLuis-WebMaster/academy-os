@@ -30,6 +30,10 @@ El acceso real necesita configurar `BETTER_AUTH_SECRET`, `GOOGLE_CLIENT_ID`, `GO
 
 En producción usa migraciones revisadas con `prisma migrate deploy`, HTTPS y copias de seguridad; no ejecutes migraciones destructivas directamente sobre datos reales.
 
+## Identidad y análisis de la academia — 2026-11-23
+
+Profe Studio permite cambiar color de marca y logo HTTPS del catálogo; el panel administrativo muestra KPIs agregados por períodos de 7/30/90 días con datos reales, no cifras de demostración. Ver [branding y analítica](docs/BRANDING_ANALYTICS.md). Dominios propios y procesamiento financiero real siguen pendientes.
+
 ## Acceso de acudientes — 2026-11-23
 
 Se añadió el rol GUARDIAN en invitaciones y un portal familiar limitado, basado en vínculos específicos que requieren aprobación manual de la academia y pueden revocarse. **No equivale a verificación legal ni a consentimiento parental validado**. Ver [privacidad familiar](docs/GUARDIAN_PRIVACY.md).

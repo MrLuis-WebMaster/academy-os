@@ -7,7 +7,7 @@
 - Scheduling: clases híbridas/virtuales/presenciales, reservas individuales y recurrentes, edición masiva de series, disponibilidad, ausencias, feriados nacionales de Colombia opcionales, sedes y aulas con disponibilidad física, reprogramación, cancelación y asistencia.
 - Classroom y Learning: materiales, Clase Viva, prácticas, tres intentos máximos concurrentes, Pasaporte, evidencias docentes por competencia y metas auditadas.
 - IA opt-in en código, bandeja interna, preferencias de recordatorios 24h/1h y worker in-app desactivado hasta configurar hosting, ICS privado y finanzas manuales.
-- Profe Studio con servicios, catálogo público opt-in y gestión por academia.
+- Profe Studio con servicios, catálogo público opt-in, color/logo de marca HTTPS, y gestión por academia. Dashboard de métricas agregadas por período, sin filas personales.
 - Staging Docker/Caddy con HTTPS y scripts de respaldo/restauración (NO desplegado).
 
 ## Bloqueadores P0 para un piloto con usuarios reales
@@ -21,7 +21,7 @@
 - Activar y supervisar recordatorios internos en servidor; correo, push o WhatsApp con consentimientos independientes, outbox externo y reintentos.
 - OAuth de Calendar/Meet, Zoom y Drive, revocación, refresco y permisos separados del login.
 - Probar IA con proveedor real y política de minimización de datos; resúmenes IA pendientes.
-- Verificación legal y consentimiento de acudientes (el portal familiar y aprobación manual de vínculos ya existen en código), suplencias, feriados internacionales/regionales, dominios/white-label, multimoneda y analítica avanzada.
+- Verificación legal y consentimiento de acudientes (el portal familiar y aprobación manual de vínculos ya existen en código), suplencias, feriados internacionales/regionales, dominios personalizados/white-label completo, multimoneda y analítica avanzada.
 
 ## Declaración de alcance
 CI verde valida código y pruebas automatizadas, no demuestra operación real de OAuth, pagos, emails o hosting. No anunciar AcademyOS como terminado hasta pasar el checklist de lanzamiento.

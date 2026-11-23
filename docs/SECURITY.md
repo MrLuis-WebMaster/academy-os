@@ -52,3 +52,10 @@ Las rutas de creación, listado y cancelación de sesiones están aisladas por a
 - GUARDIAN solo consulta cursos, promedios de competencias humanos y estados de metas de alumnos enlazados y con matrícula activa. No recibe notas de evaluación, conversaciones, materiales, enlaces de clase ni datos financieros.
 - La revocación es inmediata en el control de lectura, puede iniciarla el manager, guardian o alumno, se audita y exige nueva aprobación para restaurar el acceso.
 - Uso con menores pendiente de verificación externa de parentesco, consentimiento exigible, privacidad, retención y revisión legal.
+
+## Seguridad de identidad y métricas (2026-11-23)
+
+- Los valores de marca se validan como color hexadecimal de seis cifras y enlace HTTPS, sin aceptar esquemas javascript/http para logos.
+- Los informes institucionales están restringidos a OWNER/ADMIN, revalidan la membresía en el repositorio y usan filtros de academia. No contienen email, identificadores ni filas individuales de estudiantes.
+- El logo HTTPS externo puede recibir solicitudes de navegadores: debe alojarse de forma confiable, respetando privacidad y CORS/CSP del dominio público.
+- El registro de pagos es manual y no supone movimiento bancario o facturación; las métricas no deben utilizarse como estados contables.
