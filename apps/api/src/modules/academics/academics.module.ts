@@ -1,4 +1,7 @@
 import { Module } from '@nestjs/common';
+import {CurriculumController} from './presentation/curriculum.controller.js';
+import {CurriculumUseCases} from './application/curriculum-use-cases.js';
+import {PrismaCurriculumRepository} from './infrastructure/prisma-curriculum-repository.js';
 import { SubjectUseCases } from './application/subject-use-cases.js';
 import { PrismaMembershipAdapter, PrismaSubjectRepository } from './infrastructure/prisma-subject-repository.js';
 import { SubjectsController } from './presentation/subjects.controller.js';
@@ -14,8 +17,11 @@ import {EnrollmentsController} from './presentation/enrollments.controller.js';
  * Other academic aggregates migrate here incrementally.
  */
 @Module({
-  controllers: [SubjectsController, CoursesController, EnrollmentsController],
+  controllers: [SubjectsController, CoursesController, EnrollmentsController, CurriculumController],
   providers: [{
+    provide:CurriculumUseCases,
+    useFactory:()=>new CurriculumUseCases(new PrismaCurriculumRepository(),new PrismaMembershipAdapter()),
+  },{
     provide:EnrollmentUseCases,
     useFactory:()=>new EnrollmentUseCases(new PrismaEnrollmentRepository(),new PrismaMembershipAdapter()),
   },{
