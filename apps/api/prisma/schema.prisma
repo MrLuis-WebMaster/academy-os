@@ -204,6 +204,7 @@ model Course {
   topics      Topic[]
   enrollments Enrollment[]
   learningGoals LearningGoal[]
+  sosReferrals SosReferral[]
   sessions    ClassSession[]
   resources   Resource[]
   offerings Offering[]
