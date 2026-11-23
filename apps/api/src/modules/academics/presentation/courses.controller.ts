@@ -1,6 +1,6 @@
 import {
   BadRequestException,Body,ConflictException,Controller,ForbiddenException,Get,Patch,
-  InternalServerErrorException,Param,Post,Req,
+  InternalServerErrorException,NotFoundException,Param,Post,Req,
 } from '@nestjs/common';
 import type {AuthenticatedRequest} from '../../../auth/session.guard.js';
 import {CourseUseCases,CourseSubjectOutsideWorkspace,CoursePolicyConflict,CourseNotFound} from '../application/course-use-cases.js';
@@ -14,7 +14,7 @@ export class CoursesController {
   private fail(error:unknown):never {
     if(error instanceof SubjectAccessDenied)throw new ForbiddenException(error.message);
     if(error instanceof CoursePolicyConflict)throw new ConflictException(error.message);
-    if(error instanceof CourseNotFound)throw new BadRequestException(error.message);
+    if(error instanceof CourseNotFound)throw new NotFoundException(error.message);
     if(error instanceof CourseSubjectOutsideWorkspace||error instanceof InvalidCourseDetails){
       throw new BadRequestException(error.message);
     }

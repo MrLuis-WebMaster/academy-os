@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {randomUUID} from 'node:crypto';
-import {ConflictException,ForbiddenException} from '@nestjs/common';
+import {ConflictException,ForbiddenException,NotFoundException} from '@nestjs/common';
 import {prisma} from '../lib/prisma.js';
 import {PrismaMembershipAdapter} from '../modules/academics/infrastructure/prisma-subject-repository.js';
 import {CoursesController} from '../modules/academics/presentation/courses.controller.js';
@@ -63,7 +63,7 @@ test('paid course reservation debits one granted credit atomically; free courses
   assert.equal((await courses.list(req(owner!),workspace.id))[0]?.requiresPackage,false);
   assert.equal((await courses.packagePolicy(req(owner!),workspace.id,course.id,{requiresPackage:true})).requiresPackage,true);
   await assert.rejects(()=>courses.packagePolicy(req(student!),workspace.id,course.id,{requiresPackage:false}),ForbiddenException);
-  await assert.rejects(()=>courses.packagePolicy(req(foreign!),other.id,course.id,{requiresPackage:true}),ForbiddenException);
+  await assert.rejects(()=>courses.packagePolicy(req(foreign!),other.id,course.id,{requiresPackage:true}),NotFoundException);
   await assert.rejects(()=>bookings.reserve(req(student!),workspace.id,{sessionId:sessions[0]!.id}),ConflictException);
   assert.equal(await prisma.classBooking.count({where:{workspaceId:workspace.id}}),0,'failed credit check must roll back the booking');
 
