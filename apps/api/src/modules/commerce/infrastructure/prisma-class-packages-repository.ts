@@ -1,7 +1,7 @@
 import {prisma} from '../../../lib/prisma.js';
 import {grantExpiry,remainingCredits} from '../domain/class-package.js';
 import type {PackageIssueInput,PackagePlanInput,PackageRedemptionInput} from '../domain/class-package.js';
-import type {ClassPackagesRepository,PackagePlanView,PackageEntitlementView} from '../application/package-ports.js';
+import type {ClassPackagesRepository,PackagePlanView,PackageEntitlementView,PackageIssuanceView} from '../application/package-ports.js';
 import {PackageAccessDenied,PackageConflict,PackageNotFound} from '../application/package-use-cases.js';
 import type {Prisma} from '../../../generated/prisma/client.js';
 import {notifyUser} from '../../notifications/infrastructure/personal-notice-publisher.js';
@@ -123,7 +123,77 @@ export class PrismaClassPackagesRepository implements ClassPackagesRepository{
    return grantView(created);
   });
  }
- async mine(workspaceId:string,userId:string){
+ async issuances(workspaceId:string,actorId:string):Promise<PackageIssuanceView[]>{
+  return prisma.$transaction(async tx=>{
+   await this.manager(tx,workspaceId,actorId);
+   const now=new Date();
+   const rows=await tx.classPackageEntitlement.findMany({
+    where:{workspaceId,package:{workspaceId}},
+    select:{
+     ...grantSelect,
+     revokedByUserId:true,revokeReason:true,
+     student:{select:{name:true}},
+     issuer:{select:{name:true}},
+     redemptions:{
+      where:{refundedAt:null},
+      select:{
+       id:true,bookingId:true,
+       booking:{select:{
+        status:true,session:{select:{status:true,startsAt:true}},
+       }},
+      },
+     },
+    },
+    orderBy:{issuedAt:'desc'},take:200,
+   });
+   return rows.map(row=>({
+    ...grantView(row),
+    student:row.student,issuer:row.issuer,
+    revokedByUserId:row.revokedByUserId,revokeReason:row.revokeReason,
+    futureBookings:row.redemptions.filter(item=>
+     item.booking.status==='BOOKED'&&item.booking.session.status==='CONFIRMED'
+     &&item.booking.session.startsAt>now,
+    ).length,
+   }));
+  });
+ }
+ async revoke(workspaceId:string,actorId:string,grantId:string,reason:string){
+  return prisma.$transaction(async tx=>{
+   await tx.$queryRaw`SELECT pg_advisory_xact_lock(hashtext(${'academy-os:package-grant:'+grantId}))::text AS lock_acquired`;
+   await this.manager(tx,workspaceId,actorId);
+   const grant=await tx.classPackageEntitlement.findFirst({
+    where:{id:grantId,workspaceId,package:{workspaceId}},
+    select:{id:true,revokedAt:true,revokeReason:true,studentUserId:true,
+     package:{select:{title:true}}},
+   });
+   if(!grant)throw new PackageNotFound();
+   if(grant.revokedAt){
+    return {id:grant.id,revokedAt:grant.revokedAt,revokeReason:grant.revokeReason??''};
+   }
+   const openBookings=await tx.classPackageRedemption.count({
+    where:{
+     entitlementId:grantId,refundedAt:null,
+     booking:{status:'BOOKED',session:{status:'CONFIRMED',startsAt:{gt:new Date()}}},
+    },
+   });
+   if(openBookings)throw new PackageConflict(
+    'This entitlement has future reserved classes. Cancel those bookings and return credits before revoking it.',
+   );
+   const revokedAt=new Date();
+   const count=await tx.classPackageEntitlement.updateMany({
+    where:{id:grantId,workspaceId,revokedAt:null},
+    data:{revokedAt,revokedByUserId:actorId,revokeReason:reason},
+   });
+   if(count.count!==1)throw new PackageConflict('Grant changed; refresh the list');
+   await notifyUser(tx,{
+    workspaceId,userId:grant.studentUserId,kind:'PACKAGE_REVOKED',
+    eventKey:'package-revoked:'+grant.id,title:'Cambios en tu paquete de clases',
+    body:'La academia revocó el paquete "'+grant.package.title.slice(0,100)+'". Consulta tu saldo y comunícate con tu academia para conocer el motivo.',
+   });
+   return {id:grant.id,revokedAt,revokeReason:reason};
+  });
+ }
+  async mine(workspaceId:string,userId:string){
   return prisma.$transaction(async tx=>{
    await this.student(tx,workspaceId,userId);
    const rows=await tx.classPackageEntitlement.findMany({
