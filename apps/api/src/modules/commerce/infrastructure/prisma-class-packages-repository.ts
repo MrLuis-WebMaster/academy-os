@@ -14,19 +14,20 @@ const grantSelect={
  id:true,packageId:true,studentUserId:true,credits:true,expiresAt:true,
  issuedAt:true,revokedAt:true,
  package:{select:{title:true,courseId:true,priceCOP:true}},
- redemptions:{select:{id:true},where:{refundedAt:null}},
+ redemptions:{select:{id:true,bookingId:true},where:{refundedAt:null}},
 } as const;
 
 function grantView(row:{
  id:string;packageId:string;studentUserId:string;credits:number;
  expiresAt:Date;issuedAt:Date;revokedAt:Date|null;
  package:{title:string;courseId:string|null;priceCOP:number};
- redemptions:readonly {id:string}[];
+ redemptions:readonly {id:string;bookingId:string}[];
 }):PackageEntitlementView{
  const used=row.redemptions.length;
  return {
   id:row.id,packageId:row.packageId,studentUserId:row.studentUserId,
   credits:row.credits,used,remaining:remainingCredits(row.credits,used),
+  activeBookingIds:row.redemptions.map(r=>r.bookingId),
   expiresAt:row.expiresAt,issuedAt:row.issuedAt,revokedAt:row.revokedAt,
   package:row.package,
  };

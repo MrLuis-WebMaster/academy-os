@@ -6,7 +6,7 @@ export interface PackagePlanView{
 }
 export interface PackageEntitlementView{
  id:string;packageId:string;studentUserId:string;credits:number;used:number;
- remaining:number;expiresAt:Date;issuedAt:Date;revokedAt:Date|null;
+ remaining:number;activeBookingIds:string[];expiresAt:Date;issuedAt:Date;revokedAt:Date|null;
  package:{title:string;courseId:string|null;priceCOP:number};
 }
 export interface PackageRedeemResult{
