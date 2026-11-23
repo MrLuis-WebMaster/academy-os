@@ -37,6 +37,12 @@ jobs:
         run: pnpm --filter @academy-os/api exec prisma migrate deploy
       - name: Verify migrations status
         run: pnpm --filter @academy-os/api exec prisma migrate status
+      - name: Validate staging Compose syntax (no real secrets)
+        env:
+          STAGING_DOMAIN: academy.example.invalid
+          STAGING_DB_PASSWORD: github-ci-test-only
+          STAGING_DATABASE_URL: postgresql://academy:github-ci-test-only@postgres:5432/academy_os
+        run: docker compose -f compose.staging.yaml config --quiet
       - run: pnpm arch:check
       - run: pnpm typecheck
       - run: pnpm test

@@ -1,0 +1,12 @@
+**/node_modules
+**/dist
+**/.vite
+**/coverage
+**/*.log
+.git
+.env
+.env.*
+!.env.example
+!.apps/api/.env.example
+backups/
+.DS_Store

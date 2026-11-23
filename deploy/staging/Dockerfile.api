@@ -1,0 +1,15 @@
+# Staging image: installed dependencies include Prisma CLI to apply versioned migrations.
+FROM node:26-bookworm-slim
+WORKDIR /srv
+RUN npm install -g pnpm@10.30.3
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+COPY apps/api/package.json apps/api/package.json
+COPY apps/web/package.json apps/web/package.json
+COPY packages/ui/package.json packages/ui/package.json
+RUN pnpm install --frozen-lockfile
+COPY . .
+# Prisma reads DATABASE_URL even when generating the client. No live credentials are used at build time.
+RUN DATABASE_URL="postgresql://unused:unused@localhost:5432/unused?schema=public" pnpm db:generate && pnpm --filter @academy-os/api build
+ENV NODE_ENV=production
+EXPOSE 3001
+CMD ["pnpm","--filter","@academy-os/api","start"]

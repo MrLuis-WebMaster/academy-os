@@ -1,0 +1,67 @@
+# Staging only: do not use as the production release process without security review.
+name: academy-os-staging
+services:
+  postgres:
+    image: postgres:19-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: academy
+      POSTGRES_DB: academy_os
+      POSTGRES_PASSWORD: ${STAGING_DB_PASSWORD:?Set STAGING_DB_PASSWORD in the private staging env}
+    volumes:
+      - staging_pg:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U academy -d academy_os"]
+      interval: 5s
+      timeout: 3s
+      retries: 15
+
+  api:
+    build:
+      context: .
+      dockerfile: deploy/staging/Dockerfile.api
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      NODE_ENV: production
+      PORT: "3001"
+      DATABASE_URL: ${STAGING_DATABASE_URL:?Set a URL with host postgres and the encoded password}
+      WEB_ORIGIN: https://${STAGING_DOMAIN:?Set a resolvable hostname}
+      BETTER_AUTH_URL: https://${STAGING_DOMAIN}
+      BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET:?Provide a secure random value}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
+      ACADEMY_AI_ENABLED: ${ACADEMY_AI_ENABLED:-false}
+      ACADEMY_AI_MODEL: ${ACADEMY_AI_MODEL:-gpt-5-mini}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+    command: ["sh", "-c", "pnpm --filter @academy-os/api exec prisma migrate deploy && pnpm --filter @academy-os/api start"]
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3001/api/v1/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 15s
+      timeout: 5s
+      retries: 12
+      start_period: 35s
+
+  web:
+    build:
+      context: .
+      dockerfile: deploy/staging/Dockerfile.web
+    restart: unless-stopped
+    depends_on:
+      api:
+        condition: service_healthy
+    environment:
+      STAGING_DOMAIN: ${STAGING_DOMAIN}
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - caddy_data:/data
+      - caddy_config:/config
+
+volumes:
+  staging_pg:
+  caddy_data:
+  caddy_config:
