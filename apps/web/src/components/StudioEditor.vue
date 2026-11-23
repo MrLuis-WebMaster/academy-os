@@ -147,7 +147,7 @@ onMounted(()=>void refresh());
    <UiField for="studio-contact" label="URL de contacto HTTPS"><UiInput id="studio-contact" v-model="contactUrl" type="url" placeholder="https://wa.me/573001234567"/></UiField>
    <UiField for="studio-color" label="Color de marca (HEX)"><div class="mt-2 flex items-center gap-3">
      <input id="studio-color" v-model="brandColor" type="color" class="h-11 w-14 cursor-pointer rounded-lg border border-outline bg-surface p-1" aria-label="Seleccionar color de marca"/>
-     <UiInput v-model="brandColor" maxlength="7" pattern="#[a-fA-F0-9]{6}" placeholder="#7059e8"/>
+     <UiInput v-model="brandColor" :maxlength="7" pattern="#[a-fA-F0-9]{6}" placeholder="#7059e8"/>
    </div></UiField>
    <UiField for="studio-logo" label="Logo público HTTPS (opcional)"><UiInput id="studio-logo" v-model="logoUrl" type="url" placeholder="https://miacademia.com/logo.png"/>
      <p class="mt-1 text-xs text-muted">La imagen se carga desde ese sitio externo. Utiliza un alojamiento que controles.</p>
