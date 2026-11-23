@@ -12,6 +12,7 @@ import AiPracticeAssistant from './AiPracticeAssistant.vue';
 import WeeklyAvailability from './WeeklyAvailability.vue';
 import TeacherTimeOff from './TeacherTimeOff.vue';
 import WeeklySeriesManager from './WeeklySeriesManager.vue';
+import HolidayPolicyPanel from './HolidayPolicyPanel.vue';
 import { BookOpen, CalendarDays, GraduationCap, Plus, RefreshCcw, Users, Video, MapPin, CheckCircle2 } from 'lucide-vue-next';
 const props = defineProps<{ workspace: { id: string; name: string; type: 'SOLO'|'ACADEMY' }; role: string }>();
 type Subject = { id:string; name:string };
@@ -283,6 +284,7 @@ const input='mt-2 w-full rounded-xl border border-outline bg-surface p-3 text-sm
     </select></label><label v-if="mode!=='ONLINE'" class="text-xs font-semibold"><span class="flex gap-1"><MapPin :size="13"/> Dirección o sede</span><input v-model="location" required placeholder="Sede Centro, Aula 2" :class="input"/></label><div class="flex items-end"><button :disabled="busy||!teachers.length" class="w-full rounded-xl bg-brand px-5 py-3 text-xs font-bold text-white disabled:opacity-60">{{ busy?'Guardando...':'Agendar clase' }}</button></div></form>
       <div class="mt-7 divide-y divide-outline"><div v-for="session in sessions" :key="session.id" class="flex flex-wrap items-center justify-between gap-3 py-4"><div><p class="text-sm font-bold">{{ session.title }} <span v-if="session.seriesId" class="ml-1 rounded-md bg-brand-soft px-2 py-0.5 text-[10px] font-semibold text-brand">Clase semanal {{(session.seriesIndex??0)+1}}</span></p><p class="mt-1 text-xs text-muted">{{ new Date(session.startsAt).toLocaleString('es-CO') }} · {{ session.mode==='ONLINE'?'Virtual':session.mode==='ONSITE'?'Presencial':'Híbrida' }}</p></div><div class="flex items-center gap-3"><span class="rounded-full px-3 py-1 text-xs font-bold" :class="session.status==='CANCELLED'?'bg-surface-muted text-muted':'bg-success-soft text-success'">{{ session.status }}</span><button v-if="session.status==='CONFIRMED'" :disabled="busy" class="rounded-lg border border-rose-200 px-3 py-1 text-xs font-bold text-rose-600 disabled:opacity-40" @click="cancelSession(session)">Cancelar</button></div></div><p v-if="!sessions.length" class="py-5 text-sm text-muted">Todavía no hay clases programadas.</p></div>
     </section>
+  <HolidayPolicyPanel v-if="status==='ready' && ['OWNER','ADMIN','TEACHER'].includes(role)" :workspace-id="workspace.id" :editable="['OWNER','ADMIN'].includes(role)" />
   <WeeklyAvailability v-if="status==='ready' && ['OWNER','ADMIN'].includes(role)" :workspace-id="workspace.id" :teachers="teachers" />
     <TeacherTimeOff v-if="status==='ready' && ['OWNER','ADMIN'].includes(role)" :workspace-id="workspace.id" :teachers="teachers" />
     <WeeklySeriesManager v-if="status==='ready' && ['OWNER','ADMIN','TEACHER'].includes(role)" :workspace-id="workspace.id" :sessions="sessions" @updated="refresh" />
