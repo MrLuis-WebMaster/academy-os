@@ -3,7 +3,9 @@ import assert from 'node:assert/strict';
 import {randomUUID} from 'node:crypto';
 import {BadRequestException,ForbiddenException,NotFoundException} from '@nestjs/common';
 import {prisma} from '../lib/prisma.js';
-import {CatalogController} from '../workspaces/catalog.controller.js';
+import {StudentClassroomController} from '../modules/classroom/presentation/student-classroom.controller.js';
+import {StudentClassroomUseCases} from '../modules/classroom/application/student-classroom-read.js';
+import {PrismaStudentClassroomRead} from '../modules/classroom/infrastructure/prisma-student-classroom-read.js';
 import {PrismaMembershipAdapter} from '../modules/academics/infrastructure/prisma-subject-repository.js';
 import {MaterialUseCases} from '../modules/classroom/application/material-use-cases.js';
 import {PrismaMaterialRepository} from '../modules/classroom/infrastructure/prisma-material-repository.js';
@@ -51,7 +53,9 @@ test('PostgreSQL: published materials respect academy, course and student enroll
     const materials=new MaterialsController(
       new MaterialUseCases(new PrismaMaterialRepository(),new PrismaMembershipAdapter()),
     );
-    const catalog=new CatalogController();
+    const catalog=new StudentClassroomController(
+      new StudentClassroomUseCases(new PrismaStudentClassroomRead(),new PrismaMembershipAdapter()),
+    );
     const raw={courseId:courseA.id,title:'Guía segura',url:'https://example.com/guide'};
     await assert.rejects(()=>materials.list(request(student.id),a.id),ForbiddenException);
     await assert.rejects(()=>materials.create(request(student.id),a.id,raw),ForbiddenException);
