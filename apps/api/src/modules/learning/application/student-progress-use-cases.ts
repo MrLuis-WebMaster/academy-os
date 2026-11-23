@@ -1,5 +1,6 @@
 import type {MembershipPort} from '../../academics/application/ports.js';
 import {buildEvidenceBasedProfile} from '../domain/learner-profile.js';
+import {buildReinforcementInsights} from '../domain/reinforcement-insights.js';
 import {
   parseEvidenceInput,parseGoalInput,parseGoalStatusInput,parseProgressId,
 } from '../domain/student-progress.js';
@@ -32,6 +33,10 @@ export class StudentProgressUseCases {
   async course(workspaceId:string,userId:string,courseId:unknown){
     await this.authorize(workspaceId,userId,false);
     return this.progress.course(workspaceId,userId,parseProgressId(courseId));
+  }
+  async insights(workspaceId:string,userId:string,courseId:unknown){
+    const course=await this.course(workspaceId,userId,courseId);
+    return buildReinforcementInsights(course);
   }
   async evidence(workspaceId:string,userId:string,raw:unknown){
     await this.authorize(workspaceId,userId,false);
