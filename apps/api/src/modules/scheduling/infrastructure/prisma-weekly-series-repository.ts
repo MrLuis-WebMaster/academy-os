@@ -4,7 +4,7 @@ import type {LessonWindow} from '../domain/weekly-series.js';
 import {withinWeeklyAvailability} from '../domain/weekly-availability.js';
 import {holidayConflict} from '../domain/public-holidays.js';
 import {intervalsOverlap} from '../domain/time-off.js';
-import {WeeklySeriesConflict,WeeklySeriesReferenceInvalid} from '../application/create-weekly-series-use-case.js';
+import {WeeklySeriesConflict,WeeklySeriesReferenceInvalid,WeeklySeriesNotAllowed} from '../application/create-weekly-series-use-case.js';
 
 export class PrismaWeeklySeriesRepository implements WeeklySeriesRepository {
  async workspaceTimezone(workspaceId:string){
@@ -19,10 +19,21 @@ export class PrismaWeeklySeriesRepository implements WeeklySeriesRepository {
   return prisma.$transaction(async tx=>{
    // Same teacher advisory key as single-session creation, rescheduling and vacation blocks.
    await tx.$queryRaw`SELECT pg_advisory_xact_lock(hashtext(${'academy-os:teacher:'+draft.teacherProfileId}))::text AS lock_acquired`;
-   const teacher=await tx.teacherProfile.findFirst({
-    where:{id:draft.teacherProfileId,workspaceId},select:{id:true},
-   });
+   const [teacher,memberships]=await Promise.all([
+    tx.teacherProfile.findFirst({
+     where:{id:draft.teacherProfileId,workspaceId},select:{id:true,userId:true},
+    }),
+    tx.workspaceMember.findMany({
+     where:{workspaceId,userId:actorId,role:{in:['OWNER','ADMIN','TEACHER']}},
+     select:{role:true},
+    }),
+   ]);
    if(!teacher)throw new WeeklySeriesReferenceInvalid('Teacher is outside this academy');
+   const isManager=memberships.some(member=>member.role==='OWNER'||member.role==='ADMIN');
+   if(!memberships.length||(!isManager&&teacher.userId!==actorId)){
+    throw new WeeklySeriesNotAllowed();
+   }
+
    if(draft.courseId){
     const course=await tx.course.findFirst({where:{id:draft.courseId,workspaceId},select:{id:true}});
     if(!course)throw new WeeklySeriesReferenceInvalid('Course is outside this academy');

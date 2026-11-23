@@ -75,7 +75,8 @@ export class PrismaSeriesEditRepository implements SeriesEditRepository {
           capacity:input.capacity??session.capacity,
           teacherProfileId:series.teacherProfileId,
           courseId:session.courseId??undefined,
-          roomId:input.roomId===undefined?session.roomId??undefined:input.roomId??undefined,
+          roomId:(input.mode??session.mode)==='ONLINE'
+            ?undefined:(input.roomId===undefined?session.roomId??undefined:input.roomId??undefined),
           location:input.location===undefined?session.location??undefined:input.location??undefined,
           meetingUrl:input.meetingUrl===undefined?session.meetingUrl??undefined:input.meetingUrl??undefined,
           startsAt:window.startsAt.toISOString(),
