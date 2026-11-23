@@ -57,7 +57,7 @@ export class PrismaStudioRepository implements StudioRepository {
       await this.requireManager(tx,workspaceId,actorId);
       const changed=await tx.workspace.updateMany({
         where:{id:workspaceId},
-        data:{...input,contactUrl:input.contactUrl||null},
+        data:{...input,...(input.contactUrl!==undefined?{contactUrl:input.contactUrl||null}:{})},
       });
       if(changed.count!==1)throw new StudioUnavailable('Workspace does not exist');
       return tx.workspace.findUniqueOrThrow({
