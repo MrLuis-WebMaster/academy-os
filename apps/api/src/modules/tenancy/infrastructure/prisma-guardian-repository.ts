@@ -52,7 +52,7 @@ export class PrismaGuardianRepository implements GuardianRepository {
         workspaceId,guardianUserId:input.guardianUserId,studentUserId:input.studentUserId,
       }};
       const existing=await tx.guardianLink.findUnique({where:unique,select:{id:true,status:true}});
-      if(existing?.status==='ACTIVE'||existing?.status==='PENDING')return existing;
+      if(existing?.status==='ACTIVE'||existing?.status==='PENDING')return {id:existing.id,status:existing.status};
       if(existing){
         const updated=await tx.guardianLink.update({
           where:{id:existing.id},
@@ -68,7 +68,7 @@ export class PrismaGuardianRepository implements GuardianRepository {
             toStatus:'PENDING',reason:'La academia solicitó una nueva revisión de la relación',
           },
         });
-        return updated;
+        return {id:updated.id,status:'PENDING' as const};
       }
       const newLink=await tx.guardianLink.create({
         data:{
@@ -83,7 +83,7 @@ export class PrismaGuardianRepository implements GuardianRepository {
           reason:'Relación solicitada, pendiente de verificación manual',
         },
       });
-      return newLink;
+      return {id:newLink.id,status:'PENDING' as const};
     });
   }
 
