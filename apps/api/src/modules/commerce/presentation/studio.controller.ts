@@ -1,8 +1,9 @@
 import {
   BadRequestException,Body,Controller,ForbiddenException,Get,
-  HttpException,InternalServerErrorException,NotFoundException,Param,Patch,Post,Req,
+  HttpException,InternalServerErrorException,NotFoundException,Param,Patch,Post,Req,Header,
 } from '@nestjs/common';
 import {Public} from '../../../auth/public.js';
+import {publicAcademyManifest,publicAcademyIcon} from '../domain/academy-pwa.js';
 import type {AuthenticatedRequest} from '../../../auth/session.guard.js';
 import {InvalidStudioInput} from '../domain/studio.js';
 import {
@@ -28,6 +29,26 @@ export class StudioController {
   async publicStore(@Param('slug') slug:string){
     try{return await this.studio.publicStore(slug);}
     catch(error){return this.fail(error);}
+  }
+  @Public()
+  @Get('public/:slug/manifest.webmanifest')
+  @Header('Content-Type','application/manifest+json')
+  @Header('Cache-Control','public,max-age=300')
+  async publicManifest(@Param('slug') slug:string){
+    try{
+      const academy=await this.studio.publicStore(slug);
+      return publicAcademyManifest(academy);
+    }catch(error){return this.fail(error);}
+  }
+  @Public()
+  @Get('public/:slug/app-icon.svg')
+  @Header('Content-Type','image/svg+xml; charset=utf-8')
+  @Header('Cache-Control','public,max-age=300')
+  async publicIcon(@Param('slug') slug:string){
+    try{
+      const academy=await this.studio.publicStore(slug);
+      return publicAcademyIcon(academy);
+    }catch(error){return this.fail(error);}
   }
   @Get('workspaces/:workspaceId')
   async config(@Req() req:AuthenticatedRequest,@Param('workspaceId') workspaceId:string){
