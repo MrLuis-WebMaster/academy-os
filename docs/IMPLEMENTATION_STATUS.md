@@ -131,6 +131,13 @@
 - Catálogo público con ruta `/academy/:slug/`, manifiesto instalable y SVG de marca distintos por academia. Sin dominios personalizados reales ni instalación verificada en dispositivos.
 - Producto diseñado para SOLO y ACADEMY sobre el mismo monorepo. Véase `PRODUCT_VISION.md` y `MODULE_INTEGRATION.md`.
 
+## Hito 19 — Señales de refuerzo (2026-11-23)
+
+- El panel de competencias presenta oportunidades agregadas de refuerzo de grupos, usando metas por tema con porcentaje definido por el profesor y evidencias humanas.
+- Las señales distinguen casos con evidencia insuficiente de diferencias verificadas respecto a una meta; exigen dos alumnos por tema para mostrar una tarjeta.
+- Solo docentes asignados y gestores de la academia pueden consultarlas; se deriva del mismo modelo de lectura de curso y no se ejecuta IA.
+- La creación y aprobación real de actividades continúa ocurriendo en Clase Viva; no existen ejercicios automáticos enviados a alumnos a partir de estas señales.
+
 ## Límites no resueltos
 - OAuth Google en entorno real, test del callback, cookies, sesiones y logout end-to-end.
 - Meet/Zoom/Drive, correo transaccional, sync calendario, app almacenamiento no conectado.

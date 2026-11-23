@@ -133,3 +133,11 @@ Cumplir [RELEASE_CHECKLIST.md](RELEASE_CHECKLIST.md). Nunca considerar CI verde 
 - [x] Ruta pública por academia, manifiesto e icono PWA personalizados; cada academia publicada tiene id y alcance de instalación propios.
 - [ ] Validación de PWA instalable en dispositivos reales, iconos PNG/Apple, dominios HTTPS personalizados y DNS propio.
 - [ ] Audio, transcripción, flashcards, microlecciones, enseñanza especializada, pagos por pasarela, paquetes/membresías e integración del proveedor IA real.
+
+## Hito 19 — Refuerzos de grupo basados en evidencia (2026-11-23)
+- [x] Identificación de temas con **al menos dos** estudiantes cuya competencia evaluada por docentes está por debajo de una meta activa configurada.
+- [x] Separación estricta de temas sin evidencia (pendientes de evaluación) y metas por debajo de valoraciones verificadas (posible refuerzo).
+- [x] Deduplificación de alumnos con varias metas en el mismo tema; sin inferir patrones psicológicos, estilos de aprendizaje o diagnósticos.
+- [x] API limitada a OWNER/ADMIN o docente asignado al curso, panel de oportunidades y selección del tema para planificar refuerzo en Clase Viva.
+- [x] Pruebas del dominio y con PostgreSQL para cálculos reales, cambios de metas y permisos.
+- [ ] Generar propuestas diferenciadas por especialidad educativa (audio/speaking, matemáticas guiadas, música, arte, simulacros) y validar prácticas con profes reales.

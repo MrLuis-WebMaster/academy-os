@@ -23,3 +23,10 @@ Las metas alcanzadas generan una lista de logros confirmados por profesores. No 
 `/academy/:slug/` sirve como ruta de lanzamiento de una academia publicada. Cada catálogo tiene manifiesto `GET /api/v1/studio/public/:slug/manifest.webmanifest` con id, nombre, color, ruta y alcance propios, más un icono SVG generado en nuestro backend usando iniciales y color. Los recursos se devuelven solo cuando el catálogo está publicado. La versión anterior por `/?academy=:slug` sigue disponible.
 
 No se han configurado dominios distintos, certificados TLS reales por cliente, iconos PNG/Apple touch optimizados, pruebas de instalación en iOS/Android ni funcionalidades offline privadas. Debe validarse el comportamiento real de «Añadir a pantalla de inicio» antes de anunciarlo como independiente.
+
+## Alertas de refuerzo en grupos
+`GET /api/v1/workspaces/:workspaceId/learning-progress/courses/:courseId/insights` está restringido a OWNER/ADMIN y docentes asignados al curso. Reutiliza la misma lectura autorizada de temas, alumnos, metas y competencias humanas que utiliza la gestión del Pasaporte.
+
+La lógica muestra una oportunidad de refuerzo solo si **al menos dos** estudiantes tienen una meta vigente vinculada a un tema y una valoración humana inferior al objetivo definido. El mismo estudiante cuenta una sola vez aunque tenga varias metas. Si existen al menos dos metas sin evidencias docentes, se propone **evaluar antes de interpretar dificultad**. No se crean notas ni actividades sin aprobación del profesor. El panel permite seleccionar el tema de trabajo y continuar con Clase Viva.
+
+Esto implementa la base comprobable del caso «tres alumnos necesitan refuerzo sobre pasado simple». No genera todavía microlecciones ni envía alertas push/email.
