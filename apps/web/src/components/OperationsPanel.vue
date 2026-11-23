@@ -24,7 +24,7 @@ import VenueManager from './VenueManager.vue';
 import { BookOpen, CalendarDays, GraduationCap, Plus, RefreshCcw, Users, Video, MapPin, CheckCircle2 } from 'lucide-vue-next';
 const props = defineProps<{ workspace: { id: string; name: string; type: 'SOLO'|'ACADEMY' }; role: string; actorId: string }>();
 type Subject = { id:string; name:string };
-type Course = { id:string; title:string; summary:string|null; subjectId:string|null };
+type Course = { id:string; title:string; summary:string|null; subjectId:string|null;requiresPackage:boolean };
 type Teacher = { id:string; userId:string; user:{name:string} };
 type Lesson = { id:string;courseId:string|null; title:string; startsAt:string; endsAt:string; mode:'ONLINE'|'ONSITE'|'HYBRID'; status:string; location:string|null;meetingUrl:string|null;capacity:number;seriesId?:string|null;seriesIndex?:number|null;roomId:string|null };
 const subjects=ref<Subject[]>([]), courses=ref<Course[]>([]), teachers=ref<Teacher[]>([]), sessions=ref<Lesson[]>([]);
@@ -84,6 +84,27 @@ async function refresh(){
 }
 async function addSubject(){busy.value=true;message.value='';error.value='';try{await request('/subjects',{method:'POST',body:JSON.stringify({name:subjectName.value})});subjectName.value='';await refresh();message.value='Materia guardada correctamente.';}catch(e){error.value=e instanceof Error?e.message:'No se pudo crear la materia';}finally{busy.value=false;}}
 async function addCourse(){busy.value=true;message.value='';error.value='';try{await request('/courses',{method:'POST',body:JSON.stringify({title:courseTitle.value, ...(courseSubjectId.value?{subjectId:courseSubjectId.value}:{})})});courseTitle.value='';await refresh();message.value='Curso creado.';}catch(e){error.value=e instanceof Error?e.message:'No se pudo crear el curso';}finally{busy.value=false;}}
+async function togglePackageRequirement(course:Course){
+  if(busy.value||!['OWNER','ADMIN'].includes(props.role))return;
+  if(!course.requiresPackage&&!window.confirm(
+    '¿Exigir un crédito por clase en "'+course.title+'"? Todas las reservas futuras de este curso consumirán un crédito. No podrás activarlo si existen reservas futuras sin créditos. Esta opción NO verifica pagos reales.',
+  ))return;
+  const workspaceId=props.workspace.id;
+  busy.value=true;error.value='';message.value='';
+  try{
+    await apiRequest(workspacePath(workspaceId,'/courses/'+encodeURIComponent(course.id)+'/package-policy'),{
+      method:'PATCH',body:JSON.stringify({requiresPackage:!course.requiresPackage}),
+    });
+    if(workspaceId!==props.workspace.id)return;
+    await refresh();
+    if(workspaceId===props.workspace.id)message.value=course.requiresPackage
+      ?'Curso con reservas gratuitas. No se devolvieron automáticamente créditos de clases anteriores.'
+      :'Ahora cada nueva reserva de este curso requiere y consume un crédito de paquete.';
+  }catch(e){
+    if(workspaceId===props.workspace.id)
+      error.value=e instanceof Error?e.message:'No se pudo cambiar el acceso al curso.';
+  }finally{busy.value=false;}
+}
 async function addSession(){
   if(busy.value)return;
   const workspaceId=props.workspace.id;
@@ -247,7 +268,18 @@ const input='mt-2 w-full rounded-xl border border-outline bg-surface p-3 text-sm
     <p v-if="message" role="status" class="mb-5 flex items-center gap-2 rounded-xl bg-success-soft p-4 text-sm text-success"><CheckCircle2 :size="16"/>{{ message }}</p>
     <div v-if="status==='ready'" class="grid gap-5 lg:grid-cols-3">
       <UiCard><div class="flex items-center gap-2"><BookOpen :size="20" class="text-brand"/><h2 class="font-extrabold">Materias</h2></div><p class="mt-2 text-xs text-muted">Organiza las áreas que enseñas.</p><form class="mt-5 flex gap-2" @submit.prevent="addSubject"><input v-model="subjectName" required minlength="2" maxlength="75" placeholder="Ej. Matemáticas" class="w-full min-w-0 rounded-xl border border-outline px-3 text-sm"/><button :disabled="busy" class="grid size-11 shrink-0 place-items-center rounded-xl bg-brand text-white disabled:opacity-60" aria-label="Agregar materia"><Plus :size="20"/></button></form><div class="mt-5 space-y-2"><div v-for="subject in subjects" :key="subject.id" class="rounded-xl bg-brand-soft p-3 text-sm font-semibold text-ink">{{ subject.name }}</div><UiEmptyState v-if="!subjects.length" title="Sin materias" description="Agrega una materia para organizar tus cursos." /></div></UiCard>
-      <section class="rounded-2xl border border-outline bg-surface p-5"><div class="flex items-center gap-2"><GraduationCap :size="20" class="text-brand"/><h2 class="font-extrabold">Cursos</h2></div><p class="mt-2 text-xs text-muted">Puedes crear cursos para una materia o asesorías libres.</p><form class="mt-5 grid gap-3" @submit.prevent="addCourse"><input v-model="courseTitle" required minlength="3" maxlength="120" placeholder="Ej. Álgebra básica" :class="input"/><select v-model="courseSubjectId" :class="input"><option value="">Sin materia específica</option><option v-for="subject in subjects" :key="subject.id" :value="subject.id">{{ subject.name }}</option></select><button :disabled="busy" class="flex items-center justify-center gap-2 rounded-xl bg-brand p-3 text-xs font-bold text-white disabled:opacity-60"><Plus :size="16"/> Crear curso</button></form><div class="mt-5 space-y-2"><div v-for="course in courses" :key="course.id" class="rounded-xl border border-outline p-3"><p class="text-sm font-bold">{{ course.title }}</p><p class="mt-1 text-xs text-muted">{{ subjects.find(s=>s.id===course.subjectId)?.name || 'Asesoría libre' }}</p></div><p v-if="!courses.length" class="text-xs text-muted">Aún no tienes cursos.</p></div></section>
+      <section class="rounded-2xl border border-outline bg-surface p-5"><div class="flex items-center gap-2"><GraduationCap :size="20" class="text-brand"/><h2 class="font-extrabold">Cursos</h2></div><p class="mt-2 text-xs text-muted">Puedes crear cursos para una materia o asesorías libres.</p><form class="mt-5 grid gap-3" @submit.prevent="addCourse"><input v-model="courseTitle" required minlength="3" maxlength="120" placeholder="Ej. Álgebra básica" :class="input"/><select v-model="courseSubjectId" :class="input"><option value="">Sin materia específica</option><option v-for="subject in subjects" :key="subject.id" :value="subject.id">{{ subject.name }}</option></select><button :disabled="busy" class="flex items-center justify-center gap-2 rounded-xl bg-brand p-3 text-xs font-bold text-white disabled:opacity-60"><Plus :size="16"/> Crear curso</button></form><div class="mt-5 space-y-2"><div v-for="course in courses" :key="course.id" class="rounded-xl border border-outline p-3">
+  <p class="text-sm font-bold">{{course.title}}</p>
+  <p class="mt-1 text-xs text-muted">{{subjects.find(s=>s.id===course.subjectId)?.name || 'Asesoría libre'}}</p>
+  <p class="mt-2 text-xs font-semibold" :class="course.requiresPackage?'text-warning':'text-muted'">
+   {{course.requiresPackage?'Requiere un crédito por clase':'Reservas sin consumo obligatorio de créditos'}}
+  </p>
+  <button v-if="['OWNER','ADMIN'].includes(role)" type="button" :disabled="busy"
+   class="mt-2 rounded-lg border border-outline px-3 py-2 text-xs font-bold text-brand disabled:opacity-50"
+   @click="togglePackageRequirement(course)">
+   {{course.requiresPackage?'Permitir nuevas reservas gratuitas':'Exigir paquete para reservar'}}
+  </button>
+ </div><p v-if="!courses.length" class="text-xs text-muted">Aún no tienes cursos.</p></div></section>
       <section class="rounded-2xl border border-outline bg-surface p-5"><div class="flex items-center gap-2"><Users :size="20" class="text-brand"/><h2 class="font-extrabold">Equipo</h2></div><p class="mt-2 text-xs text-muted">Profesores asociados a este espacio.</p><div class="mt-5 space-y-3"><div v-for="teacher in teachers" :key="teacher.id" class="flex items-center gap-3 rounded-xl bg-surface-muted p-3"><span class="grid size-9 place-items-center rounded-full bg-brand-soft text-sm font-extrabold text-brand">{{ teacher.user.name[0] }}</span><div><b class="text-sm">{{ teacher.user.name }}</b><p class="text-xs text-muted">Profesor del espacio</p></div></div></div><p class="mt-5 text-xs text-muted">Invita a docentes o alumnos por correo. La persona debe entrar con ese mismo correo de Google.</p></section>
     </div>
     <section v-if="status==='ready' && ['OWNER','ADMIN'].includes(role)" class="mt-6 rounded-2xl border border-outline bg-surface p-6">

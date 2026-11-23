@@ -4,7 +4,7 @@ import {computed,onMounted,ref,watch} from 'vue';
 import {BellRing,CalendarCheck,CheckCircle2,Layers3,Ticket,Gift} from 'lucide-vue-next';
 import {UiAlert,UiButton,UiSwitch} from '@academy-os/ui';
 
-type ClassSession={id:string;title:string;startsAt:string;seriesId:string|null;seriesIndex:number|null};
+type ClassSession={id:string;title:string;startsAt:string;seriesId:string|null;seriesIndex:number|null;requiresPackage:boolean};
 type Booking={id:string;sessionId:string;status:'BOOKED'|'CANCELLED';bookedAt:string;
  session:{title:string;courseId:string|null;status:string;startsAt:string;changes:Array<{
   id:string;changedAt:string;reason:string;oldStartsAt:string;newStartsAt:string;
@@ -149,7 +149,10 @@ async function reserve(sessionId:string){
   await requestFor(workspaceId,'','POST',{sessionId});
   if(workspaceId!==props.workspaceId)return;
   await load();
-  if(workspaceId===props.workspaceId)notice.value='Tu cupo quedó reservado.';
+  await loadCredits();
+  if(workspaceId===props.workspaceId)notice.value=props.sessions.find(item=>item.id===sessionId)?.requiresPackage
+   ?'Reserva confirmada. Se descontó automáticamente un crédito de paquete.'
+   :'Tu cupo quedó reservado.';
  }catch(e){
   if(workspaceId===props.workspaceId)error.value=e instanceof Error?e.message:'No se pudo reservar tu cupo.';
  }finally{busy.value='';}
@@ -178,9 +181,12 @@ async function reserveSeries(seriesId:string){
   );
   if(workspaceId!==props.workspaceId)return;
   await load();
+  await loadCredits();
   if(workspaceId===props.workspaceId){
+   const requiresCredits=props.sessions.some(item=>item.seriesId===seriesId&&item.requiresPackage);
    notice.value=result.booked
-    ?'Reservaste '+result.booked+' clases de la serie. Se respetaron las reservas que ya tenías.'
+    ?'Reservaste '+result.booked+' clases de la serie.'+(requiresCredits
+      ?' Se descontó un crédito por cada nueva reserva.':' Se respetaron tus reservas existentes.')
     :'Ya tenías reservadas todas las clases futuras de esta serie.';
   }
  }catch(e){
@@ -284,7 +290,12 @@ onMounted(()=>{
  </div>
  <div class="mt-4 space-y-2">
   <div v-for="session in sessions.filter(s=>new Date(s.startsAt)>new Date())" :key="session.id" class="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-outline p-4">
-   <div><p class="text-sm font-bold">{{ session.title }}</p><p class="mt-1 text-xs text-muted">{{ new Date(session.startsAt).toLocaleString('es-CO') }}</p></div>
+   <div><p class="text-sm font-bold">{{session.title}}</p>
+    <p class="mt-1 text-xs text-muted">{{new Date(session.startsAt).toLocaleString('es-CO')}}</p>
+    <p v-if="session.requiresPackage" class="mt-1 text-xs font-semibold text-warning">
+      Se descontará 1 crédito al reservar
+    </p>
+   </div>
    <div v-if="existing(session.id)" class="flex flex-col items-end gap-2">
     <p v-if="redeemedBy(existing(session.id)!.id)" class="text-xs font-semibold text-success">
      <Ticket :size="14" class="mr-1 inline"/> Crédito de {{redeemedBy(existing(session.id)!.id)?.package.title}} aplicado
