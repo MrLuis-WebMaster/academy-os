@@ -73,6 +73,9 @@ async function save(){
       brandColor:brandColor.value,logoUrl:logoUrl.value,
     });
     if(workspaceId!==props.workspace.id)return;
+    if(/^#[0-9a-fA-F]{6}$/.test(brandColor.value)){
+      document.documentElement.style.setProperty('--ao-brand-override',brandColor.value);
+    }
     await refresh();
     if(workspaceId===props.workspace.id)message.value='Configuración del catálogo guardada.';
   }catch(e){

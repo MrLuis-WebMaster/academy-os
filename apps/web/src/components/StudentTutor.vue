@@ -65,11 +65,12 @@ async function ask(){
  const workspace=props.workspaceId;
  busy.value=true;error.value='';answer.value=null;notice.value='';
  try{
-  answer.value=await apiJson<TutorAnswer>(
+  const result=await apiJson<TutorAnswer>(
    workspacePath(workspace,'/profe-sos/ask'),'POST',
    {courseId:courseId.value,question:question.value,approveExternalProcessing:consent.value},
   );
   if(workspace!==props.workspaceId)return;
+  answer.value=result;
   consent.value=false;
  }catch(e){if(workspace===props.workspaceId)error.value=e instanceof Error?e.message:'No pudimos consultar a Profe SOS.';}
  finally{busy.value=false;}

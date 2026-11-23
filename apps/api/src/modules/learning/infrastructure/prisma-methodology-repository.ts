@@ -22,12 +22,14 @@ export class PrismaMethodologyRepository implements TeacherMethodologyRepository
   if(!manager&&(!roles.length||teacher.userId!==actorId))throw new MethodologyAccessDenied();
  }
  async read(workspaceId:string,actorId:string,profileId:string):Promise<TeachingMethodology>{
-  await prisma.$transaction(tx=>this.authorize(tx,workspaceId,actorId,profileId));
-  const method=await prisma.teachingMethodology.findFirst({
-   where:{workspaceId,teacherProfileId:profileId},
-   select:{specialty:true,style:true,language:true,guidance:true,sosEnabled:true},
+  return prisma.$transaction(async tx=>{
+   await this.authorize(tx,workspaceId,actorId,profileId);
+   const method=await tx.teachingMethodology.findFirst({
+    where:{workspaceId,teacherProfileId:profileId},
+    select:{specialty:true,style:true,language:true,guidance:true,sosEnabled:true},
+   });
+   return method?parseTeachingMethodology(method):{...defaultTeachingMethodology};
   });
-  return method?parseTeachingMethodology(method):{...defaultTeachingMethodology};
  }
  async save(workspaceId:string,actorId:string,profileId:string,value:TeachingMethodology){
   return prisma.$transaction(async tx=>{

@@ -107,7 +107,7 @@ onMounted(()=>{
   <template v-else-if="state==='ready' || demo">
     <div class="min-h-screen">
       <div class="flex flex-wrap items-center justify-between gap-3 border-b border-outline bg-surface px-4 py-2 text-xs md:px-8">
-        <div class="flex flex-wrap items-center gap-2"><span class="font-extrabold text-brand">AcademyOS</span><span v-if="demo" class="rounded-full bg-amber-100 px-2 py-1 text-amber-800">Vista de demostración · sin datos reales</span><span v-else class="rounded-full bg-emerald-100 px-2 py-1 text-success">Sesión iniciada · {{ selected?.name }}</span></div>
+        <div class="flex flex-wrap items-center gap-2"><span class="max-w-40 truncate font-extrabold text-brand">{{!demo&&selected?selected.name:'AcademyOS'}}</span><span v-if="!demo&&selected" class="text-[10px] text-muted">con AcademyOS</span><span v-if="demo" class="rounded-full bg-amber-100 px-2 py-1 text-amber-800">Vista de demostración · sin datos reales</span><span v-else class="rounded-full bg-emerald-100 px-2 py-1 text-success">Sesión iniciada · {{ selected?.name }}</span></div>
         <div class="flex items-center gap-2">
           <NotificationCenter v-if="!demo && selected" :workspace-id="selected.id" />
           <a v-if="!demo && selected && currentRole!=='GUARDIAN'"
