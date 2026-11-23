@@ -110,6 +110,7 @@ model User {
   sosReferralsAsTeacher SosReferral[] @relation("SosReferralReviewer")
   studentPackageEntitlements ClassPackageEntitlement[] @relation("PackageStudent")
   issuedPackageEntitlements ClassPackageEntitlement[] @relation("PackageIssuer")
+  createdLearningAssets LearningAsset[]
   connections ExternalConnection[]
 }
 
@@ -292,6 +293,7 @@ model ClassReflection {
   approvedAt DateTime?
   session    ClassSession  @relation(fields: [sessionId], references: [id], onDelete: Cascade)
   activities Activity[]
+  learningAssets LearningAsset[]
 }
 
 model Activity {
@@ -820,4 +822,24 @@ model ClassPackageRedemption {
  entitlement ClassPackageEntitlement @relation(fields:[entitlementId],references:[id],onDelete:Cascade)
  booking ClassBooking @relation(fields:[bookingId],references:[id],onDelete:Cascade)
  @@index([entitlementId,refundedAt])
+}
+
+enum LearningAssetKind {
+ FLASHCARDS
+ MICROLESSON
+}
+
+model LearningAsset {
+ id String @id @default(cuid())
+ reflectionId String
+ createdByUserId String
+ kind LearningAssetKind
+ title String
+ content Json
+ publishedAt DateTime?
+ createdAt DateTime @default(now())
+ updatedAt DateTime @updatedAt
+ reflection ClassReflection @relation(fields:[reflectionId],references:[id],onDelete:Cascade)
+ author User @relation(fields:[createdByUserId],references:[id])
+ @@index([reflectionId,publishedAt])
 }
