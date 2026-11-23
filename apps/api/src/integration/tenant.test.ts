@@ -9,6 +9,9 @@ import {CourseUseCases} from '../modules/academics/application/course-use-cases.
 import {PrismaCourseRepository} from '../modules/academics/infrastructure/prisma-course-repository.js';
 import {PrismaMembershipAdapter} from '../modules/academics/infrastructure/prisma-subject-repository.js';
 import {BookingActionsController} from '../modules/scheduling/presentation/booking-actions.controller.js';
+import {StudentBookingsController} from '../modules/scheduling/presentation/student-bookings.controller.js';
+import {StudentBookingHistoryUseCase} from '../modules/scheduling/application/student-booking-history.js';
+import {PrismaStudentBookingHistory} from '../modules/scheduling/infrastructure/prisma-student-booking-history.js';
 import {BookingUseCases} from '../modules/scheduling/application/booking-use-cases.js';
 import {PrismaBookingRepository} from '../modules/scheduling/infrastructure/prisma-booking-repository.js';
 import {notifyBookedStudents} from '../modules/notifications/infrastructure/session-notice-publisher.js';
@@ -159,6 +162,15 @@ test('PostgreSQL multi-tenant guards and booking capacity',async()=>{
     assert.equal((await notices.list(request(student1.id),b.id)).items.some(n=>n.kind==='COURSE_ENROLLED'),false);
 
 
+
+    const myBookings=new StudentBookingsController(
+      new StudentBookingHistoryUseCase(new PrismaStudentBookingHistory(),new PrismaMembershipAdapter()),
+    );
+    assert.equal((await myBookings.mine(request(recipient.userId),b.id)).length,1);
+    assert.equal((await myBookings.mine(request(notBooked),b.id)).length,0);
+    assert.equal((await myBookings.mine(request(student1.id),a.id)).length,0);
+    await assert.rejects(()=>myBookings.mine(request(owner.id),a.id),ForbiddenException);
+    await assert.rejects(()=>myBookings.mine(request(owner.id),b.id),ForbiddenException);
 
     await assert.rejects(()=>bookingActions.reserve(request(owner.id),b.id,{sessionId:session.id}),ForbiddenException);
 
