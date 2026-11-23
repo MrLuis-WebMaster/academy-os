@@ -1,6 +1,6 @@
 # AcademyOS — Paquetes de clases y créditos manuales
 
-El módulo `Commerce / Class Packages` permite que el personal de la academia configure un catálogo de **créditos de clases**. No equivale a un checkout, una orden procesada, una factura ni una conciliación de ingresos. La propiedad `priceCOP` es **informativa**, y el administrador debe comprobar cualquier pago fuera de AcademyOS antes de otorgar créditos. La plataforma aún permite reservar clases sin paquete; los créditos se aplican a reservas existentes, no constituyen una restricción de acceso a clases de pago.
+El módulo `Commerce / Class Packages` permite que el personal de la academia configure un catálogo de **créditos de clases**. No equivale a un checkout, una orden procesada, una factura ni una conciliación de ingresos. La propiedad `priceCOP` es **informativa**, y el administrador debe comprobar cualquier pago fuera de AcademyOS antes de otorgar créditos. La plataforma mantiene los cursos existentes gratuitos por defecto. En un curso configurado explícitamente como «requiere paquete», cada nueva reserva **debe consumir un crédito válido dentro de la misma transacción**; si no hay saldo, la reserva no se crea. Los créditos también pueden aplicarse manualmente a reservas de cursos gratuitos. Esta protección cubre reservas, no el checkout ni necesariamente el acceso a todos los materiales.
 
 ## Gestión del administrador
 
@@ -34,6 +34,15 @@ El módulo `Commerce / Class Packages` permite que el personal de la academia co
 
 La operación es transaccional y `requestId` (UUID) evita emisiones duplicadas por reintentos. Los créditos, la vigencia calculada desde la emisión y el precio de referencia son persistentes. El alumno recibe una notificación **dentro de AcademyOS**, no un correo.
 
+## Política opcional de clases con crédito obligatorio
+`PATCH /api/v1/workspaces/:workspaceId/courses/:courseId/package-policy` con `{"requiresPackage":true}` o `false`. Solo OWNER/ADMIN de la academia. Un curso se crea con `requiresPackage=false` y la política se expone en el listado de cursos y el aula del alumno.
+
+Al activar la política, una comprobación bloqueada por curso verifica que no haya reservas futuras confirmadas sin consumo vigente. Si existe alguna, la activación es rechazada y se deben regularizar/cancelar esas reservas. El mismo bloqueo de política es adquirido por la reserva individual y por la reserva semanal para impedir activaciones en carrera con nuevas reservas.
+
+Al reservar una clase de un curso con paquete obligatorio, se verifica nuevamente la matrícula, la membresía estudiantil y las restricciones de cada bono. La aplicación automática consume un crédito bajo un bloqueo de asignación compartido con el endpoint de canje manual. Las asignaciones se examinan por vencimiento; las de curso restringido no se aceptan para otros cursos. En una serie semanal, **todos** los créditos necesarios se consumen o **ninguna** reserva se confirma. Las cancelaciones siguen devolviendo los créditos transaccionalmente.
+
+Desactivar el requisito permite nuevas reservas gratuitas; no implica devolver automáticamente créditos ya gastados por clases existentes ni devolver dinero. Cualquier cambio de modelo financiero deberá revisarse con los alumnos.
+
 ## Uso del alumno
 
 `GET /api/v1/workspaces/:workspaceId/packages/mine` lista únicamente las asignaciones del alumno autenticado, sus créditos totales, usados, no consumidos (\`remaining\`), actualmente aplicables (\`available\`), vencimiento y `activeBookingIds\`. Los créditos vencidos pueden seguir sin consumir, pero su cantidad aplicable es cero. No muestra transacciones ni asignaciones de otros alumnos.
@@ -49,7 +58,7 @@ Solo puede aplicarse a una **reserva propia, confirmada y futura**, con matrícu
 Cuando el alumno cancela una reserva individual, cancela una serie futura, o el docente cancela una clase individual o una serie futura, los créditos se **devuelven dentro de la misma transacción** que cambia el estado. El sistema no reembolsa dinero: únicamente libera un crédito de clase. Cancelar una serie del profesor no altera reservas históricas.
 
 ## Pendientes
-- Bloquear reservas de clases que requieren pago hasta confirmar un derecho de acceso real.
+- [Resuelto para reservas] Exigir un crédito asignado manualmente cuando el curso requiere paquete. **Pendiente**: ligarlo a confirmación bancaria/pasarela real, matrícula pagada y contenido premium protegido.
 - Integración de pasarela (orden, webhook firmado, confirmación, conciliación), comprobantes legales y reembolsos de dinero.
 - Adquisición autoservicio y renovaciones recurrentes de membresías.
 - Política para alumnos que dejan de estar matriculados, modificaciones posteriores de planes y revocación de créditos con historial contable.

@@ -157,3 +157,13 @@ Cumplir [RELEASE_CHECKLIST.md](RELEASE_CHECKLIST.md). Nunca considerar CI verde 
 - [~] Generador IA opcional de ambos tipos con cuota por academia, minimización best-effort, consentimiento por acción y aprobación docente. Pendiente probar proveedor externo real.
 - [x] Pruebas de esquema y autorización, y pruebas PostgreSQL sobre aislamiento y publicación.
 - [ ] Audios, transcripción, repetición espaciada persistente, actividades especializadas y multimedia accesible.
+
+## Hito 22 — Política de reserva de cursos con créditos (2026-11-23)
+- [x] Cursos gratuitos por defecto; activación explícita de requisito de crédito por curso solo por OWNER/ADMIN.
+- [x] Bloqueo de política compartido con las reservas para impedir activación mientras existan nuevas reservas sin crédito.
+- [x] Cada nueva reserva individual o semanal exige y consume automáticamente un crédito válido de un paquete manual para cursos restringidos.
+- [x] Reservas semanales completamente atómicas: sin saldo suficiente no se confirma ninguna clase de la serie.
+- [x] Crédito asignado y cupo confirmados en una sola transacción; no se admiten reintentos duplicados ni créditos de otro curso.
+- [x] Devoluciones automáticas y permiso/matrícula revalidados. Interfaz de administrador y avisos de consumo para alumnos.
+- [x] Suite PostgreSQL para política, carreras por último crédito y series de pago.
+- [ ] Checkout validado, conciliación monetaria, suscripción recurrente y protección de materiales de cursos premium.

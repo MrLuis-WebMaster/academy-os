@@ -74,3 +74,9 @@ Las rutas de creación, listado y cancelación de sesiones están aisladas por a
 - Los materiales de estudio exigen una reflexión de clase existente y docentes autorizados. Borradores no llegan a alumnos. El recurso y la reflexión deben estar publicados para la lectura del estudiante matriculado.
 - El contenido del profesor no puede invalidar límites de datos sensibles ni convertirse en instrucciones de seguridad del proveedor IA. El texto se minimiza best-effort (correos/teléfonos), pero los docentes deben retirar datos identificables manualmente.
 - Los controles de tarjetas son autoevaluaciones temporales y nunca modifican competencias humanas. Pendientes: política de retención, límites de menores, QA E2E y certificación externa de seguridad.
+
+## Restricción de reservas por créditos (2026-11-23)
+- El campo `Course.requiresPackage` es `false` por defecto y solo puede activarse o desactivarse con permiso OWNER/ADMIN revalidado dentro de la transacción.
+- Reserva individual y de serie toman advisory locks de sesión(es), después política de curso, luego asignaciones de bono. El cambio de política toma el mismo lock de curso. No se crea una reserva de pago sin débito de un crédito en la misma transacción.
+- Los docentes no pueden regalar créditos ni modificar la política, y un alumno no puede usar créditos del alumno o academia ajenos.
+- La etiqueta «requiere paquete» no implica pago financiero validado; todavía no hay protección equivalente del material premium o acceso al curso por pago confirmado.

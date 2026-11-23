@@ -9,7 +9,7 @@ El profesor entra con Google y crea su academia desde un asistente corto. Elige 
 
 | Módulo | Qué cubre | Estado del código |
 |---|---|---|
-| **1. Gestión tradicional** | Onboarding, equipo, alumnos, cursos, agenda, asistencia, materiales, prácticas, reservas, notificaciones, cobros y facturación | Operación básica, registro manual de cobros y bonos de clase con canje y devolución; no checkout ni facturación real |
+| **1. Gestión tradicional** | Onboarding, equipo, alumnos, cursos, agenda, asistencia, materiales, prácticas, reservas, notificaciones, cobros y facturación | Operación básica, registro manual de cobros y bonos con canje/devolución y reservas con créditos obligatorios opcionales; no checkout ni facturación real |
 | **2. Clase Viva** | Observaciones del docente, borradores de ejercicios con IA, aprobación humana, actividades publicadas | Notas, prácticas, flashcards y microlecciones con borradores/aprobación; generación IA opcional requiere proveedor externo y faltan audio/transcripción |
 | **3. Pasaporte** | Competencias respaldadas por evidencias de profesores, objetivos, logros y próximos pasos | Progreso, metas, evidencia humana y recomendaciones deterministas; faltan mapas visuales completos y rúbricas avanzadas |
 | **4. Profe Studio** | Marca propia, catálogo de cursos/servicios, identidad PWA y tienda | Marca, catálogo, ofertas y PWA con manifiesto propio; faltan checkout, suscripciones recurrentes y DNS |

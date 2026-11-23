@@ -146,6 +146,14 @@
 - Las tarjetas de repaso son interactivas, pero su autoclasificación no se convierte automáticamente en evaluación humana del Pasaporte.
 - Se añadió adaptador IA opcional para proponer ambos recursos bajo consentimiento explícito, cuota compartida y publicación exclusivamente humana; falta validar proveedor real.
 
+## Hito 22 — Reservas con créditos obligatorios por curso (2026-11-23)
+
+- Cada curso puede ser gratuito o exigir créditos de clase, por decisión de un OWNER/ADMIN.
+- Reservas individuales y series semanales de cursos restringidos consumen créditos de paquetes manuales **durante la misma transacción** que la reserva, con control concurrente y sin reservas parciales.
+- Activar el requisito de créditos se bloquea si hay reservas confirmadas futuras sin crédito. La política es gratuita por defecto y no cambia reservas históricas.
+- Los alumnos ven la condición y los créditos se descuentan automáticamente; las cancelaciones devuelven los créditos.
+- La condición no significa que exista checkout, verificación de pago, conciliación financiera, restricción de recursos premium ni suscripciones automáticas reales.
+
 ## Límites no resueltos
 - OAuth Google en entorno real, test del callback, cookies, sesiones y logout end-to-end.
 - Meet/Zoom/Drive, correo transaccional, sync calendario, app almacenamiento no conectado.

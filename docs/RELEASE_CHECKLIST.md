@@ -69,3 +69,10 @@ No anunciar el sistema como terminado ni aceptar datos sensibles de clientes sin
 - [ ] Confirmación financiera real de pagos, revocaciones auditadas, políticas de reembolso monetario y consumos obligatorios en clases de pago.
 - [ ] Validación E2E de todos los caminos de consumo y devolución, incluidos feriados, reprogramaciones y cambios de membresía.
 - [ ] Evaluación de tarjetas IA con contenido docente real y consentimiento, seguridad de audio y recursos multimedia antes de piloto.
+
+## Reserva de cursos restringidos
+- [x] Cursos existentes gratuitos por defecto y política configurable solo por propietario/administrador.
+- [x] Verificación de crédito en backend bajo locks de reserva, curso y asignación; reservas y consumos en la misma transacción.
+- [x] Series de clases de pago completamente atómicas, incluidas reprogramaciones y cancelaciones existentes.
+- [x] Activación prohibida si existen reservas futuras no pagadas con créditos.
+- [ ] Pago real, conciliación, anulaciones financieras, acceso pagado a materiales/cursos y pruebas E2E con comprador y administrador reales.
