@@ -87,10 +87,12 @@ model User {
   setupRequests SetupRequest[]
   sentInvitations WorkspaceInvitation[] @relation("InvitedBy")
   bookings ClassBooking[]
+  classReminderPreferences ClassReminderPreference[]
   studentReceipts PaymentReceipt[] @relation("StudentPayment")
   recordedReceipts PaymentReceipt[] @relation("RecordedPayment")
   sessionChanges SessionChange[]
   notifications Notification[]
+  classReminderPreferences ClassReminderPreference[]
   aiGenerations AiGeneration[]
   memberships WorkspaceMember[]
   teaching    TeacherProfile[]
@@ -570,4 +572,17 @@ model TeachingRoom {
   sessions ClassSession[]
   @@unique([campusId,name])
   @@index([workspaceId,active])
+}
+
+model ClassReminderPreference {
+  id String @id @default(cuid())
+  workspaceId String
+  userId String
+  remind24h Boolean @default(false)
+  remind1h Boolean @default(false)
+  updatedAt DateTime @updatedAt
+  workspace Workspace @relation(fields:[workspaceId],references:[id],onDelete:Cascade)
+  user User @relation(fields:[userId],references:[id],onDelete:Cascade)
+  @@unique([workspaceId,userId])
+  @@index([workspaceId,userId])
 }
