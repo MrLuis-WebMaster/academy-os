@@ -1,4 +1,7 @@
 import {Module} from '@nestjs/common';
+import {HolidayPolicyController} from './presentation/holiday-policy.controller.js';
+import {HolidayPolicyUseCases} from './application/holiday-policy-use-cases.js';
+import {PrismaHolidayPolicyRepository} from './infrastructure/prisma-holiday-policy-repository.js';
 import {SeriesEditController} from './presentation/series-edit.controller.js';
 import {EditFutureSeriesUseCase} from './application/edit-future-series.js';
 import {PrismaSeriesEditRepository} from './infrastructure/prisma-series-edit-repository.js';
@@ -32,8 +35,11 @@ import {CancelFutureSeriesUseCase} from './application/cancel-future-series-use-
 import {PrismaWeeklySeriesCancellationRepository} from './infrastructure/prisma-series-cancellation-repository.js';
 
 @Module({
-  controllers:[SeriesEditController,SeriesBookingsController,StudentBookingsController,LessonsController,RescheduleController,BookingActionsController,AvailabilityController,TeacherTimeOffController,WeeklySeriesController,SeriesCancellationController],
+  controllers:[HolidayPolicyController,SeriesEditController,SeriesBookingsController,StudentBookingsController,LessonsController,RescheduleController,BookingActionsController,AvailabilityController,TeacherTimeOffController,WeeklySeriesController,SeriesCancellationController],
   providers:[{
+    provide:HolidayPolicyUseCases,
+    useFactory:()=>new HolidayPolicyUseCases(new PrismaHolidayPolicyRepository(),new PrismaMembershipAdapter()),
+  },{
     provide:EditFutureSeriesUseCase,
     useFactory:()=>new EditFutureSeriesUseCase(new PrismaSeriesEditRepository(),new PrismaMembershipAdapter()),
   },{
