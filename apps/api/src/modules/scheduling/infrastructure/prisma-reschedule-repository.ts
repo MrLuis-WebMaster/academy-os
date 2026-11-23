@@ -19,12 +19,27 @@ export class PrismaSessionRescheduleRepository implements SessionRescheduleRepos
       await tx.$queryRaw`SELECT pg_advisory_xact_lock(hashtext(${'academy-os:booking:'+sessionId}))::text AS lock_acquired`;
       const session=await tx.classSession.findFirst({
         where:{id:sessionId,workspaceId,status:'CONFIRMED'},
-        select:{id:true,title:true,teacherProfileId:true,startsAt:true,endsAt:true,status:true},
+        select:{id:true,title:true,teacherProfileId:true,roomId:true,startsAt:true,endsAt:true,status:true},
       });
       if(!session)throw new SessionRescheduleMissing();
       if(session.startsAt<=new Date())throw new SessionRescheduleConflict('A class that already started cannot be moved');
       if(!session.teacherProfileId)throw new SessionRescheduleConflict('Assign a teacher before rescheduling');
       await tx.$queryRaw`SELECT pg_advisory_xact_lock(hashtext(${'academy-os:teacher:'+session.teacherProfileId}))::text AS lock_acquired`;
+      if(session.roomId){
+        await tx.$queryRaw`SELECT pg_advisory_xact_lock(hashtext(${'academy-os:room:'+session.roomId}))::text AS lock_acquired`;
+        const room=await tx.teachingRoom.findFirst({
+          where:{workspaceId,id:session.roomId,active:true,campus:{workspaceId,active:true}},
+          select:{capacity:true},
+        });
+        if(!room)throw new SessionRescheduleConflict('Physical room is unavailable');
+        const conflict=await tx.classSession.findFirst({
+          where:{
+            workspaceId,roomId:session.roomId,id:{not:sessionId},status:'CONFIRMED',
+            startsAt:{lt:plan.endsAt},endsAt:{gt:plan.startsAt},
+          },select:{id:true},
+        });
+        if(conflict)throw new SessionRescheduleConflict('Physical room is already booked at the requested time');
+      }
       const academy=await tx.workspace.findUnique({where:{id:workspaceId},select:{timezone:true,holidayCountry:true,avoidPublicHolidays:true}});
       const regularHours=await tx.weeklyAvailability.findMany({
         where:{workspaceId,teacherProfileId:session.teacherProfileId},

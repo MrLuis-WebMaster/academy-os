@@ -56,6 +56,24 @@ export class PrismaLessonRepository implements LessonRepository {
       if(holiday)throw new LessonConflict('Class falls on a national holiday: '+holiday.name+' ('+holiday.date+')');
 
 
+      if(plan.roomId){
+        await tx.$queryRaw`SELECT pg_advisory_xact_lock(hashtext(${'academy-os:room:'+plan.roomId}))::text AS lock_acquired`;
+        const room=await tx.teachingRoom.findFirst({
+          where:{workspaceId,id:plan.roomId,active:true,campus:{workspaceId,active:true}},
+          select:{capacity:true},
+        });
+        if(!room)throw new LessonReferenceInvalid('Physical room is unavailable in this academy');
+        if(plan.capacity>room.capacity){
+          throw new LessonConflict('Class capacity exceeds the physical room capacity');
+        }
+        const occupiedRoom=await tx.classSession.findFirst({
+          where:{
+            workspaceId,roomId:plan.roomId,status:'CONFIRMED',
+            startsAt:{lt:plan.endsAt},endsAt:{gt:plan.startsAt},
+          },select:{id:true},
+        });
+        if(occupiedRoom)throw new LessonConflict('Physical room is already booked in this time slot');
+      }
       const [regularHours,blocked,conflict]=await Promise.all([
         tx.weeklyAvailability.findMany({
           where:{workspaceId,teacherProfileId:teacher.id},
@@ -85,6 +103,7 @@ export class PrismaLessonRepository implements LessonRepository {
           title:plan.title,mode:plan.mode,status:'CONFIRMED',
           startsAt:plan.startsAt,endsAt:plan.endsAt,timezone:academy.timezone,
           capacity:plan.capacity,location:plan.location,meetingUrl:plan.meetingUrl,
+          roomId:plan.roomId??null,
           provider:plan.meetingUrl?'CUSTOM':undefined,
         },
         select:{id:true,title:true,mode:true,startsAt:true,endsAt:true,status:true},

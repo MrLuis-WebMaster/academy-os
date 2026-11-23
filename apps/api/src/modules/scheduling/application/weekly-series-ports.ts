@@ -2,7 +2,7 @@ import type {LessonWindow} from '../domain/weekly-series.js';
 
 export type SeriesMode='ONLINE'|'ONSITE'|'HYBRID';
 export interface WeeklySeriesTemplate extends LessonWindow {
- title:string;teacherProfileId:string;courseId?:string;
+ title:string;teacherProfileId:string;courseId?:string;roomId?:string;
  mode:SeriesMode;capacity:number;location?:string;meetingUrl?:string;repeatWeeks:number;
 }
 export interface WeeklySeriesResult {

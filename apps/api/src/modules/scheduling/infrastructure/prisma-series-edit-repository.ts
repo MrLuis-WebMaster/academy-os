@@ -40,7 +40,7 @@ export class PrismaSeriesEditRepository implements SeriesEditRepository {
           where:{workspaceId,seriesId,status:'CONFIRMED',startsAt:{gt:new Date()}},
           select:{
             id:true,title:true,teacherProfileId:true,courseId:true,startsAt:true,endsAt:true,
-            seriesIndex:true,mode:true,capacity:true,location:true,meetingUrl:true,
+            seriesIndex:true,mode:true,capacity:true,location:true,meetingUrl:true,roomId:true,
           },
           orderBy:{id:'asc'},
         }),
@@ -75,6 +75,7 @@ export class PrismaSeriesEditRepository implements SeriesEditRepository {
           capacity:input.capacity??session.capacity,
           teacherProfileId:series.teacherProfileId,
           courseId:session.courseId??undefined,
+          roomId:input.roomId===undefined?session.roomId??undefined:input.roomId??undefined,
           location:input.location===undefined?session.location??undefined:input.location??undefined,
           meetingUrl:input.meetingUrl===undefined?session.meetingUrl??undefined:input.meetingUrl??undefined,
           startsAt:window.startsAt.toISOString(),
@@ -82,6 +83,41 @@ export class PrismaSeriesEditRepository implements SeriesEditRepository {
         });
         return {session,window,updated};
       });
+
+      // All physical room locks follow the teacher lock in a stable order.
+      const roomIds=[...new Set(next.map(item=>item.updated.roomId).filter(
+        (id):id is string=>Boolean(id),
+      ))].sort();
+      for(const roomId of roomIds){
+        await tx.$queryRaw`SELECT pg_advisory_xact_lock(hashtext(${'academy-os:room:'+roomId}))::text AS lock_acquired`;
+      }
+      for(const row of next){
+        const roomId=row.updated.roomId;
+        if(!roomId)continue;
+        const room=await tx.teachingRoom.findFirst({
+          where:{workspaceId,id:roomId,active:true,campus:{workspaceId,active:true}},
+          select:{capacity:true},
+        });
+        if(!room)throw new SeriesEditConflict('Selected physical room is not active in this academy');
+        if(row.updated.capacity>room.capacity){
+          throw new SeriesEditConflict('Class size exceeds physical room capacity');
+        }
+        const roomConflict=await tx.classSession.findFirst({
+          where:{
+            workspaceId,roomId,status:'CONFIRMED',
+            id:{notIn:sessions.map(session=>session.id)},
+            startsAt:{lt:row.window.endsAt},endsAt:{gt:row.window.startsAt},
+          },select:{id:true},
+        });
+        if(roomConflict)throw new SeriesEditConflict('Physical room is occupied during another class');
+      }
+      // A series can contain classes at different times; do not assign the same
+      // room to overlapping edited occurrences, even if the teacher data was malformed.
+      const reserved=next.filter(row=>Boolean(row.updated.roomId));
+      if(reserved.some((first,i)=>reserved.some((second,j)=>
+        i!==j&&first.updated.roomId===second.updated.roomId
+        &&intervalsOverlap(first.window,second.window),
+      )))throw new SeriesEditConflict('Two edited occurrences overlap in the same room');
 
       // Reject reducing capacity below confirmed seats even if no time changes.
       for(const row of next){
@@ -147,6 +183,7 @@ export class PrismaSeriesEditRepository implements SeriesEditRepository {
           capacity:row.updated.capacity,
           startsAt:row.window.startsAt,endsAt:row.window.endsAt,
           provider:row.updated.meetingUrl?'CUSTOM':null,
+          roomId:row.updated.roomId??null,
         };
         const affected=await tx.classSession.updateMany({
           where:{

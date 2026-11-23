@@ -5,6 +5,7 @@ export const bookingInput=z.object({
   title:z.string().trim().min(3).max(120),
   courseId:z.string().optional(),
   teacherProfileId:z.string().min(1).max(128),
+  roomId:z.string().trim().min(1).max(128).optional(),
   mode:z.enum(['ONLINE','ONSITE','HYBRID']),
   startsAt:z.iso.datetime({offset:true}),
   endsAt:z.iso.datetime({offset:true}),
@@ -17,6 +18,9 @@ export const bookingInput=z.object({
   if(ends-starts>12*60*60*1000)ctx.addIssue({code:'custom',path:['endsAt'],message:'A session cannot exceed 12 hours'});
   if(input.mode!=='ONLINE'&&(!input.location||input.location.length<5)){
     ctx.addIssue({code:'custom',path:['location'],message:'Location required for onsite and hybrid sessions'});
+  }
+  if(input.mode==='ONLINE'&&input.roomId){
+    ctx.addIssue({code:'custom',path:['roomId'],message:'Online-only classes cannot reserve a physical room'});
   }
   if(input.mode!=='ONSITE'&&!input.meetingUrl){
     ctx.addIssue({code:'custom',path:['meetingUrl'],message:'Provide a meeting link until Google/Zoom OAuth integrations are connected'});

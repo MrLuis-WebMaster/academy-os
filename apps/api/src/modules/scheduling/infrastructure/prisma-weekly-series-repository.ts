@@ -27,6 +27,15 @@ export class PrismaWeeklySeriesRepository implements WeeklySeriesRepository {
     const course=await tx.course.findFirst({where:{id:draft.courseId,workspaceId},select:{id:true}});
     if(!course)throw new WeeklySeriesReferenceInvalid('Course is outside this academy');
    }
+   if(draft.roomId){
+    await tx.$queryRaw`SELECT pg_advisory_xact_lock(hashtext(${'academy-os:room:'+draft.roomId}))::text AS lock_acquired`;
+    const room=await tx.teachingRoom.findFirst({
+     where:{workspaceId,id:draft.roomId,active:true,campus:{workspaceId,active:true}},
+     select:{capacity:true},
+    });
+    if(!room)throw new WeeklySeriesReferenceInvalid('Physical room is not available in this academy');
+    if(draft.capacity>room.capacity)throw new WeeklySeriesConflict('Class size exceeds physical room capacity');
+   }
    const first=windows[0],last=windows[windows.length-1];
    if(!first||!last)throw new WeeklySeriesReferenceInvalid('No lesson occurrences were generated');
    const policy=await tx.workspace.findUnique({
@@ -34,7 +43,7 @@ export class PrismaWeeklySeriesRepository implements WeeklySeriesRepository {
    });
    if(!policy)throw new WeeklySeriesReferenceInvalid('Academy no longer exists');
 
-   const [regularHours,timeOff,existing]=await Promise.all([
+   const [regularHours,timeOff,existing,roomBookings]=await Promise.all([
     tx.weeklyAvailability.findMany({
      where:{workspaceId,teacherProfileId:teacher.id},
      select:{dayOfWeek:true,startMinute:true,endMinute:true},
@@ -48,6 +57,13 @@ export class PrismaWeeklySeriesRepository implements WeeklySeriesRepository {
       startsAt:{lt:last.endsAt},endsAt:{gt:first.startsAt}},
      select:{startsAt:true,endsAt:true},
     }),
+    draft.roomId?tx.classSession.findMany({
+     where:{
+      workspaceId,roomId:draft.roomId,status:'CONFIRMED',
+      startsAt:{lt:last.endsAt},endsAt:{gt:first.startsAt},
+     },
+     select:{startsAt:true,endsAt:true},
+    }):Promise.resolve([] as Array<{startsAt:Date;endsAt:Date}>),
    ]);
    for(const [i,window] of windows.entries()){
     const holiday=holidayConflict(policy,window.startsAt,window.endsAt);
@@ -56,6 +72,8 @@ export class PrismaWeeklySeriesRepository implements WeeklySeriesRepository {
      throw new WeeklySeriesConflict('Occurrence '+(i+1)+' is outside regular teaching hours');
     if(timeOff.some(x=>intervalsOverlap(x,window)))
      throw new WeeklySeriesConflict('Occurrence '+(i+1)+' overlaps a scheduled absence');
+    if(roomBookings.some(x=>intervalsOverlap(x,window)))
+     throw new WeeklySeriesConflict('Occurrence '+(i+1)+' conflicts with a physical room reservation');
     if(existing.some(x=>intervalsOverlap(x,window)))
      throw new WeeklySeriesConflict('Occurrence '+(i+1)+' overlaps another confirmed class');
    }
@@ -75,6 +93,7 @@ export class PrismaWeeklySeriesRepository implements WeeklySeriesRepository {
       title:draft.title,mode:draft.mode,status:'CONFIRMED',
       startsAt:window.startsAt,endsAt:window.endsAt,timezone:timeZone,
       capacity:draft.capacity,location:draft.location,meetingUrl:draft.meetingUrl,
+      roomId:draft.roomId??null,
       provider:draft.meetingUrl?'CUSTOM':undefined,
       seriesId:series.id,seriesIndex:index,
      },

@@ -6,6 +6,7 @@ const schema=z.object({
   reason:z.string().trim().min(5).max(300),
   title:z.string().trim().min(3).max(120).optional(),
   capacity:z.number().int().min(1).max(500).optional(),
+  roomId:z.string().trim().min(1).max(128).nullable().optional(),
   mode:z.enum(['ONLINE','ONSITE','HYBRID']).optional(),
   meetingUrl:z.union([z.url().max(2048).refine(value=>value.startsWith('https://')),z.null()]).optional(),
   location:z.string().trim().max(300).nullable().optional(),
