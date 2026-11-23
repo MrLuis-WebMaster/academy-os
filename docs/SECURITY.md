@@ -44,3 +44,11 @@ Las rutas de creación, listado y cancelación de sesiones están aisladas por a
 - Solo el docente asignado o un administrador puede consultar registros de un curso y publicar evidencias. Los alumnos acceden únicamente a su progreso en los cursos donde mantienen matrícula.
 - Los recordatorios son voluntarios, nunca mensajes externos. Se revalida matrícula, reserva BOOKED y consentimiento opt-in antes de crear un aviso, bajo lock de reserva.
 - Faltan políticas de protección infantil, eliminación/retención de datos y auditoría de seguridad integral.
+
+## Acceso de acudientes (2026-11-23)
+
+- Tener rol GUARDIAN **no** habilita automáticamente acceso a ningún alumno: el manager debe crear y aprobar un vínculo específico.
+- La aprobación exige una declaración expresa y una nota de verificación manual sin cargar documentos sensibles. La app no verifica identidad legal ni parentesco por medios propios.
+- GUARDIAN solo consulta cursos, promedios de competencias humanos y estados de metas de alumnos enlazados y con matrícula activa. No recibe notas de evaluación, conversaciones, materiales, enlaces de clase ni datos financieros.
+- La revocación es inmediata en el control de lectura, puede iniciarla el manager, guardian o alumno, se audita y exige nueva aprobación para restaurar el acceso.
+- Uso con menores pendiente de verificación externa de parentesco, consentimiento exigible, privacidad, retención y revisión legal.

@@ -21,7 +21,7 @@
 - Activar y supervisar recordatorios internos en servidor; correo, push o WhatsApp con consentimientos independientes, outbox externo y reintentos.
 - OAuth de Calendar/Meet, Zoom y Drive, revocación, refresco y permisos separados del login.
 - Probar IA con proveedor real y política de minimización de datos; resúmenes IA pendientes.
-- Acudientes, suplencias, feriados de otros países y regionales, dominios/white-label, multimoneda y analítica avanzada.
+- Verificación legal y consentimiento de acudientes (el portal familiar y aprobación manual de vínculos ya existen en código), suplencias, feriados internacionales/regionales, dominios/white-label, multimoneda y analítica avanzada.
 
 ## Declaración de alcance
 CI verde valida código y pruebas automatizadas, no demuestra operación real de OAuth, pagos, emails o hosting. No anunciar AcademyOS como terminado hasta pasar el checklist de lanzamiento.

@@ -108,6 +108,13 @@
 - Metas por curso/alumno/tema con porcentaje objetivo y fecha opcional, estados ACTIVE/ACHIEVED/CANCELLED, motivo y eventos de auditoría.
 - Interfaces docente y alumno conectadas con estas rutas. Se requiere QA manual, supervisión de worker y revisión de privacidad antes de pilotaje.
 
+## Hito 16 — Vínculos familiares con autorización de academia (2026-11-23)
+
+- GUARDIAN está permitido en invitaciones, pero ser miembro GUARDIAN no concede acceso a ningún estudiante.
+- El vínculo se crea PENDING, se aprueba ACTIVE solo tras una declaración de verificación manual del manager y se puede revocar; los cambios se registran en GuardianLinkEvent.
+- El acceso familiar comprueba el vínculo vigente, la academia, la membresía del alumno y el rol GUARDIAN; la proyección muestra únicamente nombres de cursos, métricas agregadas de competencias y estados de metas.
+- Existen paneles de gestión y portal del acudiente. La validación legal de parentesco/identidad y el consentimiento de menores deben realizarse externamente y aún **no** están probados para producción.
+
 ## Límites no resueltos
 - OAuth Google en entorno real, test del callback, cookies, sesiones y logout end-to-end.
 - Meet/Zoom/Drive, correo transaccional, sync calendario, app almacenamiento no conectado.

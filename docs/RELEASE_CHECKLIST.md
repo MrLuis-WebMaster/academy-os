@@ -26,8 +26,8 @@
 - [ ] E2E real de Google OAuth, primera academia, alternar espacios, invitaciones, revocación.
 - [ ] Suite negativa IDOR/cross tenant en **todas** las rutas + conflictos concurrentes y sobrecupo.
 - [ ] Evaluar relaciones cross-tenant en DB además de validar cada controlador.
-- [ ] Consentimiento y control de representantes de menores, materiales privados, grabaciones y retención.
-- [ ] Pruebas de permisos OWNER/ADMIN/TEACHER/STUDENT/GUARDIAN.
+- [~] Vínculos GUARDIAN con aprobación y revocación codificados, pero faltan consentimiento legal, verificación de identidad, materiales/retención y políticas para menores.
+- [~] Pruebas automatizadas de roles OWNER/ADMIN/TEACHER/STUDENT/GUARDIAN, aprobaciones y revocaciones familiares; faltan E2E real y validación de identidad/representación.
 
 ## Servicios externos (no conectados)
 - [ ] Google Calendar/Meet OAuth con permisos separados del login.

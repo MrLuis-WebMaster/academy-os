@@ -41,7 +41,7 @@ Cada marca `[x]` indica funcionalidad codificada en el repo, **no un lanzamiento
 - [~] Preferencias opt-in por estudiante y academia, worker de recordatorios 24h/1h internos e idempotencia PostgreSQL. Falta activación en servidor, email/push/WhatsApp con consentimiento externo y monitoreo.
 
 ## Etapa 3 — academia y white-label avanzados
-- [ ] Roles de acudientes verificados, privacidad para menores y reportes familiares.
+- [~] Roles GUARDIAN, invitaciones, aprobación manual de vínculo y portal familiar de consulta restringida. Faltan verificación legal/identidad por proveedor, consentimiento de menores, retención, auditoría externa y validación E2E.
 - [~] Series semanales de clases, todas o ninguna, con validación DST y conflictos; cancelación masiva de futuras sesiones con avisos in-app, sin alterar clases anteriores. Edición masiva de futuras sesiones y reservas recurrentes de alumnos implementadas.
 - [~] Sedes y aulas con exclusión de horarios y capacidad; faltan docentes sustitutos y recursos complementarios.
 - [ ] Dominios personalizados, branding completo, multimoneda y planes comerciales.
@@ -108,3 +108,11 @@ Cumplir [RELEASE_CHECKLIST.md](RELEASE_CHECKLIST.md). Nunca considerar CI verde 
 - [x] Metas de aprendizaje por alumno/curso/tema, estados controlados y auditoría de transiciones.
 - [x] Acceso restringido por matrícula y docente asignado, paneles de docentes/alumnos y pruebas PostgreSQL.
 - [ ] Rubricas complejas, plazos automatizados, corrección de evidencia con registro de reversión, analítica institucional y QA de usuarios.
+
+## Hito 16 — Acceso familiar con aprobación explícita (2026-11-23)
+- [x] Invitaciones al rol GUARDIAN, sin permisos automáticos sobre alumnos.
+- [x] Vínculos específicos acudiente/estudiante por academia, primero PENDING y solo ACTIVE tras aprobación administrativa explícita.
+- [x] Revocación por administrador, acudiente o alumno; la reactivación requiere nueva aprobación y se registran transiciones.
+- [x] Portal familiar limitado a cursos, competencias evaluadas y estados de metas, sin links privados, mensajes ni notas docentes.
+- [x] Pruebas de autorización y aislamiento por academia en PostgreSQL.
+- [ ] Integrar verificación legal de identidad/representación, consentimientos parentales y políticas de privacidad/retención para menores.
