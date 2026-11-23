@@ -10,7 +10,7 @@ const props=defineProps<{
 }>();
 type Settings={
   id:string;name:string;slug:string;description:string|null;
-  contactUrl:string|null;publicEnabled:boolean;
+  contactUrl:string|null;publicEnabled:boolean;brandColor:string;logoUrl:string|null;
 };
 type Offering={
   id:string;title:string;description:string|null;priceCOP:number;
@@ -19,6 +19,7 @@ type Offering={
 const settings=ref<Settings|null>(null),offerings=ref<Offering[]>([]);
 const loading=ref(true),busy=ref(false),error=ref(''),message=ref('');
 const description=ref(''),contactUrl=ref(''),publicEnabled=ref(false);
+const brandColor=ref('#7059e8'),logoUrl=ref('');
 const title=ref(''),details=ref(''),priceCOP=ref(45000),duration=ref(60);
 const mode=ref<'ONLINE'|'ONSITE'|'HYBRID'>('ONLINE'),courseId=ref('');
 let loadVersion=0,mutationVersion=0;
@@ -51,6 +52,8 @@ async function refresh(){
     description.value=config.description||'';
     contactUrl.value=config.contactUrl||'';
     publicEnabled.value=config.publicEnabled;
+    brandColor.value=config.brandColor;
+    logoUrl.value=config.logoUrl||'';
   }catch(e){
     if(version===loadVersion&&workspaceId===props.workspace.id){
       error.value=e instanceof Error?e.message:'No se pudo cargar Profe Studio';
@@ -67,6 +70,7 @@ async function save(){
     await apiFor(workspaceId,'','PATCH',{
       description:description.value,contactUrl:contactUrl.value,
       publicEnabled:publicEnabled.value,
+      brandColor:brandColor.value,logoUrl:logoUrl.value,
     });
     if(workspaceId!==props.workspace.id)return;
     await refresh();
@@ -128,7 +132,7 @@ watch(()=>props.workspace.id,()=>{
   busy.value=false;error.value='';message.value='';
   settings.value=null;offerings.value=[];
   title.value='';details.value='';courseId.value='';
-  description.value='';contactUrl.value='';publicEnabled.value=false;
+  description.value='';contactUrl.value='';publicEnabled.value=false;brandColor.value='#7059e8';logoUrl.value='';
   void refresh();
 });
 onMounted(()=>void refresh());
@@ -141,6 +145,20 @@ onMounted(()=>void refresh());
   <form class="grid gap-3 md:grid-cols-2" @submit.prevent="save">
    <div class="md:col-span-2"><UiField for="studio-description" label="Presentación"><UiTextarea id="studio-description" v-model="description" :maxlength="800" :rows="2" placeholder="¿Qué hace única a tu academia?"/></UiField></div>
    <UiField for="studio-contact" label="URL de contacto HTTPS"><UiInput id="studio-contact" v-model="contactUrl" type="url" placeholder="https://wa.me/573001234567"/></UiField>
+   <UiField for="studio-color" label="Color de marca (HEX)"><div class="mt-2 flex items-center gap-3">
+     <input id="studio-color" v-model="brandColor" type="color" class="h-11 w-14 cursor-pointer rounded-lg border border-outline bg-surface p-1" aria-label="Seleccionar color de marca"/>
+     <UiInput v-model="brandColor" maxlength="7" pattern="#[a-fA-F0-9]{6}" placeholder="#7059e8"/>
+   </div></UiField>
+   <UiField for="studio-logo" label="Logo público HTTPS (opcional)"><UiInput id="studio-logo" v-model="logoUrl" type="url" placeholder="https://miacademia.com/logo.png"/>
+     <p class="mt-1 text-xs text-muted">La imagen se carga desde ese sitio externo. Utiliza un alojamiento que controles.</p>
+   </UiField>
+   <div class="md:col-span-2 flex flex-wrap items-center gap-4 rounded-xl border border-outline p-3">
+     <div class="grid size-16 place-items-center rounded-xl text-white" :style="{backgroundColor:brandColor}">
+       <img v-if="logoUrl" :src="logoUrl" alt="Vista previa del logo" class="max-h-14 max-w-14 object-contain" referrerpolicy="no-referrer" />
+       <Store v-else :size="30"/>
+     </div>
+     <div><p class="text-sm font-bold">Vista previa de tu identidad</p><p class="mt-1 text-xs text-muted">Aparecerá en tu catálogo público una vez guardado.</p></div>
+   </div>
    <div class="self-end"><UiSwitch v-model="publicEnabled" label="Catálogo públicamente visible" /></div>
    <div class="flex flex-wrap items-center gap-3 md:col-span-2"><UiButton type="submit" :loading="busy">Guardar presentación</UiButton><a :href="studioUrl" target="_blank" rel="noopener noreferrer" class="flex items-center gap-1 text-xs font-bold text-brand">Ver mi página <ArrowUpRight :size="14"/></a></div>
   </form>

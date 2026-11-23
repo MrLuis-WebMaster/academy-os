@@ -4,7 +4,7 @@ import { UiCard, UiThemeSwitcher, UiBrand } from '@academy-os/ui';
 import {BookOpen,CalendarDays,Clock3,GraduationCap,MapPin,Video,ArrowUpRight,Mail} from 'lucide-vue-next';
 const props=defineProps<{slug:string}>();
 type Offering={id:string;title:string;description:string|null;priceCOP:number;durationMinutes:number;mode:'ONLINE'|'ONSITE'|'HYBRID';course:{title:string;subject:{name:string}|null}|null};
-type Academy={name:string;slug:string;description:string|null;brandColor:string;contactUrl:string|null;timezone:string;offerings:Offering[]};
+type Academy={name:string;slug:string;description:string|null;brandColor:string;logoUrl:string|null;contactUrl:string|null;timezone:string;offerings:Offering[]};
 const academy=ref<Academy|null>(null),error=ref(''),loading=ref(true);
 function currency(value:number){return new Intl.NumberFormat('es-CO',{style:'currency',currency:'COP',maximumFractionDigits:0}).format(value);}
 onMounted(async()=>{
@@ -29,7 +29,10 @@ onMounted(async()=>{
     <main v-else-if="error" class="mx-auto max-w-3xl p-8"><h1 class="text-2xl font-extrabold">Catálogo no disponible</h1><p class="mt-3 text-sm text-muted">{{ error }}</p><a href="/" class="mt-6 inline-block text-sm font-bold text-violet-600">Volver a AcademyOS</a></main>
     <main v-else-if="academy" class="mx-auto max-w-6xl px-5 py-10 sm:py-16">
       <div class="rounded-3xl p-8 text-white sm:p-14" :style="{background:academy.brandColor}">
-        <div class="flex size-14 items-center justify-center rounded-2xl bg-white/20"><GraduationCap :size="28"/></div>
+        <div class="flex size-20 items-center justify-center rounded-2xl bg-white/20 p-2">
+          <img v-if="academy.logoUrl" :src="academy.logoUrl" :alt="'Logo de '+academy.name" class="max-h-full max-w-full object-contain" referrerpolicy="no-referrer"/>
+          <GraduationCap v-else :size="28"/>
+        </div>
         <p class="mt-8 text-xs font-extrabold uppercase tracking-widest text-white/75">Tu aprendizaje empieza aquí</p>
         <h1 class="mt-3 text-3xl font-extrabold tracking-tight sm:text-5xl">{{ academy.name }}</h1>
         <p class="mt-5 max-w-2xl text-sm leading-7 text-white/90 sm:text-base">{{ academy.description || 'Clases y experiencias educativas adaptadas a tu ritmo. Conoce nuestros programas y encuentra tu próximo aprendizaje.' }}</p>
