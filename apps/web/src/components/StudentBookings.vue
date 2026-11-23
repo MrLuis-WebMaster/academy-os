@@ -13,7 +13,7 @@ type Booking={id:string;sessionId:string;status:'BOOKED'|'CANCELLED';bookedAt:st
 const props=defineProps<{workspaceId:string;sessions:ClassSession[]}>();
 const mine=ref<Booking[]>([]),loading=ref(false),busy=ref(''),error=ref(''),notice=ref('');
 type Entitlement={
- id:string;studentUserId:string;credits:number;used:number;remaining:number;
+ id:string;studentUserId:string;credits:number;used:number;remaining:number;available:number;
  activeBookingIds:string[];expiresAt:string;revokedAt:string|null;
  package:{title:string;courseId:string|null;priceCOP:number};
 };
@@ -38,7 +38,7 @@ function redeemedBy(bookingId:string){
 function availableFor(booking:Booking){
  const startsAt=new Date(booking.session.startsAt).getTime(),now=Date.now();
  return entitlements.value.filter(grant=>
-  !grant.revokedAt&&grant.remaining>0&&new Date(grant.expiresAt).getTime()>=startsAt
+  !grant.revokedAt&&grant.available>0&&new Date(grant.expiresAt).getTime()>=startsAt
   &&new Date(grant.expiresAt).getTime()>now
   &&(!grant.package.courseId||grant.package.courseId===booking.session.courseId),
  );
@@ -238,7 +238,7 @@ onMounted(()=>{
   <div v-else-if="entitlements.length" class="mt-3 grid gap-2 sm:grid-cols-2">
    <article v-for="grant in entitlements" :key="grant.id" class="rounded-xl border border-outline bg-surface p-3">
     <p class="flex items-center gap-2 text-xs font-bold"><Gift :size="14" class="text-brand"/>{{grant.package.title}}</p>
-    <p class="mt-2 text-2xl font-extrabold">{{grant.remaining}} <span class="text-xs font-normal text-muted">de {{grant.credits}} créditos disponibles</span></p>
+    <p class="mt-2 text-2xl font-extrabold">{{grant.available}} <span class="text-xs font-normal text-muted">créditos aplicables · {{grant.remaining}} sin consumir de {{grant.credits}}</span></p>
     <p class="mt-1 text-xs text-muted">Vigencia: {{new Date(grant.expiresAt).toLocaleDateString('es-CO')}}
      <span v-if="grant.revokedAt"> · Revocado</span>
      <span v-else-if="new Date(grant.expiresAt).getTime()<Date.now()"> · Vencido</span>
@@ -295,7 +295,7 @@ onMounted(()=>{
        class="ml-2 rounded-lg border border-outline bg-surface px-2 py-2 text-xs">
        <option value="">Elige uno</option>
        <option v-for="grant in availableFor(existing(session.id)!)" :key="grant.id" :value="grant.id">
-        {{grant.package.title}} · {{grant.remaining}} créditos
+        {{grant.package.title}} · {{grant.available}} créditos
        </option>
       </select>
      </label>

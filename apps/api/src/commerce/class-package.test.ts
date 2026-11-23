@@ -18,7 +18,7 @@ test('teacher and student cannot issue credits, owner cannot read student entitl
   w==='a'&&roles.includes(u==='owner'?'OWNER':u==='student'?'STUDENT':'TEACHER'),
  };
  const plan:PackagePlanView={id:'p',title:'4 clases',courseId:null,courseRestricted:false,sessionCredits:4,priceCOP:160000,validDays:30,active:true,createdAt:new Date()};
- const view:PackageEntitlementView={id:'g',packageId:'p',studentUserId:'student',credits:4,used:0,remaining:4,activeBookingIds:[],expiresAt:new Date(),issuedAt:new Date(),revokedAt:null,package:{title:'4 clases',courseId:null,priceCOP:160000}};
+ const view:PackageEntitlementView={id:'g',packageId:'p',studentUserId:'student',credits:4,used:0,remaining:4,available:4,activeBookingIds:[],expiresAt:new Date(),issuedAt:new Date(),revokedAt:null,package:{title:'4 clases',courseId:null,priceCOP:160000}};
  const repo:ClassPackagesRepository={
   plans:async()=>{calls.push('plans');return [plan];},
   create:async()=>{calls.push('create');return plan;},

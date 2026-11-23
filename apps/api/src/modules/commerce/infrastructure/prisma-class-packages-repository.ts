@@ -27,6 +27,7 @@ function grantView(row:{
  return {
   id:row.id,packageId:row.packageId,studentUserId:row.studentUserId,
   credits:row.credits,used,remaining:remainingCredits(row.credits,used),
+  available:row.revokedAt||row.expiresAt.getTime()<=Date.now()?0:remainingCredits(row.credits,used),
   activeBookingIds:row.redemptions.map(r=>r.bookingId),
   expiresAt:row.expiresAt,issuedAt:row.issuedAt,revokedAt:row.revokedAt,
   package:row.package,
@@ -165,6 +166,12 @@ export class PrismaClassPackagesRepository implements ClassPackagesRepository{
     }),
    ]);
    if(!booking||!grant)throw new PackageNotFound();
+   if(!booking.session.courseId||!await tx.enrollment.findFirst({
+    where:{
+     courseId:booking.session.courseId,userId,
+     course:{workspaceId},
+    },select:{id:true},
+   }))throw new PackageAccessDenied();
    if(booking.status!=='BOOKED'||booking.session.status!=='CONFIRMED'
      ||booking.session.startsAt.getTime()<=Date.now())
     throw new PackageConflict('Only future confirmed class bookings can redeem credits');
