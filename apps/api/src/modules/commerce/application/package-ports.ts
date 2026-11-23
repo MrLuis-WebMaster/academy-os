@@ -9,6 +9,11 @@ export interface PackageEntitlementView{
  remaining:number;available:number;activeBookingIds:string[];expiresAt:Date;issuedAt:Date;revokedAt:Date|null;
  package:{title:string;courseId:string|null;priceCOP:number};
 }
+export interface PackageIssuanceView extends PackageEntitlementView{
+ student:{name:string};issuer:{name:string};
+ revokedByUserId:string|null;revokeReason:string|null;
+ futureBookings:number;
+}
 export interface PackageRedeemResult{
  id:string;bookingId:string;entitlementId:string;remaining:number;
  alreadyRedeemed:boolean;

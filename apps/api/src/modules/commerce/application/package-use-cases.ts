@@ -1,7 +1,7 @@
 import type {MembershipPort} from '../../academics/application/ports.js';
 import {
  parsePackagePlan,parsePackageIssue,parsePackageStatus,
- parsePackageId,parsePackageRedemption,
+ parsePackageId,parsePackageRedemption,parsePackageRevoke,
 } from '../domain/class-package.js';
 import type {ClassPackagesRepository} from './package-ports.js';
 
@@ -35,6 +35,14 @@ export class ClassPackagesUseCases{
  async issue(workspaceId:string,userId:string,packageId:unknown,raw:unknown){
   await this.allow(workspaceId,userId,false);
   return this.repo.issue(workspaceId,userId,parsePackageId(packageId),parsePackageIssue(raw));
+ }
+ async issuances(workspaceId:string,userId:string){
+  await this.allow(workspaceId,userId,false);
+  return this.repo.issuances(workspaceId,userId);
+ }
+ async revoke(workspaceId:string,userId:string,grantId:unknown,raw:unknown){
+  await this.allow(workspaceId,userId,false);
+  return this.repo.revoke(workspaceId,userId,parsePackageId(grantId),parsePackageRevoke(raw).reason);
  }
  async mine(workspaceId:string,userId:string){
   await this.allow(workspaceId,userId,true);return this.repo.mine(workspaceId,userId);

@@ -14,6 +14,7 @@ const packageIssueInput=z.object({
  note:z.string().trim().max(280).optional(),
 }).strict();
 const packageStatusInput=z.object({active:z.boolean()}).strict();
+const packageRevokeInput=z.object({reason:z.string().trim().min(6).max(300)}).strict();
 const redemptionInput=z.object({entitlementId:id,bookingId:id}).strict();
 
 export type PackagePlanInput=z.infer<typeof packagePlanInput>;
@@ -31,6 +32,7 @@ function parse<T>(schema:z.ZodType<T>,value:unknown):T{
 export const parsePackagePlan=(raw:unknown):PackagePlanInput=>parse(packagePlanInput,raw);
 export const parsePackageIssue=(raw:unknown):PackageIssueInput=>parse(packageIssueInput,raw);
 export const parsePackageStatus=(raw:unknown)=>parse(packageStatusInput,raw);
+export const parsePackageRevoke=(raw:unknown)=>parse(packageRevokeInput,raw);
 export const parsePackageRedemption=(raw:unknown):PackageRedemptionInput=>parse(redemptionInput,raw);
 export const parsePackageId=(raw:unknown)=>parse(id,raw);
 export function grantExpiry(issuedAt:Date,validDays:number):Date{

@@ -38,6 +38,17 @@ export class ClassPackagesController{
   try{return await this.useCases.issue(workspaceId,req.academyUser!.id,packageId,raw);}
   catch(e){return this.translate(e);}
  }
+ @Get('issuances')
+ async issuances(@Req() req:AuthenticatedRequest,@Param('workspaceId') workspaceId:string){
+  try{return await this.useCases.issuances(workspaceId,req.academyUser!.id);}
+  catch(e){return this.translate(e);}
+ }
+ @Patch('entitlements/:entitlementId/revoke')
+ async revoke(@Req() req:AuthenticatedRequest,@Param('workspaceId') workspaceId:string,
+  @Param('entitlementId') entitlementId:string,@Body() raw:unknown){
+  try{return await this.useCases.revoke(workspaceId,req.academyUser!.id,entitlementId,raw);}
+  catch(e){return this.translate(e);}
+ }
  @Get('mine')
  async mine(@Req() req:AuthenticatedRequest,@Param('workspaceId') workspaceId:string){
   try{return await this.useCases.mine(workspaceId,req.academyUser!.id);}

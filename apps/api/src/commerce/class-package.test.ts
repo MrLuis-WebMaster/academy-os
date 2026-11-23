@@ -25,6 +25,8 @@ test('teacher and student cannot issue credits, owner cannot read student entitl
   setActive:async()=>{calls.push('active');return plan;},
   issue:async()=>{calls.push('issue');return view;},
   mine:async()=>{calls.push('mine');return [view];},
+  issuances:async()=>{calls.push('issuances');return [];},
+  revoke:async()=>{calls.push('revoke');return {id:'g',revokedAt:new Date(),revokeReason:'Corrección administrativa'};},
   redeem:async()=>{calls.push('redeem');return {id:'r',bookingId:'b',entitlementId:'g',remaining:3,alreadyRedeemed:false};},
  };
  const app=new ClassPackagesUseCases(repo,members);
