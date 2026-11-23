@@ -630,6 +630,7 @@ model LearningGoal {
   title String
   description String?
   targetMastery Int?
+  targetAt DateTime?
   status LearningGoalStatus @default(ACTIVE)
   createdAt DateTime @default(now())
   completedAt DateTime?

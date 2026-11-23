@@ -42,6 +42,7 @@ CREATE TABLE "LearningGoal" (
   "title" TEXT NOT NULL,
   "description" TEXT,
   "targetMastery" INTEGER,
+  "targetAt" TIMESTAMP(3),
   "status" "LearningGoalStatus" NOT NULL DEFAULT 'ACTIVE',
   "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
   "completedAt" TIMESTAMP(3),
