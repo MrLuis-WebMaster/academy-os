@@ -10,6 +10,7 @@ const packagePlanInput=z.object({
 }).strict();
 const packageIssueInput=z.object({
  studentUserId:id,
+ requestId:z.string().uuid(),
  note:z.string().trim().max(280).optional(),
 }).strict();
 const packageStatusInput=z.object({active:z.boolean()}).strict();

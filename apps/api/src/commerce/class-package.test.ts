@@ -28,7 +28,7 @@ test('teacher and student cannot issue credits, owner cannot read student entitl
   redeem:async()=>{calls.push('redeem');return {id:'r',bookingId:'b',entitlementId:'g',remaining:3,alreadyRedeemed:false};},
  };
  const app=new ClassPackagesUseCases(repo,members);
- await assert.rejects(()=>app.issue('a','teacher','p',{studentUserId:'student'}),PackageAccessDenied);
+ await assert.rejects(()=>app.issue('a','teacher','p',{studentUserId:'student',requestId:'e4a4ca49-7207-4e99-bd8a-a41d22d44ed7'}),PackageAccessDenied);
  await assert.rejects(()=>app.issue('b','owner','p',{studentUserId:'student'}),PackageAccessDenied);
  await assert.rejects(()=>app.mine('a','owner'),PackageAccessDenied);
  assert.deepEqual(calls,[]);

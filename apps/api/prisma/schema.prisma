@@ -800,6 +800,7 @@ model ClassPackageEntitlement {
  credits Int
  expiresAt DateTime
  issuedAt DateTime @default(now())
+ requestId String @unique
  revokedAt DateTime?
  note String?
  workspace Workspace @relation(fields:[workspaceId],references:[id],onDelete:Cascade)

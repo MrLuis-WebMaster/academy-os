@@ -20,6 +20,7 @@ CREATE TABLE "ClassPackageEntitlement" (
  "credits" INTEGER NOT NULL,
  "expiresAt" TIMESTAMP(3) NOT NULL,
  "issuedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+ "requestId" TEXT NOT NULL,
  "revokedAt" TIMESTAMP(3),
  "note" TEXT,
  CONSTRAINT "ClassPackageEntitlement_pkey" PRIMARY KEY ("id")
@@ -35,6 +36,7 @@ CREATE TABLE "ClassPackageRedemption" (
 CREATE INDEX "ClassPackage_workspaceId_active_idx" ON "ClassPackage"("workspaceId","active");
 CREATE INDEX "ClassPackageEntitlement_workspaceId_studentUserId_expiresAt_idx"
  ON "ClassPackageEntitlement"("workspaceId","studentUserId","expiresAt");
+CREATE UNIQUE INDEX "ClassPackageEntitlement_requestId_key" ON "ClassPackageEntitlement"("requestId");
 CREATE UNIQUE INDEX "ClassPackageRedemption_bookingId_key" ON "ClassPackageRedemption"("bookingId");
 CREATE INDEX "ClassPackageRedemption_entitlementId_refundedAt_idx"
  ON "ClassPackageRedemption"("entitlementId","refundedAt");
