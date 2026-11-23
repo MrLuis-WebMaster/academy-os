@@ -42,8 +42,9 @@ test('PostgreSQL analytics: count only real events within the current academy an
    prisma.course.create({data:{workspaceId:b.id,title:'Curso B'}}),
    prisma.teacherProfile.create({data:{workspaceId:a.id,userId:owner!.id}}),
   ]);
-  const tomorrow=new Date(Date.now()+86400000);
-  const nextWeek=new Date(Date.now()+6*86400000);
+  // Historical reporting window: only lesson starts inside the last 30 days count.
+  const tomorrow=new Date(Date.now()-12*3600000);
+  const nextWeek=new Date(Date.now()-4*86400000);
   const old=new Date(Date.now()-100*86400000);
   const sessions=await Promise.all([
    prisma.classSession.create({data:{
