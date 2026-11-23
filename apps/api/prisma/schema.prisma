@@ -98,6 +98,10 @@ model User {
   enrollments Enrollment[]
   submissions ActivityAttempt[]
   progress    SkillProgress[]
+  skillEvidenceAsStudent SkillEvidence[] @relation("SkillEvidenceStudent")
+  skillEvidenceAsReviewer SkillEvidence[] @relation("SkillEvidenceReviewer")
+  assignedLearningGoals LearningGoal[] @relation("GoalAssigner")
+  studentLearningGoals LearningGoal[] @relation("GoalStudent")
   connections ExternalConnection[]
 }
 
@@ -135,6 +139,8 @@ model Workspace {
   campuses Campus[]
   teachingRooms TeachingRoom[]
   aiGenerations AiGeneration[]
+  skillEvidences SkillEvidence[]
+  learningGoals LearningGoal[]
 }
 
 model WorkspaceMember {
@@ -186,6 +192,7 @@ model Course {
   teachers    CourseTeacher[]
   topics      Topic[]
   enrollments Enrollment[]
+  learningGoals LearningGoal[]
   sessions    ClassSession[]
   resources   Resource[]
   offerings Offering[]
@@ -212,6 +219,8 @@ model Topic {
   children    Topic[]       @relation("TopicHierarchy")
   resources   Resource[]
   progress    SkillProgress[]
+  evidences   SkillEvidence[]
+  learningGoals LearningGoal[]
 }
 
 model Enrollment {
@@ -585,4 +594,62 @@ model ClassReminderPreference {
   user User @relation(fields:[userId],references:[id],onDelete:Cascade)
   @@unique([workspaceId,userId])
   @@index([workspaceId,userId])
+}
+
+enum LearningGoalStatus {
+  ACTIVE
+  ACHIEVED
+  CANCELLED
+}
+
+model SkillEvidence {
+  id String @id @default(cuid())
+  workspaceId String
+  topicId String
+  studentUserId String
+  reviewerUserId String
+  requestId String
+  score Int
+  note String
+  createdAt DateTime @default(now())
+  workspace Workspace @relation(fields:[workspaceId],references:[id],onDelete:Cascade)
+  topic Topic @relation(fields:[topicId],references:[id],onDelete:Cascade)
+  student User @relation("SkillEvidenceStudent",fields:[studentUserId],references:[id],onDelete:Cascade)
+  reviewer User @relation("SkillEvidenceReviewer",fields:[reviewerUserId],references:[id])
+  @@unique([workspaceId,reviewerUserId,requestId])
+  @@index([workspaceId,studentUserId,topicId])
+}
+
+model LearningGoal {
+  id String @id @default(cuid())
+  workspaceId String
+  courseId String
+  topicId String?
+  studentUserId String
+  assignedByUserId String
+  title String
+  description String?
+  targetMastery Int?
+  status LearningGoalStatus @default(ACTIVE)
+  createdAt DateTime @default(now())
+  completedAt DateTime?
+  workspace Workspace @relation(fields:[workspaceId],references:[id],onDelete:Cascade)
+  course Course @relation(fields:[courseId],references:[id],onDelete:Cascade)
+  topic Topic? @relation(fields:[topicId],references:[id],onDelete:SetNull)
+  student User @relation("GoalStudent",fields:[studentUserId],references:[id],onDelete:Cascade)
+  assigner User @relation("GoalAssigner",fields:[assignedByUserId],references:[id])
+  events LearningGoalEvent[]
+  @@index([workspaceId,studentUserId,courseId,status])
+}
+
+model LearningGoalEvent {
+  id String @id @default(cuid())
+  goalId String
+  actorUserId String
+  fromStatus LearningGoalStatus
+  toStatus LearningGoalStatus
+  reason String
+  createdAt DateTime @default(now())
+  goal LearningGoal @relation(fields:[goalId],references:[id],onDelete:Cascade)
+  @@index([goalId,createdAt])
 }
