@@ -285,8 +285,28 @@ onMounted(()=>{
  <div class="mt-4 space-y-2">
   <div v-for="session in sessions.filter(s=>new Date(s.startsAt)>new Date())" :key="session.id" class="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-outline p-4">
    <div><p class="text-sm font-bold">{{ session.title }}</p><p class="mt-1 text-xs text-muted">{{ new Date(session.startsAt).toLocaleString('es-CO') }}</p></div>
-   <button v-if="existing(session.id)" :disabled="busy===session.id" class="rounded-xl border border-amber-200 px-4 py-2 text-xs font-bold text-warning disabled:opacity-50" @click="cancel(existing(session.id)!)">Cancelar mi cupo</button>
-   <button v-else :disabled="busy===session.id || loading" class="rounded-xl bg-brand px-4 py-2 text-xs font-bold text-white disabled:opacity-50" @click="reserve(session.id)">Reservar cupo</button>
+   <div v-if="existing(session.id)" class="flex flex-col items-end gap-2">
+    <p v-if="redeemedBy(existing(session.id)!.id)" class="text-xs font-semibold text-success">
+     <Ticket :size="14" class="mr-1 inline"/> Crédito de {{redeemedBy(existing(session.id)!.id)?.package.title}} aplicado
+    </p>
+    <div v-else-if="availableFor(existing(session.id)!).length" class="flex flex-wrap items-center gap-2">
+     <label class="text-xs font-semibold">Usar paquete
+      <select v-model="chosenGrant[existing(session.id)!.id]"
+       class="ml-2 rounded-lg border border-outline bg-surface px-2 py-2 text-xs">
+       <option value="">Elige uno</option>
+       <option v-for="grant in availableFor(existing(session.id)!)" :key="grant.id" :value="grant.id">
+        {{grant.package.title}} · {{grant.remaining}} créditos
+       </option>
+      </select>
+     </label>
+     <UiButton size="sm" variant="secondary" :disabled="Boolean(busy)" :loading="busy==='credit:'+existing(session.id)!.id"
+      @click="redeemCredit(existing(session.id)!)">Aplicar crédito</UiButton>
+    </div>
+    <button :disabled="Boolean(busy)" class="rounded-xl border border-amber-200 px-4 py-2 text-xs font-bold text-warning disabled:opacity-50"
+     @click="cancel(existing(session.id)!)">Cancelar mi cupo</button>
+   </div>
+   <button v-else :disabled="Boolean(busy)||loading" class="rounded-xl bg-brand px-4 py-2 text-xs font-bold text-white disabled:opacity-50"
+    @click="reserve(session.id)">Reservar cupo</button>
   </div>
   <p v-if="!sessions.some(s=>new Date(s.startsAt)>new Date())" class="text-xs text-muted">No hay sesiones futuras disponibles para reservar.</p>
  </div>
