@@ -3,7 +3,6 @@ import {ClassAliveController} from './presentation/class-alive.controller.js';
 import {ReflectionUseCases} from './application/reflection-use-cases.js';
 import {PrismaReflectionRepository} from './infrastructure/prisma-reflection-repository.js';
 import {PrismaMembershipAdapter} from '../academics/infrastructure/prisma-subject-repository.js';
-import {PrismaMembershipAdapter} from '../academics/infrastructure/prisma-subject-repository.js';
 import {SuggestClassPracticeUseCase} from './application/suggest-practice-use-case.js';
 import {PrismaAiPracticeRepository} from './infrastructure/prisma-ai-practice-repository.js';
 import {OpenAiPracticeAdapter} from './infrastructure/openai-practice-adapter.js';
