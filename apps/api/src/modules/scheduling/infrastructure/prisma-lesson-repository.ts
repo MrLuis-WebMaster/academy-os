@@ -1,6 +1,7 @@
 import {prisma} from '../../../lib/prisma.js';
 import {notifyBookedStudents} from '../../notifications/infrastructure/session-notice-publisher.js';
 import {withinWeeklyAvailability} from '../domain/weekly-availability.js';
+import {holidayConflict} from '../domain/public-holidays.js';
 import {ensureMayCancelLesson} from '../domain/lesson.js';
 import type {LessonDraft} from '../domain/lesson.js';
 import type {LessonRepository} from '../application/lesson-ports.js';
@@ -40,7 +41,7 @@ export class PrismaLessonRepository implements LessonRepository {
         tx.teacherProfile.findFirst({
           where:{id:plan.teacherProfileId,workspaceId},select:{id:true,userId:true},
         }),
-        tx.workspace.findUnique({where:{id:workspaceId},select:{timezone:true}}),
+        tx.workspace.findUnique({where:{id:workspaceId},select:{timezone:true,holidayCountry:true,avoidPublicHolidays:true}}),
         plan.courseId
           ?tx.course.findFirst({where:{id:plan.courseId,workspaceId},select:{id:true}})
           :Promise.resolve(null),
@@ -51,6 +52,9 @@ export class PrismaLessonRepository implements LessonRepository {
       if(!isManager&&teacher.userId!==actorId)throw new LessonAccessDenied();
       if(plan.courseId&&!course)throw new LessonReferenceInvalid('Course does not belong to this workspace');
       if(!academy)throw new LessonReferenceInvalid('Workspace does not exist');
+      const holiday=holidayConflict(academy,plan.startsAt,plan.endsAt);
+      if(holiday)throw new LessonConflict('Class falls on a national holiday: '+holiday.name+' ('+holiday.date+')');
+
 
       const [regularHours,blocked,conflict]=await Promise.all([
         tx.weeklyAvailability.findMany({

@@ -2,6 +2,7 @@ import {prisma} from '../../../lib/prisma.js';
 import type {WeeklySeriesRepository,WeeklySeriesTemplate} from '../application/weekly-series-ports.js';
 import type {LessonWindow} from '../domain/weekly-series.js';
 import {withinWeeklyAvailability} from '../domain/weekly-availability.js';
+import {holidayConflict} from '../domain/public-holidays.js';
 import {intervalsOverlap} from '../domain/time-off.js';
 import {WeeklySeriesConflict,WeeklySeriesReferenceInvalid} from '../application/create-weekly-series-use-case.js';
 
@@ -28,6 +29,11 @@ export class PrismaWeeklySeriesRepository implements WeeklySeriesRepository {
    }
    const first=windows[0],last=windows[windows.length-1];
    if(!first||!last)throw new WeeklySeriesReferenceInvalid('No lesson occurrences were generated');
+   const policy=await tx.workspace.findUnique({
+    where:{id:workspaceId},select:{timezone:true,holidayCountry:true,avoidPublicHolidays:true},
+   });
+   if(!policy)throw new WeeklySeriesReferenceInvalid('Academy no longer exists');
+
    const [regularHours,timeOff,existing]=await Promise.all([
     tx.weeklyAvailability.findMany({
      where:{workspaceId,teacherProfileId:teacher.id},
@@ -44,6 +50,8 @@ export class PrismaWeeklySeriesRepository implements WeeklySeriesRepository {
     }),
    ]);
    for(const [i,window] of windows.entries()){
+    const holiday=holidayConflict(policy,window.startsAt,window.endsAt);
+    if(holiday)throw new WeeklySeriesConflict('Occurrence '+(i+1)+' falls on '+holiday.name+' ('+holiday.date+')');
     if(!withinWeeklyAvailability(regularHours,window.startsAt,window.endsAt,timeZone))
      throw new WeeklySeriesConflict('Occurrence '+(i+1)+' is outside regular teaching hours');
     if(timeOff.some(x=>intervalsOverlap(x,window)))

@@ -2,6 +2,7 @@ import {prisma} from '../../../lib/prisma.js';
 import type {SessionRescheduleRepository} from '../application/ports.js';
 import type {ReschedulePlan} from '../domain/reschedule.js';
 import {withinWeeklyAvailability} from '../domain/weekly-availability.js';
+import {holidayConflict} from '../domain/public-holidays.js';
 import {SessionRescheduleConflict,SessionRescheduleMissing} from '../application/reschedule-use-case.js';
 import {notifyBookedStudents} from '../../notifications/infrastructure/session-notice-publisher.js';
 
@@ -24,13 +25,15 @@ export class PrismaSessionRescheduleRepository implements SessionRescheduleRepos
       if(session.startsAt<=new Date())throw new SessionRescheduleConflict('A class that already started cannot be moved');
       if(!session.teacherProfileId)throw new SessionRescheduleConflict('Assign a teacher before rescheduling');
       await tx.$queryRaw`SELECT pg_advisory_xact_lock(hashtext(${'academy-os:teacher:'+session.teacherProfileId}))::text AS lock_acquired`;
-      const academy=await tx.workspace.findUnique({where:{id:workspaceId},select:{timezone:true}});
+      const academy=await tx.workspace.findUnique({where:{id:workspaceId},select:{timezone:true,holidayCountry:true,avoidPublicHolidays:true}});
       const regularHours=await tx.weeklyAvailability.findMany({
         where:{workspaceId,teacherProfileId:session.teacherProfileId},
         select:{dayOfWeek:true,startMinute:true,endMinute:true},
       });
       if(!academy||!withinWeeklyAvailability(regularHours,plan.startsAt,plan.endsAt,academy.timezone))
         throw new SessionRescheduleConflict('Requested time is outside the teacher\'s regular availability');
+      const holiday=holidayConflict(academy,plan.startsAt,plan.endsAt);
+      if(holiday)throw new SessionRescheduleConflict('Requested date is a national holiday: '+holiday.name+' ('+holiday.date+')');
       const blocked=await tx.teacherTimeOff.findFirst({
         where:{
           workspaceId,teacherProfileId:session.teacherProfileId,

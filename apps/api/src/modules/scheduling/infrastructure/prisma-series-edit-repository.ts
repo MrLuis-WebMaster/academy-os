@@ -2,6 +2,7 @@ import {prisma} from '../../../lib/prisma.js';
 import {parseLessonDraft} from '../domain/lesson.js';
 import {planEditedFutureSeries} from '../domain/series-edit.js';
 import {withinWeeklyAvailability} from '../domain/weekly-availability.js';
+import {holidayConflict} from '../domain/public-holidays.js';
 import {intervalsOverlap} from '../domain/time-off.js';
 import {notifyBookedStudents} from '../../notifications/infrastructure/session-notice-publisher.js';
 import type {SeriesEditRepository} from '../application/edit-future-series.js';
@@ -34,7 +35,7 @@ export class PrismaSeriesEditRepository implements SeriesEditRepository {
           where:{workspaceId,userId:actorId,role:{in:['OWNER','ADMIN','TEACHER']}},
           select:{role:true},
         }),
-        tx.workspace.findFirst({where:{id:workspaceId},select:{timezone:true}}),
+        tx.workspace.findFirst({where:{id:workspaceId},select:{timezone:true,holidayCountry:true,avoidPublicHolidays:true}}),
         tx.classSession.findMany({
           where:{workspaceId,seriesId,status:'CONFIRMED',startsAt:{gt:new Date()}},
           select:{
@@ -119,6 +120,8 @@ export class PrismaSeriesEditRepository implements SeriesEditRepository {
         const windows=next.map(x=>x.window);
         for(const [index,row] of next.entries()){
           const window=row.window;
+          const holiday=holidayConflict(academy,window.startsAt,window.endsAt);
+          if(holiday)throw new SeriesEditConflict('Occurrence '+(index+1)+' falls on '+holiday.name+' ('+holiday.date+')');
           if(!withinWeeklyAvailability(regular,window.startsAt,window.endsAt,academy.timezone)){
             throw new SeriesEditConflict('Occurrence '+(index+1)+' falls outside weekly teaching hours');
           }
