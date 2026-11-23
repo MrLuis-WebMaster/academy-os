@@ -23,6 +23,11 @@ export class StudentProgressController {
     try{return await this.progress.student(workspaceId,req.academyUser!.id);}
     catch(e){return this.fail(e);}
   }
+  @Get('student/profile')
+  async profile(@Req() req:AuthenticatedRequest,@Param('workspaceId') workspaceId:string){
+    try{return await this.progress.profile(workspaceId,req.academyUser!.id);}
+    catch(e){return this.fail(e);}
+  }
   @Get('courses/:courseId')
   async course(@Req() req:AuthenticatedRequest,@Param('workspaceId') workspaceId:string,
     @Param('courseId') courseId:string){
