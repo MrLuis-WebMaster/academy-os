@@ -8,6 +8,7 @@ import StaffAttendance from './StaffAttendance.vue';
 import FinanceLedger from './FinanceLedger.vue';
 import CurriculumManager from './CurriculumManager.vue';
 import LearningProgressManager from './LearningProgressManager.vue';
+import GuardianManager from './GuardianManager.vue';
 import RescheduleSession from './RescheduleSession.vue';
 import AiPracticeAssistant from './AiPracticeAssistant.vue';
 import WeeklyAvailability from './WeeklyAvailability.vue';
@@ -321,5 +322,6 @@ const input='mt-2 w-full rounded-xl border border-outline bg-surface p-3 text-sm
     <FinanceLedger v-if="status==='ready' && ['OWNER','ADMIN'].includes(role)" :workspace-id="workspace.id" :role="role" :students="members" :courses="courses" />
     <CurriculumManager v-if="status==='ready'" :workspace-id="workspace.id" :role="role" :courses="courses" :teachers="teachers" />
     <LearningProgressManager v-if="status==='ready'" :workspace-id="workspace.id" :courses="courses" />
+    <GuardianManager v-if="status==='ready' && ['OWNER','ADMIN'].includes(role)" :workspace-id="workspace.id" :members="members" />
   </main>
 </template>
