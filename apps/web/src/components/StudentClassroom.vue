@@ -8,7 +8,7 @@ import StudentBookings from './StudentBookings.vue';
 import StudentTutor from './StudentTutor.vue';
 
 const props=defineProps<{workspace:{id:string;name:string}}>();
-type Lesson={id:string;title:string;startsAt:string;mode:'ONLINE'|'ONSITE'|'HYBRID';meetingUrl:string|null;location:string|null};
+type Lesson={id:string;title:string;startsAt:string;seriesId:string|null;seriesIndex:number|null;mode:'ONLINE'|'ONSITE'|'HYBRID';meetingUrl:string|null;location:string|null};
 type Enrollment={id:string;course:{id:string;title:string;summary:string|null;subject:{name:string}|null;resources:{id:string;title:string;source:string;url:string|null}[];sessions:Lesson[]}};
 type PublishedNotes={id:string;notes:string;approvedAt:string|null;session:{id:string;courseId:string|null;title:string}};
 

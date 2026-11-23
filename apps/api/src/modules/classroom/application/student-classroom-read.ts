@@ -10,7 +10,7 @@ export interface ClassroomEnrollment {
     subject:{name:string}|null;
     resources:Array<{id:string;title:string;source:string;url:string|null}>;
     sessions:Array<{
-      id:string;title:string;startsAt:Date;endsAt:Date;
+      id:string;title:string;startsAt:Date;endsAt:Date;seriesId:string|null;seriesIndex:number|null;
       mode:'ONLINE'|'ONSITE'|'HYBRID';location:string|null;meetingUrl:string|null;
     }>;
   };

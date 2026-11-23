@@ -22,7 +22,7 @@ export class PrismaStudentClassroomRead implements StudentClassroomReadRepositor
             where:{status:'CONFIRMED',workspaceId},
             orderBy:{startsAt:'asc'},
             select:{
-              id:true,title:true,startsAt:true,endsAt:true,
+              id:true,title:true,startsAt:true,endsAt:true,seriesId:true,seriesIndex:true,
               mode:true,location:true,meetingUrl:true,
             },
           },
