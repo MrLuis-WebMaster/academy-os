@@ -6,6 +6,7 @@ import { authClient } from '../auth-client';
 import App from '../App.vue';
 import OperationsPanel from './OperationsPanel.vue';
 import StudentClassroom from './StudentClassroom.vue';
+import GuardianPortal from './GuardianPortal.vue';
 import NotificationCenter from './NotificationCenter.vue';
 
 type Workspace = { id: string; name: string; slug: string; type: 'SOLO'|'ACADEMY'; brandColor: string };
@@ -124,7 +125,8 @@ onMounted(()=>{
         </div>
       </div>
       <OperationsPanel v-if="!demo && operations && selected && ['OWNER','ADMIN','TEACHER'].includes(currentRole)" :workspace="selected" :role="currentRole" />
-      <StudentClassroom v-else-if="!demo && operations && selected" :workspace="selected" />
+      <StudentClassroom v-else-if="!demo && operations && selected && currentRole==='STUDENT'" :workspace="selected" />
+      <GuardianPortal v-else-if="!demo && operations && selected && currentRole==='GUARDIAN'" :workspace-id="selected.id" />
       <App v-else :active-workspace="selected" :viewer-name="user?.name || 'Demo'" />
     </div>
   </template>

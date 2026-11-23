@@ -8,7 +8,7 @@ export interface GuardianLinkView {
   student:{name:string;email:string};
 }
 export interface GuardianStudent {
-  studentUserId:string;student:{id:string;name:string};
+  id:string;studentUserId:string;student:{id:string;name:string};
 }
 export interface GuardianCourseOverview {
   courseId:string;title:string;subject:string;

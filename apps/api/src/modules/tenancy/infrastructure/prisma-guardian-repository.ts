@@ -175,7 +175,7 @@ export class PrismaGuardianRepository implements GuardianRepository {
         student:{memberships:{some:{workspaceId,role:'STUDENT'}}},
       },
       select:{
-        studentUserId:true,student:{select:{id:true,name:true}},
+        id:true,studentUserId:true,student:{select:{id:true,name:true}},
       },
       take:100,
     });
