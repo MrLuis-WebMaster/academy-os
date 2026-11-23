@@ -6,10 +6,10 @@ import {
 
 @Controller('workspaces/:workspaceId')
 export class StudentClassroomController {
-  constructor(private readonly classroom:StudentClassroomUseCases){}
+  constructor(private readonly useCases:StudentClassroomUseCases){}
   @Get('classroom')
   async classroom(@Req() req:AuthenticatedRequest,@Param('workspaceId') workspaceId:string){
-    try{return await this.classroom.list(workspaceId,req.academyUser!.id);}
+    try{return await this.useCases.list(workspaceId,req.academyUser!.id);}
     catch(e){
       if(e instanceof StudentClassroomAccessDenied)throw new ForbiddenException(e.message);
       throw new InternalServerErrorException('Unable to load student classroom');
