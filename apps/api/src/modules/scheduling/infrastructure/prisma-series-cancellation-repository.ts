@@ -2,6 +2,7 @@ import {prisma} from '../../../lib/prisma.js';
 import type {WeeklySeriesCancellationRepository} from '../application/series-cancellation-ports.js';
 import {SeriesCancellationNotFound} from '../application/cancel-future-series-use-case.js';
 import {notifyBookedStudents} from '../../notifications/infrastructure/session-notice-publisher.js';
+import {refundSessionCredits} from '../../commerce/infrastructure/package-credits.js';
 
 export class PrismaWeeklySeriesCancellationRepository implements WeeklySeriesCancellationRepository {
  async belongsToAssignedTeacher(workspaceId:string,userId:string,seriesId:string){
@@ -38,6 +39,7 @@ export class PrismaWeeklySeriesCancellationRepository implements WeeklySeriesCan
     });
     if(changed.count!==1)continue;
     cancelledSessions++;
+    await refundSessionCredits(tx,session.id);
     inAppNotificationsCreated+=await notifyBookedStudents(tx,{
      workspaceId,sessionId:session.id,sessionTitle:session.title,
      kind:'SESSION_CANCELLED',eventKey:'cancelled:'+session.id,

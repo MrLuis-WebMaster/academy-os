@@ -3,6 +3,7 @@ import type {BookingReservationPort} from '../application/booking-ports.js';
 import {BookingPolicyViolation,ensureReservable,ensureCancellable} from '../domain/booking-policy.js';
 import {BookingCourseNotAllowed,BookingMissing,BookingCapacityConflict} from '../application/booking-use-cases.js';
 import {bookingNotice} from '../../notifications/domain/notification.js';
+import {refundBookingCredit} from '../../commerce/infrastructure/package-credits.js';
 import {notifyUser} from '../../notifications/infrastructure/personal-notice-publisher.js';
 
 export class PrismaBookingRepository implements BookingReservationPort {
@@ -78,6 +79,8 @@ export class PrismaBookingRepository implements BookingReservationPort {
         data:{status:'CANCELLED',cancelledAt:new Date()},
       });
       if(updated.count!==1)throw new BookingCapacityConflict();
+      // Credits are returned atomically with the student's cancellation.
+      await refundBookingCredit(tx,booking.id);
       return {id:booking.id,status:'CANCELLED' as const};
     });
   }

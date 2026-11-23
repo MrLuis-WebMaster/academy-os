@@ -1,5 +1,6 @@
 import {prisma} from '../../../lib/prisma.js';
 import {notifyBookedStudents} from '../../notifications/infrastructure/session-notice-publisher.js';
+import {refundSessionCredits} from '../../commerce/infrastructure/package-credits.js';
 import {withinWeeklyAvailability} from '../domain/weekly-availability.js';
 import {holidayConflict} from '../domain/public-holidays.js';
 import {ensureMayCancelLesson} from '../domain/lesson.js';
@@ -148,6 +149,7 @@ export class PrismaLessonRepository implements LessonRepository {
         data:{status:'CANCELLED'},
       });
       if(updated.count!==1)throw new LessonConflict('The class status changed; please refresh');
+      await refundSessionCredits(tx,session.id);
       const inAppNotificationsCreated=await notifyBookedStudents(tx,{
         workspaceId,sessionId:session.id,sessionTitle:session.title,
         kind:'SESSION_CANCELLED',eventKey:'cancelled:'+session.id,

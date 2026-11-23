@@ -1,6 +1,7 @@
 import {prisma} from '../../../lib/prisma.js';
 import type {Prisma} from '../../../generated/prisma/client.js';
 import {bookingNotice} from '../../notifications/domain/notification.js';
+import {refundStudentSeriesCredits} from '../../commerce/infrastructure/package-credits.js';
 import {notifyUser} from '../../notifications/infrastructure/personal-notice-publisher.js';
 import type {SeriesBookingRepository} from '../application/series-booking-ports.js';
 import {
@@ -110,6 +111,7 @@ export class PrismaSeriesBookingRepository implements SeriesBookingRepository {
         },
         data:{status:'CANCELLED',cancelledAt:new Date()},
       });
+      await refundStudentSeriesCredits(tx,workspaceId,userId,sessions.map(session=>session.id));
       return {seriesId,cancelledBookings:result.count};
     });
   }
