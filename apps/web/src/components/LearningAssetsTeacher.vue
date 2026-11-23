@@ -20,11 +20,12 @@ const kind=ref<Kind>('FLASHCARDS'),title=ref('');
 const cards=ref<Card[]>([{front:'',back:''},{front:'',back:''}]);
 const summary=ref(''),steps=ref<Step[]>([{heading:'',body:''}]),reviewPrompt=ref('');
 const busy=ref(false),loading=ref(true),error=ref(''),notice=ref('');
+const aiConsent=ref(false);
 let loadVersion=0;
 const selected=computed(()=>assets.value.find(asset=>asset.id===selectedId.value)??null);
 function route(workspace:string,path:string){return workspacePath(workspace,'/learning-assets'+path);}
 function resetDraft(){
- selectedId.value='';sessionId.value='';
+ selectedId.value='';sessionId.value='';aiConsent.value=false;
  kind.value='FLASHCARDS';title.value='';
  cards.value=[{front:'',back:''},{front:'',back:''}];
  summary.value='';steps.value=[{heading:'',body:''}];reviewPrompt.value='';
@@ -85,6 +86,24 @@ async function save(){
    error.value=e instanceof Error?e.message:'No se pudo guardar el recurso.';
  }finally{busy.value=false;}
 }
+async function generate(){
+ if(busy.value||!sessionId.value||!aiConsent.value||selected.value)return;
+ const workspace=props.workspaceId,selectedSession=sessionId.value;
+ busy.value=true;error.value='';notice.value='';
+ try{
+  const result=await apiJson<{id:string;model:string;reviewRequired:boolean}>(
+   workspacePath(workspace,'/class-alive/sessions/'+encodeURIComponent(selectedSession)+'/suggest-asset'),
+   'POST',{kind:kind.value,approveExternalProcessing:true},
+  );
+  if(workspace!==props.workspaceId)return;
+  aiConsent.value=false;
+  await refresh();choose(result.id);
+  notice.value='Borrador propuesto con '+result.model+'. Debes revisarlo y aprobarlo antes de publicarlo.';
+ }catch(e){
+  if(workspace===props.workspaceId)
+   error.value=e instanceof Error?e.message:'No se pudo generar una propuesta de material.';
+ }finally{busy.value=false;}
+}
 async function publish(){
  if(!selected.value||selected.value.publishedAt||busy.value)return;
  if(selected.value.reflection.status!=='PUBLISHED'){
@@ -125,6 +144,19 @@ onMounted(()=>void refresh());
      <option v-for="a in assets" :key="a.id" :value="a.id">{{a.title}} · {{a.kind==='FLASHCARDS'?'Tarjetas':'Microlección'}} · {{a.publishedAt?'Publicado':'Borrador'}}</option>
     </select>
    </label>
+   <div v-if="!selected" class="rounded-xl border border-outline bg-surface-muted p-4">
+    <p class="text-xs font-extrabold">Opcional: sugerir borrador con IA</p>
+    <p class="mt-1 text-xs text-muted">El asistente puede proponer tarjetas o microlecciones según las notas de la clase y la metodología del profesor. No publica contenido por sí solo.</p>
+    <label class="mt-3 flex items-start gap-2 text-xs leading-5 text-muted">
+     <input v-model="aiConsent" type="checkbox" class="mt-1 size-4 accent-violet-600"/>
+     Confirmo que revisé las notas para eliminar datos personales y autorizo enviarlas una sola vez al proveedor de IA.
+    </label>
+    <div class="mt-3"><UiButton type="button" variant="secondary" :loading="busy"
+     :disabled="busy||!aiConsent||!sessionId" @click="generate">
+     <BrainCircuit :size="15"/> Proponer {{kind==='FLASHCARDS'?'tarjetas':'microlección'}} con IA
+    </UiButton></div>
+    <p class="mt-2 text-xs text-muted">La generación solo funciona si el administrador configuró y habilitó un proveedor externo. Su uso consume la cuota diaria de la academia.</p>
+   </div>
    <form class="space-y-4" @submit.prevent="save">
     <div class="grid gap-3 md:grid-cols-2">
      <label class="text-xs font-semibold">Clase vinculada
