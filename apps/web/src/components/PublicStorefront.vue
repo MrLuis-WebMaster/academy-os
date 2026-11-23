@@ -1,18 +1,39 @@
 <script setup lang="ts">
-import {onMounted,ref} from 'vue';
+import {onMounted,onUnmounted,ref} from 'vue';
 import { UiCard, UiThemeSwitcher, UiBrand } from '@academy-os/ui';
 import {BookOpen,CalendarDays,Clock3,GraduationCap,MapPin,Video,ArrowUpRight,Mail} from 'lucide-vue-next';
 const props=defineProps<{slug:string}>();
 type Offering={id:string;title:string;description:string|null;priceCOP:number;durationMinutes:number;mode:'ONLINE'|'ONSITE'|'HYBRID';course:{title:string;subject:{name:string}|null}|null};
 type Academy={name:string;slug:string;description:string|null;brandColor:string;logoUrl:string|null;contactUrl:string|null;timezone:string;offerings:Offering[]};
 const academy=ref<Academy|null>(null),error=ref(''),loading=ref(true);
+const originalTitle=document.title;
+const originalManifest=document.querySelector<HTMLLinkElement>('link[rel="manifest"]')?.getAttribute('href')??'/manifest.webmanifest';
+const originalIcon=document.querySelector<HTMLLinkElement>('link[rel="icon"]')?.getAttribute('href')??'/academy-icon.svg';
+const originalThemeColor=document.querySelector<HTMLMetaElement>('meta[name="theme-color"]')?.getAttribute('content')??'#7059e8';
+function applyAcademyIdentity(config:Academy){
+ const path='/api/v1/studio/public/'+encodeURIComponent(config.slug);
+ document.title=config.name+' · Academia digital';
+ document.querySelector<HTMLLinkElement>('link[rel="manifest"]')?.setAttribute('href',path+'/manifest.webmanifest');
+ document.querySelector<HTMLLinkElement>('link[rel="icon"]')?.setAttribute('href',path+'/app-icon.svg');
+ document.querySelector<HTMLMetaElement>('meta[name="theme-color"]')?.setAttribute('content',config.brandColor);
+ if(/^#[0-9a-fA-F]{6}$/.test(config.brandColor)){
+  document.documentElement.style.setProperty('--ao-brand-override',config.brandColor);
+ }
+}
+onUnmounted(()=>{
+ document.title=originalTitle;
+ document.querySelector<HTMLLinkElement>('link[rel="manifest"]')?.setAttribute('href',originalManifest);
+ document.querySelector<HTMLLinkElement>('link[rel="icon"]')?.setAttribute('href',originalIcon);
+ document.querySelector<HTMLMetaElement>('meta[name="theme-color"]')?.setAttribute('content',originalThemeColor);
+ document.documentElement.style.removeProperty('--ao-brand-override');
+});
 function currency(value:number){return new Intl.NumberFormat('es-CO',{style:'currency',currency:'COP',maximumFractionDigits:0}).format(value);}
 onMounted(async()=>{
   try{
     const response=await fetch('/api/v1/studio/public/'+encodeURIComponent(props.slug));
     if(!response.ok)throw new Error(response.status===404?'Esta academia no ha publicado su catálogo.':'No pudimos cargar este catálogo.');
     academy.value=await response.json() as Academy;
-    document.title=(academy.value.name)+' — AcademyOS';
+    applyAcademyIdentity(academy.value);
   }catch(e){error.value=e instanceof Error?e.message:'No se pudo abrir el catálogo.';}
   finally{loading.value=false;}
 });
@@ -21,7 +42,13 @@ onMounted(async()=>{
   <div class="min-h-screen bg-canvas text-ink">
     <header class="border-b border-outline bg-surface">
       <div class="mx-auto flex max-w-6xl items-center justify-between gap-4 px-5 py-5">
-        <UiBrand href="/" compact />
+        <a v-if="academy" :href="'/academy/'+encodeURIComponent(academy.slug)+'/'" class="flex min-w-0 items-center gap-3">
+          <img v-if="academy.logoUrl" :src="academy.logoUrl" :alt="'Logo de '+academy.name"
+           class="size-10 rounded-xl object-contain" referrerpolicy="no-referrer"/>
+          <div v-else class="grid size-10 place-items-center rounded-xl text-white" :style="{backgroundColor:academy.brandColor}"><GraduationCap :size="20"/></div>
+          <span class="truncate text-sm font-extrabold tracking-tight">{{academy.name}}</span>
+        </a>
+        <UiBrand v-else href="/" compact />
         <div class="flex items-center gap-2"><UiThemeSwitcher /><a href="/" class="rounded-lg border border-outline px-4 py-2 text-xs font-bold">Ingresar como profesor</a></div>
       </div>
     </header>

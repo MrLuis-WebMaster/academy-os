@@ -25,7 +25,7 @@ const mode=ref<'ONLINE'|'ONSITE'|'HYBRID'>('ONLINE'),courseId=ref('');
 let loadVersion=0,mutationVersion=0;
 
 function publicUrl(slug:string){
-  return window.location.origin+'/?academy='+encodeURIComponent(slug);
+  return window.location.origin+'/academy/'+encodeURIComponent(slug)+'/';
 }
 const studioUrl=computed(()=>publicUrl(settings.value?.slug||props.workspace.slug||''));
 function apiFor<T>(workspaceId:string,suffix:string,method='GET',body?:unknown){
@@ -160,7 +160,7 @@ onMounted(()=>void refresh());
      <div><p class="text-sm font-bold">Vista previa de tu identidad</p><p class="mt-1 text-xs text-muted">Aparecerá en tu catálogo público una vez guardado.</p></div>
    </div>
    <div class="self-end"><UiSwitch v-model="publicEnabled" label="Catálogo públicamente visible" /></div>
-   <div class="flex flex-wrap items-center gap-3 md:col-span-2"><UiButton type="submit" :loading="busy">Guardar presentación</UiButton><a :href="studioUrl" target="_blank" rel="noopener noreferrer" class="flex items-center gap-1 text-xs font-bold text-brand">Ver mi página <ArrowUpRight :size="14"/></a></div>
+   <div class="flex flex-wrap items-center gap-3 md:col-span-2"><UiButton type="submit" :loading="busy">Guardar presentación</UiButton><a :href="studioUrl" target="_blank" rel="noopener noreferrer" class="flex items-center gap-1 text-xs font-bold text-brand">Ver mi academia <ArrowUpRight :size="14"/></a></div>
   </form>
   <div class="border-t border-outline pt-5"><h3 class="text-base font-extrabold">Servicios disponibles</h3><p class="mt-2 text-xs text-muted">Los servicios nuevos permanecen privados hasta que los publiques.</p>
    <form class="mt-4 grid gap-3 sm:grid-cols-2" @submit.prevent="add">

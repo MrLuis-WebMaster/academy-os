@@ -9,7 +9,9 @@ import { initializeTheme } from '@academy-os/ui';
 
 initializeTheme();
 
-const slug = new URLSearchParams(window.location.search).get('academy');
+// Canonical isolated install URL per academy; legacy ?academy= links still work.
+const routeSlug=window.location.pathname.match(/^\/academy\/([a-z0-9]+(?:-[a-z0-9]+)*)\/?$/)?.[1];
+const slug = routeSlug || new URLSearchParams(window.location.search).get('academy');
 const preview=import.meta.env.DEV && new URLSearchParams(window.location.search).has('design-system');
 const app=preview?createApp(DesignSystemPreview):slug?createApp(PublicStorefront,{slug}):createApp(AuthGate);
 app.use(createPinia()).use(VueQueryPlugin).mount('#app');
