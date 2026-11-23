@@ -1,4 +1,5 @@
 import {prisma} from '../../../lib/prisma.js';
+import type {Prisma} from '../../../generated/prisma/client.js';
 import type {ReflectionRepository} from '../application/reflection-ports.js';
 import {
   ReflectionAccessDenied,ReflectionConflict,ReflectionNoCourse,
@@ -7,7 +8,7 @@ import {
 
 export class PrismaReflectionRepository implements ReflectionRepository {
   private async teachingAccess(
-    tx:Parameters<Parameters<typeof prisma.$transaction>[0]>[0],
+    tx:Prisma.TransactionClient,
     workspaceId:string,userId:string,sessionId:string,
   ) {
     const [memberships,session]=await Promise.all([
