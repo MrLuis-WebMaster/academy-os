@@ -50,6 +50,12 @@ test('PostgreSQL Studio: private drafts, tenant-scoped offerings and opt-in publ
     await assert.rejects(()=>studio.publicStore(a.slug),NotFoundException);
     await assert.rejects(()=>studio.config(req(student!),a.id),ForbiddenException);
     await assert.rejects(()=>studio.update(req(foreign!),a.id,{publicEnabled:true}),ForbiddenException);
+    await assert.rejects(()=>studio.update(req(owner!),a.id,{
+      brandColor:'url(javascript:alert(1))',
+    }),BadRequestException);
+    await assert.rejects(()=>studio.update(req(owner!),a.id,{
+      logoUrl:'http://insecure.invalid/logo.png',
+    }),BadRequestException);
     await assert.rejects(()=>studio.create(req(owner!),a.id,{
       ...offering,courseId:courseB.id,
     }),BadRequestException);
@@ -64,11 +70,16 @@ test('PostgreSQL Studio: private drafts, tenant-scoped offerings and opt-in publ
     const settings=await studio.update(req(owner!),a.id,{
       description:'Profesores que enseñan matemáticas',
       contactUrl:'https://wa.me/573001234567',
+      brandColor:'#0088AA',logoUrl:'https://brand.example.invalid/academy.png',
       publicEnabled:true,
     });
     assert.equal(settings.publicEnabled,true);
+    assert.equal(settings.brandColor,'#0088aa');
+    assert.equal(settings.logoUrl,'https://brand.example.invalid/academy.png');
     const before=await studio.publicStore(a.slug);
     assert.equal(before.offerings.length,0);
+    assert.equal(before.brandColor,'#0088aa');
+    assert.equal(before.logoUrl,'https://brand.example.invalid/academy.png');
     assert.equal(JSON.stringify(before).includes(courseB.title),false);
     const changed=await studio.update(req(admin!),a.id,{description:'Academia de matemáticas'});
     assert.equal(changed.contactUrl,'https://wa.me/573001234567');
