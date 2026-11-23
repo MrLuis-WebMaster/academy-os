@@ -1,4 +1,7 @@
 import {Module} from '@nestjs/common';
+import {SeriesBookingsController} from './presentation/series-bookings.controller.js';
+import {SeriesBookingUseCases} from './application/series-booking-use-cases.js';
+import {PrismaSeriesBookingRepository} from './infrastructure/prisma-series-booking-repository.js';
 import {StudentBookingsController} from './presentation/student-bookings.controller.js';
 import {StudentBookingHistoryUseCase} from './application/student-booking-history.js';
 import {PrismaStudentBookingHistory} from './infrastructure/prisma-student-booking-history.js';
@@ -26,8 +29,11 @@ import {CancelFutureSeriesUseCase} from './application/cancel-future-series-use-
 import {PrismaWeeklySeriesCancellationRepository} from './infrastructure/prisma-series-cancellation-repository.js';
 
 @Module({
-  controllers:[StudentBookingsController,LessonsController,RescheduleController,BookingActionsController,AvailabilityController,TeacherTimeOffController,WeeklySeriesController,SeriesCancellationController],
+  controllers:[SeriesBookingsController,StudentBookingsController,LessonsController,RescheduleController,BookingActionsController,AvailabilityController,TeacherTimeOffController,WeeklySeriesController,SeriesCancellationController],
   providers:[{
+    provide:SeriesBookingUseCases,
+    useFactory:()=>new SeriesBookingUseCases(new PrismaSeriesBookingRepository(),new PrismaMembershipAdapter()),
+  },{
     provide:StudentBookingHistoryUseCase,
     useFactory:()=>new StudentBookingHistoryUseCase(new PrismaStudentBookingHistory(),new PrismaMembershipAdapter()),
   },{
