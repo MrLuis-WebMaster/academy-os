@@ -30,7 +30,7 @@ export class InvitationsController {
     try{
       const {token,...record}=await this.invitations.issue(workspaceId,req.academyUser!.id,body);
       const origin=process.env.WEB_ORIGIN||'http://localhost:5173';
-      return {...record,inviteUrl:origin.replace(/\\/$/,'')+'/?invite='+encodeURIComponent(token)};
+      return {...record,inviteUrl:(origin.endsWith('/')?origin.slice(0,-1):origin)+'/?invite='+encodeURIComponent(token)};
     }catch(error){return this.fail(error);}
   }
 
