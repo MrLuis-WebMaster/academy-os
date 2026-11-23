@@ -13,9 +13,10 @@ import {AttendanceModule} from './modules/attendance/attendance.module.js';
 import {ClassroomModule} from './modules/classroom/classroom.module.js';
 import {TenancyModule} from './modules/tenancy/tenancy.module.js';
 import {CommerceModule} from './modules/commerce/commerce.module.js';
+import {AnalyticsModule} from './modules/analytics/analytics.module.js';
 
 @Module({
-  imports: [AcademicsModule,SchedulingModule,LearningModule,NotificationsModule,CalendarModule,FinanceModule,AttendanceModule,ClassroomModule,TenancyModule,CommerceModule],
+  imports: [AcademicsModule,SchedulingModule,LearningModule,NotificationsModule,CalendarModule,FinanceModule,AttendanceModule,ClassroomModule,TenancyModule,CommerceModule,AnalyticsModule],
   controllers: [DemoController, MeController],
   providers: [{ provide: APP_GUARD, useClass: SessionGuard }],
 })
