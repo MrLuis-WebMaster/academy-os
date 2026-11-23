@@ -1,4 +1,5 @@
 import {prisma} from '../../../lib/prisma.js';
+import type {Prisma} from '../../../generated/prisma/client.js';
 import {bookingNotice} from '../../notifications/domain/notification.js';
 import {notifyUser} from '../../notifications/infrastructure/personal-notice-publisher.js';
 import type {SeriesBookingRepository} from '../application/series-booking-ports.js';
@@ -10,13 +11,13 @@ import {
  * Never partially reserve a series. A full series succeeds or rolls back as a unit.
  */
 export class PrismaSeriesBookingRepository implements SeriesBookingRepository {
-  private async withFutureSeries(
+  private async withFutureSeries<T>(
     workspaceId:string,userId:string,seriesId:string,
-    op:(tx:Parameters<Parameters<typeof prisma.$transaction>[0]>[0],sessions:Array<{
+    op:(tx:Prisma.TransactionClient,sessions:Array<{
       id:string;title:string;courseId:string|null;startsAt:Date;
       status:'DRAFT'|'CONFIRMED'|'COMPLETED'|'CANCELLED';capacity:number;
-    }>)=>Promise<any>,
-  ){
+    }>)=>Promise<T>,
+  ):Promise<T>{
     return prisma.$transaction(async tx=>{
       // Revalidate membership after acquiring the series lock, not just in the use case.
       await tx.$queryRaw`SELECT pg_advisory_xact_lock(hashtext(${'academy-os:series-bookings:'+seriesId}))::text AS lock_acquired`;
