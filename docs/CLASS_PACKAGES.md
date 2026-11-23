@@ -18,7 +18,7 @@ El módulo `Commerce / Class Packages` permite que el personal de la academia co
 }
 ```
 
-`courseId` es opcional: cuando está definido, el alumno debe estar matriculado en ese curso para recibir y usar el paquete; cuando es nulo, vale para cualquier clase que el alumno pueda reservar.
+\`courseId\` es opcional: cuando está definido, el alumno debe estar matriculado en ese curso para recibir y usar el paquete; cuando es nulo **al crear un paquete general**, vale para cualquier clase reservable. Se conserva un indicador inmutable de restricción al curso: si se elimina posteriormente el curso vinculado, el paquete **no se transforma en universal** y no permite nuevas emisiones o canjes de ese curso eliminado.
 
 `PATCH /api/v1/workspaces/:workspaceId/packages/:packageId/active` con `{"active":false}` detiene **nuevas asignaciones** sin eliminar créditos ya otorgados.
 
@@ -36,7 +36,7 @@ La operación es transaccional y `requestId` (UUID) evita emisiones duplicadas p
 
 ## Uso del alumno
 
-`GET /api/v1/workspaces/:workspaceId/packages/mine` lista únicamente las asignaciones del alumno autenticado, sus créditos totales, usados, disponibles, vencimiento y `activeBookingIds`. No muestra transacciones ni asignaciones de otros alumnos.
+`GET /api/v1/workspaces/:workspaceId/packages/mine` lista únicamente las asignaciones del alumno autenticado, sus créditos totales, usados, no consumidos (\`remaining\`), actualmente aplicables (\`available\`), vencimiento y `activeBookingIds\`. Los créditos vencidos pueden seguir sin consumir, pero su cantidad aplicable es cero. No muestra transacciones ni asignaciones de otros alumnos.
 
 `POST /api/v1/workspaces/:workspaceId/packages/redeem`:
 
@@ -44,7 +44,7 @@ La operación es transaccional y `requestId` (UUID) evita emisiones duplicadas p
 {"entitlementId":"id-del-bono","bookingId":"id-de-reserva-propia"}
 ```
 
-Solo puede aplicarse a una **reserva propia, confirmada y futura**, del curso cubierto por el paquete, si el saldo es positivo y el bono no ha vencido ni sido revocado. La operación verifica permisos y restricciones en PostgreSQL dentro de una transacción. Un bloqueo por reserva seguido de otro por asignación impide que dos canjes concurrentes consuman el último crédito. Los reintentos sobre la misma reserva y paquete son idempotentes.
+Solo puede aplicarse a una **reserva propia, confirmada y futura**, con matrícula aún vigente, del curso cubierto por el paquete, si el saldo es positivo y el bono no ha vencido ni sido revocado. La operación verifica permisos y restricciones en PostgreSQL dentro de una transacción. Un bloqueo por reserva seguido de otro por asignación impide que dos canjes concurrentes consuman el último crédito. Los reintentos sobre la misma reserva y paquete son idempotentes.
 
 Cuando el alumno cancela una reserva individual, cancela una serie futura, o el docente cancela una clase individual o una serie futura, los créditos se **devuelven dentro de la misma transacción** que cambia el estado. El sistema no reembolsa dinero: únicamente libera un crédito de clase. Cancelar una serie del profesor no altera reservas históricas.
 
