@@ -8,12 +8,12 @@ Cada marca `[x]` indica funcionalidad codificada en el repo, **no un lanzamiento
 - [x] Normalización compartida de slug y cliente HTTP único usado por varias pantallas.
 - [x] DDD/hexagonal en Academics, Scheduling, Attendance, Finance, Classroom (materiales), Learning, Notifications y Calendar, con pruebas de puertos falsos y algunas pruebas reales de PostgreSQL.
 - [x] Control de fronteras arquitectónicas en CI (`pnpm arch:check`).
-- [~] Migrar el resto de los contextos (tenancy, commerce y publicación de actividades) sin cambiar contratos HTTP.
+- [~] Tenancy, Commerce, publicación de actividades y Curriculum migrados a DDD/hexagonal; faltan algunas proyecciones de lectura heredadas y auditoría integral.
 - [x] Migraciones versionadas y validación con PostgreSQL 19 en CI.
 - [x] PWA estática con fallback offline sin caché de información privada.
 - [~] Pruebas de aislamiento de academias, clases concurrentes y sobrecupo con PostgreSQL; falta cobertura integral de rutas y E2E.
 - [x] Versionar `pnpm-lock.yaml` y utilizar instalación congelada en CI.
-- [ ] Staging HTTPS, backups automáticos y restauración probada.
+- [ ] Plantilla staging HTTPS con Docker, Caddy, PostgreSQL y backup/restore manual en Git; faltan despliegue real, copias programadas y restauración probada.
 
 ## Etapa 1 — MVP operativo
 - [x] Better Auth + Google, sesiones y onboarding self-service OWNER implementados en código.
@@ -70,3 +70,13 @@ Cumplir [RELEASE_CHECKLIST.md](RELEASE_CHECKLIST.md). Nunca considerar CI verde 
 - [x] Cancelación con locks de reserva y docente, avisos internos transaccionales y reintentos idempotentes.
 - [x] Pruebas unitarias y prueba de integración con PostgreSQL de autorización, aislamiento y concurrencia codificadas.
 - [ ] Verificar el CI más reciente y ejecutar pruebas reales de UI/credenciales OAuth y seguridad ampliada antes de habilitar un piloto.
+
+## Hitos adicionales — 23 de noviembre de 2026
+- [x] Clase Viva con publicación humana transaccional, notas inmutables una vez publicadas y aislamiento por docente/academia.
+- [x] Prácticas y Pasaporte por capas hexagonales, 3 intentos máximos protegidos bajo concurrencia, sin filtrar claves al estudiante.
+- [x] Invitaciones seguras con tokens de un solo uso, email vinculado, límites diarios y tests PostgreSQL.
+- [x] Provisioning OWNER idempotente incluso con dos envíos concurrentes y materias deduplicadas por slug.
+- [x] Profe Studio por capas, ofertas privadas por defecto, control de publicación y filtro de cursos de otras academias.
+- [x] Temarios y asignaciones docentes por capas; solamente docentes asignados consultan/editar contenidos del curso.
+- [x] Plantilla Compose/Caddy HTTPS, backup/restore manual y validación sintáctica en CI.
+- [ ] Probar servidor real, OAuth Google, proveedores externos, pago, seguridad y restauración antes de un piloto.

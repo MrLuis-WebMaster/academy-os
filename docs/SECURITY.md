@@ -21,3 +21,10 @@ El contexto `modules/finance` sigue DDD/hexagonal: reglas y validación de compr
 ## Sesiones, profesores y notificaciones
 
 Las rutas de creación, listado y cancelación de sesiones están aisladas por academia y rol. En el listado, un TEACHER solo ve las clases vinculadas a su perfil. La creación valida referencias del mismo workspace y evita solapamientos bajo un lock transaccional de docente. La cancelación valida el estado y al actor tras los locks de reservas/docente, publica avisos internos dentro de la transacción y no admite modificar clases `COMPLETED`. Las pruebas PostgreSQL cubren múltiples academias, acceso de docentes diferentes y solicitudes simultáneas, pero no equivalen a una auditoría integral de todas las rutas.
+
+## Avances de seguridad — 2026-11-23
+- Autorización de publicación humana, intentos de alumnos con máximo de tres solicitudes, protección de claves de respuestas y validación de matrícula.
+- Invitaciones como hashes, de uso único, vinculadas al correo y con cuotas serializadas; solo OWNER puede invitar ADMIN.
+- Provisioning idempotente y cursos/asignaciones limitados a su academia.
+- Profe Studio privado por defecto y filtrado por workspace.
+- Persisten pendientes E2E real, consentimiento de menores, OAuth, auditoría completa, backups reales y rate limiting en gateway.

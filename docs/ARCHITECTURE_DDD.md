@@ -12,7 +12,7 @@ El backend se migra **por verticales funcionales**, manteniendo los endpoints ex
 - `finance`: comprobantes de pagos manuales.
 - `notifications` y `calendar`: bandeja privada y exportación ICS.
 
-El resto de controladores heredados sigue pendiente de extracción; **ningún módulo se considera auditado o apto para producción por el mero hecho de tener cuatro capas**.
+Las verticales de tenancy incluyen invitaciones y provisioning; commerce contiene Studio; academics, el temario y las asignaciones; learning, notas y prácticas. Persisten algunos controladores de consulta heredados. **ningún módulo se considera auditado o apto para producción por el mero hecho de tener cuatro capas**.
 
 ## Dependencias y capas
 
@@ -73,7 +73,7 @@ La creación de excepciones y series semanales comparte la llave de advisory loc
 
 ## Próximas extracciones
 
-Learning publicación de actividades y evidencia → Tenancy provisioning/invitations → Profe Studio/Commerce → Integrations. Cada extracción conserva la ruta HTTP y va acompañada de pruebas de regresión.
+Proyecciones de lectura heredadas → Integrations/OAuth → Auditoría, privacidad y preparación de release. Cada extracción conserva la ruta HTTP y va acompañada de pruebas de regresión.
 
 ## Asistencia aislada entre academias
 
@@ -88,3 +88,10 @@ La lectura `GET /bookings/staff` y la escritura `PATCH /bookings/:bookingId/atte
 `modules/scheduling/domain/lesson.ts` aloja la validación de sesiones individuales y la regla de cancelación de clases completadas. `application/lesson-use-cases.ts` valida membresía; `infrastructure/prisma-lesson-repository.ts` revalida roles, profesor y curso dentro de la transacción de creación y cancelación. `presentation/lessons.controller.ts` preserva GET/POST `/sessions` y PATCH `/sessions/:sessionId/cancel`.
 
 La creación utiliza el mismo advisory lock `academy-os:teacher:<id>` que series semanales, ausencias y reprogramaciones. La cancelación bloquea primero `academy-os:booking:<sessionId>`, luego al docente, y guarda los avisos a los alumnos reservados en la misma transacción. CANCELLED es idempotente y COMPLETED no puede cancelarse. El listado del personal docente ahora se limita al profesor autenticado; OWNER/ADMIN consultan toda su academia. No hay todavía correo ni mensajería externa.
+
+## Controles nuevos de concurrencia y privacidad
+Clase Viva serializa guardado/publicación por sesión; notas publicadas no se sobrescriben.
+Prácticas serializa edición/publicación/intentos por actividad y cuenta intentos del alumno bajo bloqueo transaccional.
+Tenancy bloquea por hash al aceptar invitaciones, por academia al limitar invitaciones y por usuario/solicitud al crear un workspace.
+Commerce publica solo ofertas permitidas y filtra vínculos a cursos de otras academias.
+Curriculum revalida asignación de profesor y pertenencia de curso y padre dentro de cada transacción.

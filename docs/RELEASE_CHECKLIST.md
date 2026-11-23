@@ -1,5 +1,12 @@
 # AcademyOS — lanzamiento seguro
 
+## Controles codificados y probados en CI
+- [x] Onboarding OWNER idempotente e invitaciones con control de permisos y cuotas PostgreSQL.
+- [x] Clase Viva y prácticas con acceso por matrícula, publicación humana y límites concurrentes de intentos.
+- [x] Profe Studio y curriculum limitados por academia.
+- [x] Plantilla staging, scripts manuales de respaldo/restauración y validación de configuración Compose.
+- [ ] Staging con dominio real, Google OAuth, restauración verificada y auditoría E2E.
+
 ## Credenciales y despliegue
 - [ ] Crear staging HTTPS/DNS, base de datos PostgreSQL aislada y backups con prueba de restauración.
 - [ ] Configurar en secret manager `BETTER_AUTH_SECRET`, `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `DATABASE_URL`, `BETTER_AUTH_URL`, `WEB_ORIGIN`.

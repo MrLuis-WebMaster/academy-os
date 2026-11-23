@@ -30,6 +30,11 @@ El acceso real necesita configurar `BETTER_AUTH_SECRET`, `GOOGLE_CLIENT_ID`, `GO
 
 En producción usa migraciones revisadas con `prisma migrate deploy`, HTTPS y copias de seguridad; no ejecutes migraciones destructivas directamente sobre datos reales.
 
+## Entregas nuevas — 2026-11-23
+Se migraron a DDD/hexagonal Clase Viva, prácticas y Pasaporte, invitaciones y alta OWNER, Profe Studio y curriculum, además de las verticales ya existentes. Las pruebas PostgreSQL incluyen controles de concurrencia y aislamiento multi-tenant.
+Staging reproducible: [guía](docs/STAGING_DEPLOYMENT.md). Antes de usar datos reales, revisar [bloqueadores](docs/DELIVERY_READINESS.md) y [release checklist](docs/RELEASE_CHECKLIST.md).
+La plantilla no significa que exista un despliegue público ni que Google OAuth, pagos u otros proveedores externos estén conectados.
+
 ## Arquitectura y sistema visual
 
 - **DDD / hexagonal:** [`docs/ARCHITECTURE_DDD.md`](docs/ARCHITECTURE_DDD.md). Los contextos Academics, Scheduling, Attendance, Finance, Classroom (materiales), Learning, Notifications y Calendar contienen verticales mediante dominio, casos de uso, puertos e infraestructura Prisma. La migración de los demás contextos es progresiva.

@@ -78,6 +78,15 @@
 - Se añadieron pruebas unitarias y pruebas PostgreSQL para independencia de academias, permisos, simultaneidad, ausencias y avisos.
 - **No** hay prueba real de OAuth Google ni despliegue HTTPS; CI no sustituye revisión de privacidad, permisos de enlaces externos o auditoría completa.
 
+## Hitos 8–11 — migraciones de producto y staging (2026-11-23)
+
+- Clase Viva, prácticas, Pasaporte y publicación docente migrados a DDD/hexagonal, con serialización de cambios y límite de tres intentos concurrentes.
+- Invitaciones y onboarding OWNER migrados a Tenancy: aceptación de token único, email verificado, cuota diaria serializada e idempotencia de creación de academias.
+- Profe Studio migrado a Commerce, con catálogo opt-in, servicios borrador y comprobaciones transaccionales de roles y cursos vinculados.
+- Curriculum migrado a Academics con lectura y escritura limitadas a profesores asignados y managers del curso.
+- Plantilla staging con PostgreSQL 19, Caddy HTTPS, Dockerfiles, scripts de respaldo/restauración y validación de Compose en CI.
+- La plantilla no equivale a despliegue real; falta OAuth Google, pasarela, envíos y E2E con cuentas reales.
+
 ## Límites no resueltos
 - OAuth Google en entorno real, test del callback, cookies, sesiones y logout end-to-end.
 - Meet/Zoom/Drive, correo transaccional, sync calendario, app almacenamiento no conectado.
