@@ -23,6 +23,8 @@ export interface ClassPackagesRepository{
  create(workspaceId:string,actorId:string,input:PackagePlanInput):Promise<PackagePlanView>;
  setActive(workspaceId:string,actorId:string,packageId:string,active:boolean):Promise<PackagePlanView>;
  issue(workspaceId:string,actorId:string,packageId:string,input:PackageIssueInput):Promise<PackageEntitlementView>;
+ issuances(workspaceId:string,actorId:string):Promise<PackageIssuanceView[]>;
+ revoke(workspaceId:string,actorId:string,grantId:string,reason:string):Promise<{id:string;revokedAt:Date;revokeReason:string}>;
  mine(workspaceId:string,userId:string):Promise<PackageEntitlementView[]>;
  redeem(workspaceId:string,userId:string,input:PackageRedemptionInput):Promise<PackageRedeemResult>;
 }
