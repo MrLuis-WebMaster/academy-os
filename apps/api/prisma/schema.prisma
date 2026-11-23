@@ -203,6 +203,7 @@ model Course {
   title       String
   summary     String?
   published   Boolean        @default(false)
+  requiresPackage Boolean @default(false)
   workspace   Workspace      @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
   subject     Subject?       @relation(fields: [subjectId], references: [id])
   teachers    CourseTeacher[]
