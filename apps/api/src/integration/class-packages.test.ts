@@ -147,3 +147,55 @@ test('manual package grants are scoped, idempotent and credits are serialized/re
   await prisma.$disconnect();
  }
 });
+
+test('deleting a course never broadens an issued course-specific package to other courses',async()=>{
+ const nonce=randomUUID().replaceAll('-','').slice(0,12);
+ const [owner,student]=await Promise.all([
+  prisma.user.create({data:{name:'Owner',email:'pack-scope-owner-'+nonce+'@example.invalid'}}),
+  prisma.user.create({data:{name:'Student',email:'pack-scope-student-'+nonce+'@example.invalid'}}),
+ ]);
+ let workspaceId='';
+ try{
+  const workspace=await prisma.workspace.create({data:{
+   slug:'pack-scope-'+nonce,name:'Scoped packages',type:'ACADEMY',
+   members:{create:[{userId:owner.id,role:'OWNER'},{userId:student.id,role:'STUDENT'}]},
+  }});
+  workspaceId=workspace.id;
+  const course=await prisma.course.create({data:{workspaceId,title:'Curso de piano'}});
+  await prisma.enrollment.create({data:{courseId:course.id,userId:student.id}});
+  const startsAt=new Date(Date.now()+4*86400000);
+  const classSession=await prisma.classSession.create({data:{
+   workspaceId,courseId:course.id,title:'Lección de piano',status:'CONFIRMED',
+   mode:'ONLINE',timezone:'America/Bogota',capacity:4,
+   startsAt,endsAt:new Date(startsAt.getTime()+3600000),
+  }});
+  const booking=await prisma.classBooking.create({data:{
+   workspaceId,sessionId:classSession.id,userId:student.id,status:'BOOKED',
+  }});
+  const controller=new ClassPackagesController(
+   new ClassPackagesUseCases(new PrismaClassPackagesRepository(),new PrismaMembershipAdapter()),
+  );
+  const plan=await controller.create(req(owner),workspaceId,{
+   title:'Piano cuatro clases',courseId:course.id,sessionCredits:4,priceCOP:100000,validDays:60,
+  });
+  assert.equal(plan.courseRestricted,true);
+  const grant=await controller.issue(req(owner),workspaceId,plan.id,{
+   studentUserId:student.id,requestId:randomUUID(),
+  });
+  await prisma.course.delete({where:{id:course.id}});
+  const orphan=(await controller.plans(req(owner),workspaceId))[0]!;
+  assert.equal(orphan.courseId,null);
+  assert.equal(orphan.courseRestricted,true);
+  await assert.rejects(()=>controller.issue(req(owner),workspaceId,plan.id,{
+   studentUserId:student.id,requestId:randomUUID(),
+  }),ConflictException);
+  await assert.rejects(()=>controller.redeem(req(student),workspaceId,{
+   bookingId:booking.id,entitlementId:grant.id,
+  }),ForbiddenException);
+  assert.equal((await controller.mine(req(student),workspaceId))[0]?.remaining,4);
+ }finally{
+  if(workspaceId)await prisma.workspace.delete({where:{id:workspaceId}});
+  await prisma.user.deleteMany({where:{id:{in:[owner.id,student.id]}}});
+  await prisma.$disconnect();
+ }
+});
