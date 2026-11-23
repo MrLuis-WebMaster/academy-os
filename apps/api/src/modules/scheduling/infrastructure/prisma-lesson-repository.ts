@@ -23,7 +23,7 @@ export class PrismaLessonRepository implements LessonRepository {
       select:{
         id:true,title:true,status:true,mode:true,startsAt:true,endsAt:true,
         location:true,meetingUrl:true,capacity:true,teacherProfileId:true,courseId:true,
-        seriesId:true,seriesIndex:true,
+        seriesId:true,seriesIndex:true,roomId:true,
       },
       orderBy:{startsAt:'asc'},take:100,
     });

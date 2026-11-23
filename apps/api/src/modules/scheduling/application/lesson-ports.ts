@@ -5,6 +5,7 @@ export interface LessonListRow {
   id:string;title:string;status:LessonStatus;mode:LessonMode;
   startsAt:Date;endsAt:Date;location:string|null;meetingUrl:string|null;capacity:number;
   teacherProfileId:string|null;courseId:string|null;seriesId:string|null;seriesIndex:number|null;
+  roomId:string|null;
 }
 export interface CreatedLesson {
   id:string;title:string;mode:LessonMode;startsAt:Date;endsAt:Date;status:LessonStatus;

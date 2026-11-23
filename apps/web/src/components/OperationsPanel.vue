@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { apiRequest, workspacePath } from '../shared/api-client';
-import { onMounted, ref, watch } from 'vue';
+import { computed, onMounted, ref, watch } from 'vue';
 import { UiButton, UiCard, UiEmptyState } from '@academy-os/ui';
 import PracticeTeacher from './PracticeTeacher.vue';
 import StudioEditor from './StudioEditor.vue';
@@ -13,15 +13,28 @@ import WeeklyAvailability from './WeeklyAvailability.vue';
 import TeacherTimeOff from './TeacherTimeOff.vue';
 import WeeklySeriesManager from './WeeklySeriesManager.vue';
 import HolidayPolicyPanel from './HolidayPolicyPanel.vue';
+import VenueManager from './VenueManager.vue';
 import { BookOpen, CalendarDays, GraduationCap, Plus, RefreshCcw, Users, Video, MapPin, CheckCircle2 } from 'lucide-vue-next';
 const props = defineProps<{ workspace: { id: string; name: string; type: 'SOLO'|'ACADEMY' }; role: string }>();
 type Subject = { id:string; name:string };
 type Course = { id:string; title:string; summary:string|null; subjectId:string|null };
 type Teacher = { id:string; userId:string; user:{name:string} };
-type Lesson = { id:string;courseId:string|null; title:string; startsAt:string; endsAt:string; mode:'ONLINE'|'ONSITE'|'HYBRID'; status:string; location:string|null;meetingUrl:string|null;capacity:number;seriesId?:string|null;seriesIndex?:number|null };
+type Lesson = { id:string;courseId:string|null; title:string; startsAt:string; endsAt:string; mode:'ONLINE'|'ONSITE'|'HYBRID'; status:string; location:string|null;meetingUrl:string|null;capacity:number;seriesId?:string|null;seriesIndex?:number|null;roomId:string|null };
 const subjects=ref<Subject[]>([]), courses=ref<Course[]>([]), teachers=ref<Teacher[]>([]), sessions=ref<Lesson[]>([]);
 type Member={role:string;user:{id:string;name:string;email:string}};
 const members=ref<Member[]>([]);
+type Room={id:string;name:string;capacity:number;active:boolean};
+type Campus={id:string;name:string;address:string;active:boolean;rooms:Room[]};
+const campuses=ref<Campus[]>([]);
+const availableRooms=computed(()=>campuses.value.filter(c=>c.active).flatMap(c=>
+ c.rooms.filter(r=>r.active).map(r=>({...r,campusName:c.name,campusAddress:c.address}))
+));
+const sessionRoomId=ref('');
+watch(sessionRoomId,roomId=>{
+ const room=availableRooms.value.find(item=>item.id===roomId);
+ if(room)location.value=room.campusName+' · '+room.name+' · '+room.campusAddress;
+});
+
 const enrollmentCourse=ref(''),enrollmentStudent=ref('');
 const status=ref<'loading'|'ready'|'error'>('loading'), busy=ref(false), message=ref(''), error=ref('');
 const subjectName=ref(''), courseTitle=ref(''), courseSubjectId=ref('');
@@ -38,18 +51,20 @@ async function refresh(){
   status.value='loading';
   error.value='';
   // Do not leave another academy's lessons visible while switching.
-  subjects.value=[];courses.value=[];teachers.value=[];sessions.value=[];members.value=[];
+  subjects.value=[];courses.value=[];teachers.value=[];sessions.value=[];members.value=[];campuses.value=[];
   try{
     const scoped=<T>(suffix:string)=>apiRequest<T>(workspacePath(workspaceId,suffix));
-    const [s,c,t,l]=await Promise.all([
+    const [s,c,t,l,venues]=await Promise.all([
       scoped<Subject[]>('/subjects'),scoped<Course[]>('/courses'),
       scoped<Teacher[]>('/teachers'),scoped<Lesson[]>('/sessions'),
+      scoped<Campus[]>('/locations/campuses'),
     ]);
     if(version!==refreshVersion||workspaceId!==props.workspace.id)return;
     const people=['OWNER','ADMIN'].includes(props.role)
       ?await scoped<Member[]>('/people'):[] as Member[];
     if(version!==refreshVersion||workspaceId!==props.workspace.id)return;
-    subjects.value=s;courses.value=c;teachers.value=t;sessions.value=l;members.value=people;
+    subjects.value=s;courses.value=c;teachers.value=t;sessions.value=l;members.value=people;campuses.value=venues;
+    if(!venues.some(c=>c.active&&c.rooms.some(r=>r.active&&r.id===sessionRoomId.value)))sessionRoomId.value='';
     if(!t.some(teacher=>teacher.id===sessionTeacherId.value)){
       sessionTeacherId.value=t[0]?.id??'';
     }
@@ -81,6 +96,7 @@ async function addSession(){
         courseId:sessionCourseId.value||undefined,mode:mode.value,
         startsAt:startsAt.toISOString(),endsAt:endsAt.toISOString(),
         capacity:capacity.value,
+        ...(mode.value!=='ONLINE'&&sessionRoomId.value?{roomId:sessionRoomId.value}:{}),
         location:mode.value==='ONLINE'?undefined:location.value,
         meetingUrl:mode.value==='ONSITE'?undefined:meetingUrl.value,
         ...(isSeries?{repeatWeeks:weeks}:{}),
@@ -106,7 +122,7 @@ watch(()=>props.workspace.id,async()=>{
   ++reflectionLoadVersion;
   subjects.value=[];courses.value=[];teachers.value=[];sessions.value=[];members.value=[];
   materials.value=[];reflections.value=[];
-  sessionTeacherId.value='';sessionCourseId.value='';courseSubjectId.value='';
+  sessionTeacherId.value='';sessionCourseId.value='';courseSubjectId.value='';sessionRoomId.value='';
   enrollmentCourse.value='';enrollmentStudent.value='';materialCourseId.value='';reflectSessionId.value='';
   message.value='';error.value='';
   await refresh();await loadMaterials();await loadReflections();
@@ -281,13 +297,21 @@ const input='mt-2 w-full rounded-xl border border-outline bg-surface p-3 text-sm
       <option :value="8">Cada semana × 8 clases</option>
       <option :value="12">Cada semana × 12 clases</option>
       <option :value="16">Cada semana × 16 clases</option>
-    </select></label><label v-if="mode!=='ONLINE'" class="text-xs font-semibold"><span class="flex gap-1"><MapPin :size="13"/> Dirección o sede</span><input v-model="location" required placeholder="Sede Centro, Aula 2" :class="input"/></label><div class="flex items-end"><button :disabled="busy||!teachers.length" class="w-full rounded-xl bg-brand px-5 py-3 text-xs font-bold text-white disabled:opacity-60">{{ busy?'Guardando...':'Agendar clase' }}</button></div></form>
+    </select></label><label v-if="mode!=='ONLINE'&&availableRooms.length" class="text-xs font-semibold">Aula física (opcional)
+      <select v-model="sessionRoomId" :class="input">
+       <option value="">Usar lugar manual, sin reservar aula</option>
+       <option v-for="room in availableRooms" :key="room.id" :value="room.id">
+        {{room.campusName}} · {{room.name}} ({{room.capacity}} personas)
+       </option>
+      </select>
+     </label><label v-if="mode!=='ONLINE'" class="text-xs font-semibold"><span class="flex gap-1"><MapPin :size="13"/> Dirección o sede</span><input v-model="location" required placeholder="Sede Centro, Aula 2" :class="input"/></label><div class="flex items-end"><button :disabled="busy||!teachers.length" class="w-full rounded-xl bg-brand px-5 py-3 text-xs font-bold text-white disabled:opacity-60">{{ busy?'Guardando...':'Agendar clase' }}</button></div></form>
       <div class="mt-7 divide-y divide-outline"><div v-for="session in sessions" :key="session.id" class="flex flex-wrap items-center justify-between gap-3 py-4"><div><p class="text-sm font-bold">{{ session.title }} <span v-if="session.seriesId" class="ml-1 rounded-md bg-brand-soft px-2 py-0.5 text-[10px] font-semibold text-brand">Clase semanal {{(session.seriesIndex??0)+1}}</span></p><p class="mt-1 text-xs text-muted">{{ new Date(session.startsAt).toLocaleString('es-CO') }} · {{ session.mode==='ONLINE'?'Virtual':session.mode==='ONSITE'?'Presencial':'Híbrida' }}</p></div><div class="flex items-center gap-3"><span class="rounded-full px-3 py-1 text-xs font-bold" :class="session.status==='CANCELLED'?'bg-surface-muted text-muted':'bg-success-soft text-success'">{{ session.status }}</span><button v-if="session.status==='CONFIRMED'" :disabled="busy" class="rounded-lg border border-rose-200 px-3 py-1 text-xs font-bold text-rose-600 disabled:opacity-40" @click="cancelSession(session)">Cancelar</button></div></div><p v-if="!sessions.length" class="py-5 text-sm text-muted">Todavía no hay clases programadas.</p></div>
     </section>
   <HolidayPolicyPanel v-if="status==='ready' && ['OWNER','ADMIN','TEACHER'].includes(role)" :workspace-id="workspace.id" :editable="['OWNER','ADMIN'].includes(role)" />
   <WeeklyAvailability v-if="status==='ready' && ['OWNER','ADMIN'].includes(role)" :workspace-id="workspace.id" :teachers="teachers" />
     <TeacherTimeOff v-if="status==='ready' && ['OWNER','ADMIN'].includes(role)" :workspace-id="workspace.id" :teachers="teachers" />
-    <WeeklySeriesManager v-if="status==='ready' && ['OWNER','ADMIN','TEACHER'].includes(role)" :workspace-id="workspace.id" :sessions="sessions" @updated="refresh" />
+    <VenueManager v-if="status==='ready' && ['OWNER','ADMIN','TEACHER'].includes(role)" :workspace-id="workspace.id" :editable="['OWNER','ADMIN'].includes(role)" @updated="refresh" />
+    <WeeklySeriesManager v-if="status==='ready' && ['OWNER','ADMIN','TEACHER'].includes(role)" :workspace-id="workspace.id" :sessions="sessions" :rooms="availableRooms" @updated="refresh" />
     <RescheduleSession v-if="status==='ready' && ['OWNER','ADMIN'].includes(role)" :workspace-id="workspace.id" :sessions="sessions" @updated="refresh" />
   <PracticeTeacher v-if="status==='ready'" :workspace-id="workspace.id" :sessions="sessions" />
     <AiPracticeAssistant v-if="status==='ready'" :workspace-id="workspace.id" :sessions="sessions" />

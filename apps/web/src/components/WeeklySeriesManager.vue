@@ -8,9 +8,10 @@ type Lesson={
  id:string;title:string;startsAt:string;endsAt:string;status:string;
  seriesId?:string|null;seriesIndex?:number|null;
  capacity:number;mode:'ONLINE'|'ONSITE'|'HYBRID';
- meetingUrl:string|null;location:string|null;
+ meetingUrl:string|null;location:string|null;roomId:string|null;
 };
-const props=defineProps<{workspaceId:string;sessions:Lesson[]}>();
+type RoomOption={id:string;name:string;capacity:number;campusName:string;campusAddress:string};
+const props=defineProps<{workspaceId:string;sessions:Lesson[];rooms:RoomOption[]}>();
 const emit=defineEmits<{updated:[]}>();
 const groups=computed(()=>{
  const now=Date.now();
@@ -37,7 +38,7 @@ const groups=computed(()=>{
 
 const busy=ref(''),error=ref(''),message=ref(''),editing=ref('');
 const title=ref(''),capacity=ref(1),mode=ref<'ONLINE'|'ONSITE'|'HYBRID'>('ONLINE');
-const meetingUrl=ref(''),location=ref(''),reason=ref('');
+const meetingUrl=ref(''),location=ref(''),reason=ref(''),roomId=ref('');
 const changeTime=ref(false),date=ref(''),starts=ref('09:00'),ends=ref('10:00');
 function localDate(date:Date){
  const year=date.getFullYear(),month=String(date.getMonth()+1).padStart(2,'0');
@@ -53,6 +54,7 @@ function beginEdit(group:(typeof groups.value)[number]){
  capacity.value=lesson.capacity;
  mode.value=lesson.mode;
  meetingUrl.value=lesson.meetingUrl??'';
+ roomId.value=lesson.roomId??'';
  location.value=lesson.location??'';
  reason.value='';
  changeTime.value=false;
@@ -69,6 +71,7 @@ async function updateFuture(seriesId:string){
   reason:reason.value,title:title.value,capacity:capacity.value,mode:mode.value,
   meetingUrl:mode.value==='ONSITE'?null:meetingUrl.value||null,
   location:mode.value==='ONLINE'?null:location.value||null,
+  roomId:mode.value==='ONLINE'?null:roomId.value||null,
  };
  if(changeTime.value){
   const start=new Date(date.value+'T'+starts.value+':00');
@@ -153,6 +156,12 @@ watch(()=>props.workspaceId,()=>{
       <label class="text-xs font-semibold">Título<input v-model="title" required minlength="3" maxlength="120" class="mt-2 w-full rounded-xl border border-outline bg-surface p-3 text-sm"/></label>
       <label class="text-xs font-semibold">Cupos por clase<input v-model.number="capacity" required type="number" min="1" max="500" class="mt-2 w-full rounded-xl border border-outline bg-surface p-3 text-sm"/></label>
       <label class="text-xs font-semibold">Modalidad<select v-model="mode" class="mt-2 w-full rounded-xl border border-outline bg-surface p-3 text-sm"><option value="ONLINE">Virtual</option><option value="ONSITE">Presencial</option><option value="HYBRID">Híbrida</option></select></label>
+      <label v-if="mode!=='ONLINE'&&rooms.length" class="text-xs font-semibold">Aula (opcional)
+       <select v-model="roomId" class="mt-2 w-full rounded-xl border border-outline bg-surface p-3 text-sm">
+        <option value="">Lugar manual, sin reservar aula</option>
+        <option v-for="room in rooms" :key="room.id" :value="room.id">{{room.campusName}} · {{room.name}} ({{room.capacity}} personas)</option>
+       </select>
+      </label>
       <label v-if="mode!=='ONSITE'" class="text-xs font-semibold">Enlace HTTPS<input v-model="meetingUrl" required type="url" class="mt-2 w-full rounded-xl border border-outline bg-surface p-3 text-sm" placeholder="https://meet.google.com/..."/></label>
       <label v-if="mode!=='ONLINE'" class="text-xs font-semibold">Lugar<input v-model="location" required minlength="5" maxlength="300" class="mt-2 w-full rounded-xl border border-outline bg-surface p-3 text-sm" placeholder="Sede, aula o dirección"/></label>
      </div>
