@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import { apiJson, workspacePath } from '../shared/api-client';
+import {apiJson,workspacePath} from '../shared/api-client';
 import {onMounted,ref,watch} from 'vue';
-import {CheckCircle2,ClipboardCheck,RotateCcw,TrendingUp} from 'lucide-vue-next';
+import {CheckCircle2,ClipboardCheck,RotateCcw,Target,TrendingUp} from 'lucide-vue-next';
+
 const props=defineProps<{workspaceId:string}>();
 type PublicQuestion={prompt:string;options:string[]};
 type Practice={
@@ -9,46 +10,94 @@ type Practice={
   questions:PublicQuestion[];lastAttempt:{id:string;score:number|null;createdAt:string}|null;
 };
 type Passport={courseId:string;title:string;subject:string;attempts:number;averageScore:number|null;metric:string};
-type AttemptResult={score:number;correct:number;total:number;attemptNumber:number;feedback:Array<{correct:boolean;correctIndex:number;explanation:string}>};
+type Skill={
+  topicId:string;mastery:number;evidenceCount:number;
+  topic:{title:string;courseId:string;course:{title:string}};
+};
+type Goal={
+  id:string;courseId:string;topicId:string|null;studentUserId:string;
+  title:string;description:string|null;targetMastery:number|null;targetAt:string|null;
+  status:'ACTIVE'|'ACHIEVED'|'CANCELLED';createdAt:string;completedAt:string|null;
+  course:{title:string};topic:{title:string}|null;
+};
+type StudentProgress={skills:Skill[];goals:Goal[]};
+type AttemptResult={
+  score:number;correct:number;total:number;attemptNumber:number;
+  feedback:Array<{correct:boolean;correctIndex:number;explanation:string}>;
+};
 const loading=ref(true),busy=ref(''),error=ref(''),notice=ref('');
 const practices=ref<Practice[]>([]),passport=ref<Passport[]>([]);
+const verifiedSkills=ref<Skill[]>([]),goals=ref<Goal[]>([]);
 const selected=ref<Record<string,Record<number,number>>>({});
 const results=ref<Record<string,AttemptResult>>({});
 const optionLetters=['A','B','C','D'];
-
-async function fetchJson<T>(path:string,method='GET',body?:unknown):Promise<T>{
-  return apiJson<T>(workspacePath(props.workspaceId,'/practice'+path),method,body);
+let loadVersion=0;
+function requestFor<T>(workspaceId:string,path:string,method='GET',body?:unknown):Promise<T>{
+  return apiJson<T>(workspacePath(workspaceId,path),method,body);
 }
 async function load(){
+  const workspaceId=props.workspaceId,version=++loadVersion;
   loading.value=true;error.value='';
-  try{
-    const [activities,progress]=await Promise.all([
-      fetchJson<Practice[]>('/student'),
-      fetchJson<Passport[]>('/passport'),
-    ]);
-    practices.value=activities;passport.value=progress;
-  }catch(e){error.value=e instanceof Error?e.message:'No pudimos cargar tu aprendizaje.';}
-  finally{loading.value=false;}
+  practices.value=[];passport.value=[];verifiedSkills.value=[];goals.value=[];
+  const rows=await Promise.allSettled([
+    requestFor<Practice[]>(workspaceId,'/practice/student'),
+    requestFor<Passport[]>(workspaceId,'/practice/passport'),
+    requestFor<StudentProgress>(workspaceId,'/learning-progress/student'),
+  ]);
+  if(version!==loadVersion||workspaceId!==props.workspaceId)return;
+  if(rows.some(row=>row.status==='rejected')){
+    error.value='No se pudieron cargar todas las actividades y metas de aprendizaje. Revisa tu conexión.';
+  }
+  if(rows[0]?.status==='fulfilled')practices.value=rows[0].value;
+  if(rows[1]?.status==='fulfilled')passport.value=rows[1].value;
+  if(rows[2]?.status==='fulfilled'){
+    verifiedSkills.value=rows[2].value.skills;
+    goals.value=rows[2].value.goals;
+  }
+  loading.value=false;
 }
 function choose(activityId:string,questionIndex:number,optionIndex:number){
-  selected.value={...selected.value,[activityId]:{...(selected.value[activityId]??{}),[questionIndex]:optionIndex}};
+  selected.value={
+    ...selected.value,
+    [activityId]:{...(selected.value[activityId]??{}),[questionIndex]:optionIndex},
+  };
 }
 async function submit(activity:Practice){
+  if(busy.value)return;
+  const workspaceId=props.workspaceId;
   const answers=activity.questions.map((_,i)=>selected.value[activity.id]?.[i]);
-  if(answers.some(a=>a===undefined)){error.value='Responde todas las preguntas antes de enviar.';return;}
+  if(answers.some(a=>a===undefined)){
+    error.value='Responde todas las preguntas antes de enviar.';
+    return;
+  }
   busy.value=activity.id;error.value='';notice.value='';
   try{
-    const result=await fetchJson<AttemptResult>('/'+activity.id+'/attempts','POST',{answers});
+    const result=await requestFor<AttemptResult>(
+      workspaceId,'/practice/'+encodeURIComponent(activity.id)+'/attempts',
+      'POST',{answers},
+    );
+    if(workspaceId!==props.workspaceId)return;
     results.value={...results.value,[activity.id]:result};
+    const [newPassport,newPractices]=await Promise.all([
+      requestFor<Passport[]>(workspaceId,'/practice/passport'),
+      requestFor<Practice[]>(workspaceId,'/practice/student'),
+    ]);
+    if(workspaceId!==props.workspaceId)return;
+    passport.value=newPassport;
+    practices.value=newPractices;
     notice.value='Práctica entregada y corregida.';
-    const passportResult=await fetchJson<Passport[]>('/passport');
-    passport.value=passportResult;
-    practices.value=await fetchJson<Practice[]>('/student');
-  }catch(e){error.value=e instanceof Error?e.message:'No se pudo entregar la práctica.';}
-  finally{busy.value='';}
+  }catch(e){
+    if(workspaceId===props.workspaceId){
+      error.value=e instanceof Error?e.message:'No se pudo entregar la práctica.';
+    }
+  }finally{busy.value='';}
 }
-watch(()=>props.workspaceId,()=>{selected.value={};results.value={};load();});
-onMounted(load);
+watch(()=>props.workspaceId,()=>{
+  ++loadVersion;
+  selected.value={};results.value={};notice.value='';busy.value='';error.value='';
+  void load();
+});
+onMounted(()=>void load());
 </script>
 <template>
 <section class="space-y-5">
@@ -66,6 +115,29 @@ onMounted(load);
       <div class="mt-3 h-2 overflow-hidden rounded-full bg-surface-muted"><div class="h-full rounded-full bg-brand-soft0" :style="{width:(course.averageScore??0)+'%'}"></div></div>
     </article>
   </div>
+  <section v-if="!loading && (verifiedSkills.length || goals.length)" class="space-y-3">
+    <div class="flex items-center gap-2"><Target :size="19" class="text-brand"/><h3 class="text-base font-extrabold">Mis competencias y metas</h3></div>
+    <p class="text-xs text-muted">Estos resultados son valoraciones registradas por tus docentes y no calificaciones inferidas automáticamente.</p>
+    <div v-if="verifiedSkills.length" class="grid gap-3 sm:grid-cols-2">
+      <article v-for="skill in verifiedSkills" :key="skill.topicId" class="rounded-xl border border-outline bg-surface p-4">
+        <p class="text-xs font-bold text-brand">{{skill.topic.course.title}}</p>
+        <h4 class="mt-1 text-sm font-bold">{{skill.topic.title}}</h4>
+        <p class="mt-2 text-2xl font-extrabold">{{skill.mastery}}%</p>
+        <p class="mt-1 text-xs text-muted">{{skill.evidenceCount}} {{skill.evidenceCount===1?'valoración docente':'valoraciones docentes'}}</p>
+        <div class="mt-3 h-2 overflow-hidden rounded-full bg-surface-muted"><div class="h-full rounded-full bg-brand" :style="{width:skill.mastery+'%'}"></div></div>
+      </article>
+    </div>
+    <div v-if="goals.length" class="grid gap-3 sm:grid-cols-2">
+      <article v-for="goal in goals" :key="goal.id" class="rounded-xl border border-outline bg-surface p-4">
+        <p class="text-xs font-bold text-brand">{{goal.course.title}}</p>
+        <h4 class="mt-1 text-sm font-bold">{{goal.title}}</h4>
+        <p v-if="goal.description" class="mt-2 text-xs text-muted">{{goal.description}}</p>
+        <p class="mt-2 text-xs font-semibold">{{goal.status==='ACTIVE'?'En progreso':goal.status==='ACHIEVED'?'Meta alcanzada':'Meta cancelada'}}</p>
+        <p v-if="goal.targetMastery" class="mt-1 text-xs text-muted">Objetivo: {{goal.targetMastery}}%</p>
+        <p v-if="goal.targetAt" class="mt-1 text-xs text-muted">Fecha objetivo: {{new Date(goal.targetAt).toLocaleDateString('es-CO')}}</p>
+      </article>
+    </div>
+  </section>
   <div class="flex items-center gap-3 pt-3"><ClipboardCheck :size="21" class="text-brand"/><div><h2 class="text-lg font-extrabold">Prácticas de Clase Viva</h2><p class="mt-1 text-xs text-muted">Retos publicados por tus profesores, corregidos al entregar.</p></div></div>
   <p v-if="!loading && !practices.length" class="rounded-2xl border border-outline bg-surface p-5 text-sm text-muted">Todavía no hay ejercicios publicados. Cuando tu profesor prepare uno, aparecerá aquí.</p>
   <article v-for="practice in practices" :key="practice.id" class="rounded-2xl border border-outline bg-surface p-5 sm:p-6">
