@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import {apiJson,workspacePath} from '../shared/api-client';
 import {computed,onMounted,ref,watch} from 'vue';
-import {CalendarCheck,CheckCircle2,CalendarClock,Layers3} from 'lucide-vue-next';
-import {UiAlert} from '@academy-os/ui';
+import {BellRing,CalendarCheck,CheckCircle2,Layers3} from 'lucide-vue-next';
+import {UiAlert,UiButton,UiSwitch} from '@academy-os/ui';
 
 type ClassSession={id:string;title:string;startsAt:string;seriesId:string|null;seriesIndex:number|null};
 type Booking={id:string;sessionId:string;status:'BOOKED'|'CANCELLED';bookedAt:string;
@@ -12,6 +12,41 @@ type Booking={id:string;sessionId:string;status:'BOOKED'|'CANCELLED';bookedAt:st
 };
 const props=defineProps<{workspaceId:string;sessions:ClassSession[]}>();
 const mine=ref<Booking[]>([]),loading=ref(false),busy=ref(''),error=ref(''),notice=ref('');
+type ReminderPrefs={remind24h:boolean;remind1h:boolean};
+const preferences=ref<ReminderPrefs>({remind24h:false,remind1h:false});
+const preferencesLoading=ref(true),preferencesSaving=ref(false),preferencesError=ref('');
+let preferenceVersion=0;
+async function loadPreferences(){
+ const workspace=props.workspaceId,version=++preferenceVersion;
+ preferencesLoading.value=true;preferencesError.value='';
+ preferences.value={remind24h:false,remind1h:false};
+ try{
+  const data=await apiJson<ReminderPrefs>(workspacePath(workspace,'/notifications/reminder-preferences'));
+  if(version!==preferenceVersion||workspace!==props.workspaceId)return;
+  preferences.value=data;
+ }catch(e){
+  if(version===preferenceVersion&&workspace===props.workspaceId){
+   preferencesError.value=e instanceof Error?e.message:'No se pudieron leer tus preferencias de recordatorios.';
+  }
+ }finally{if(version===preferenceVersion)preferencesLoading.value=false;}
+}
+async function savePreferences(){
+ if(preferencesSaving.value)return;
+ const workspace=props.workspaceId;
+ preferencesSaving.value=true;preferencesError.value='';notice.value='';
+ try{
+  const value=await apiJson<ReminderPrefs>(
+   workspacePath(workspace,'/notifications/reminder-preferences'),'PATCH',preferences.value,
+  );
+  if(workspace!==props.workspaceId)return;
+  preferences.value=value;
+  notice.value='Tus recordatorios internos fueron actualizados.';
+ }catch(e){
+  if(workspace===props.workspaceId){
+   preferencesError.value=e instanceof Error?e.message:'No se pudieron guardar tus recordatorios.';
+  }
+ }finally{preferencesSaving.value=false;}
+}
 let requestVersion=0;
 function requestFor<T>(workspaceId:string,path:string,method='GET',body?:unknown):Promise<T>{
   return apiJson<T>(workspacePath(workspaceId,'/bookings'+path),method,body);
@@ -121,10 +156,16 @@ async function cancelSeries(seriesId:string,title:string){
 }
 watch(()=>props.workspaceId,()=>{
  ++requestVersion;
+ ++preferenceVersion;
  mine.value=[];busy.value='';notice.value='';error.value='';
+ preferences.value={remind24h:false,remind1h:false};preferencesError.value='';
  void load();
+ void loadPreferences();
 });
-onMounted(()=>void load());
+onMounted(()=>{
+ void load();
+ void loadPreferences();
+});
 </script>
 <template>
 <section class="rounded-2xl border border-outline bg-surface p-6">
@@ -132,6 +173,17 @@ onMounted(()=>void load());
  <p v-if="error" role="alert" class="mt-4 rounded-xl bg-danger-soft p-3 text-xs text-danger">{{ error }}</p>
  <p v-if="notice" role="status" class="mt-4 flex items-center gap-2 rounded-xl bg-success-soft p-3 text-xs text-success"><CheckCircle2 :size="15"/>{{ notice }}</p>
  <p v-if="loading" class="mt-4 text-xs text-muted">Consultando tus reservas...</p>
+ <section class="mt-5 rounded-xl border border-outline bg-surface-muted p-4" aria-label="Preferencias de recordatorios">
+  <div class="flex items-center gap-2"><BellRing :size="16" class="text-brand"/><h3 class="text-sm font-extrabold">Recordatorios de clase</h3></div>
+  <p class="mt-2 text-xs text-muted">Recibe avisos dentro de AcademyOS para las clases que hayas reservado. Están desactivados hasta que los autorices. No se enviarán correos ni WhatsApp.</p>
+  <p v-if="preferencesLoading" class="mt-3 text-xs text-muted">Cargando preferencias…</p>
+  <div v-else class="mt-3 flex flex-wrap items-center gap-4">
+   <UiSwitch v-model="preferences.remind24h" label="24 horas antes" />
+   <UiSwitch v-model="preferences.remind1h" label="1 hora antes" />
+   <UiButton size="sm" variant="secondary" :disabled="preferencesSaving" :loading="preferencesSaving" @click="savePreferences">Guardar recordatorios</UiButton>
+  </div>
+  <UiAlert v-if="preferencesError" tone="warning" class="mt-3">{{preferencesError}}</UiAlert>
+ </section>
  <div v-if="!loading" class="mt-4 space-y-2">
   <UiAlert v-for="booking in mine.filter(b=>b.status==='BOOKED'&&(b.session.status==='CANCELLED'||b.session.changes.length>0))" :key="booking.id" tone="warning">
    <strong>{{ booking.session.title }}:</strong>
