@@ -87,7 +87,6 @@ model User {
   setupRequests SetupRequest[]
   sentInvitations WorkspaceInvitation[] @relation("InvitedBy")
   bookings ClassBooking[]
-  classReminderPreferences ClassReminderPreference[]
   studentReceipts PaymentReceipt[] @relation("StudentPayment")
   recordedReceipts PaymentReceipt[] @relation("RecordedPayment")
   sessionChanges SessionChange[]
@@ -129,6 +128,7 @@ model Workspace {
   bookings ClassBooking[]
   paymentReceipts PaymentReceipt[]
   notifications Notification[]
+  classReminderPreferences ClassReminderPreference[]
   availabilitySlots WeeklyAvailability[]
   timeOffPeriods TeacherTimeOff[]
   classSeries ClassSeries[]
