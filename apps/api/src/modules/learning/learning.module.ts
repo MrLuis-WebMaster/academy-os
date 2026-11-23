@@ -1,4 +1,7 @@
 import {Module} from '@nestjs/common';
+import {SosReferralsController} from './presentation/sos-referrals.controller.js';
+import {SosReferralUseCases} from './application/sos-referral-use-cases.js';
+import {PrismaSosReferralRepository} from './infrastructure/prisma-sos-referral-repository.js';
 import {TeachingMethodologyController} from './presentation/methodology.controller.js';
 import {TeacherMethodologyUseCases} from './application/methodology-use-cases.js';
 import {PrismaMethodologyRepository} from './infrastructure/prisma-methodology-repository.js';
@@ -22,8 +25,11 @@ import {PrismaStudentTutorRepository} from './infrastructure/prisma-student-tuto
 import {OpenAiTutorAdapter} from './infrastructure/openai-tutor-adapter.js';
 
 @Module({
- controllers:[TeachingMethodologyController,StudentProgressController,PracticeController,ClassAliveController,AiClassAliveController,ProfeSosController],
+ controllers:[SosReferralsController,TeachingMethodologyController,StudentProgressController,PracticeController,ClassAliveController,AiClassAliveController,ProfeSosController],
  providers:[{
+  provide:SosReferralUseCases,
+  useFactory:()=>new SosReferralUseCases(new PrismaSosReferralRepository(),new PrismaMembershipAdapter()),
+ },{
   provide:TeacherMethodologyUseCases,
   useFactory:()=>new TeacherMethodologyUseCases(new PrismaMethodologyRepository(),new PrismaMembershipAdapter()),
  },{
