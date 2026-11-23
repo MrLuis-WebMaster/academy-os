@@ -30,6 +30,10 @@ El acceso real necesita configurar `BETTER_AUTH_SECRET`, `GOOGLE_CLIENT_ID`, `GO
 
 En producción usa migraciones revisadas con `prisma migrate deploy`, HTTPS y copias de seguridad; no ejecutes migraciones destructivas directamente sobre datos reales.
 
+## Agenda avanzada — 2026-11-23
+
+Se integraron reservas de series para estudiantes, edición masiva de clases futuras, festivos nacionales de Colombia opt-in y sedes/aulas con exclusión de horario físico. Documentación: [Agenda avanzada](docs/SCHEDULING_FEATURES.md). Los servicios externos y las pruebas manuales continúan pendientes.
+
 ## Entregas nuevas — 2026-11-23
 Se migraron a DDD/hexagonal Clase Viva, prácticas y Pasaporte, invitaciones y alta OWNER, Profe Studio, curriculum, el historial privado de reservas y las proyecciones de directorio/Aula Digital, además de las verticales ya existentes. Las pruebas PostgreSQL incluyen controles de concurrencia y aislamiento multi-tenant.
 Staging reproducible: [guía](docs/STAGING_DEPLOYMENT.md). Antes de usar datos reales, revisar [bloqueadores](docs/DELIVERY_READINESS.md) y [release checklist](docs/RELEASE_CHECKLIST.md).

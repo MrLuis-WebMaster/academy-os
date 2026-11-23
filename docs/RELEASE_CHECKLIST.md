@@ -17,9 +17,10 @@
 - [ ] Pruebas visuales automatizadas en claro/oscuro/sistema, contraste WCAG AA y navegación por teclado.
 - [ ] Migrar componentes de negocio restantes a los primitives reutilizables de `@academy-os/ui`.
 - [ ] Mantener dashboard demo separado y no poner datos ficticios ante clientes.
-- [ ] Pruebas de regresión de series semanales, DST, feriados, huecos de agenda y cambios de hora por zona real.
+- [~] Pruebas automáticas de series, DST, festivos de Colombia, cupos y aulas; faltan QA humano y zonas internacionales.
 - [x] Cancelación masiva de sesiones semanales futuras, transaccional y con avisos internos por reserva.
-- [ ] Definir edición masiva de series, invitaciones recurrentes y pruebas de comunicación externa.
+- [x] Edición masiva de series y reservas recurrentes de estudiantes codificadas con pruebas PostgreSQL.
+- [ ] Comunicación externa para clases recurrentes y pruebas con proveedores reales.
 
 ## Seguridad funcional
 - [ ] E2E real de Google OAuth, primera academia, alternar espacios, invitaciones, revocación.

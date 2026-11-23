@@ -28,3 +28,11 @@ Las rutas de creación, listado y cancelación de sesiones están aisladas por a
 - Provisioning idempotente y cursos/asignaciones limitados a su academia.
 - Profe Studio privado por defecto y filtrado por workspace.
 - Persisten pendientes E2E real, consentimiento de menores, OAuth, auditoría completa, backups reales y rate limiting en gateway.
+
+## Controles de agenda incorporados (2026-11-23)
+
+- Las reservas recurrentes se confirman completamente o revierten; el mismo lock por sesión protege el aforo durante solicitudes concurrentes.
+- La edición de series futuras serializa reservas y cambios docentes, conserva histórico, valida aforo y publica avisos internos transaccionales.
+- Las aulas están asociadas a una academia y los locks físicos impiden asignar la misma sala simultáneamente a dos docentes.
+- La política de feriados se activa expresamente y no cancela clases ya existentes.
+- Continúan pendientes E2E, protección de menores, revisión de privacidad y servicios externos.

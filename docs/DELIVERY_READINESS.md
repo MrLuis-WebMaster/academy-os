@@ -4,7 +4,7 @@
 - Monorepo, Design System, PWA, CI, PostgreSQL y arquitectura por contextos.
 - Better Auth/Google configurables; onboarding OWNER idempotente e invitaciones seguras.
 - Academics: materias, cursos, matrículas, docentes, temarios y permisos por curso.
-- Scheduling: clases híbridas/virtuales/presenciales, reservas, series, disponibilidad, ausencias, reprogramación, cancelación y asistencia.
+- Scheduling: clases híbridas/virtuales/presenciales, reservas individuales y recurrentes, edición masiva de series, disponibilidad, ausencias, feriados nacionales de Colombia opcionales, sedes y aulas con disponibilidad física, reprogramación, cancelación y asistencia.
 - Classroom y Learning: materiales, Clase Viva, prácticas, tres intentos máximos concurrentes y Pasaporte inicial.
 - IA opt-in en código, bandeja interna, ICS privado y finanzas manuales.
 - Profe Studio con servicios, catálogo público opt-in y gestión por academia.
@@ -21,7 +21,7 @@
 - Configurar correo, push o WhatsApp con consentimiento, colas y recordatorios programados.
 - OAuth de Calendar/Meet, Zoom y Drive, revocación, refresco y permisos separados del login.
 - Probar IA con proveedor real y política de minimización de datos; resúmenes IA pendientes.
-- Acudientes, sedes/aulas, feriados automáticos, edición masiva de series, dominios/white-label, multimoneda y analítica avanzada.
+- Acudientes, suplencias, feriados de otros países y regionales, dominios/white-label, multimoneda y analítica avanzada.
 
 ## Declaración de alcance
 CI verde valida código y pruebas automatizadas, no demuestra operación real de OAuth, pagos, emails o hosting. No anunciar AcademyOS como terminado hasta pasar el checklist de lanzamiento.

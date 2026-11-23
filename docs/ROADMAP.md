@@ -13,7 +13,7 @@ Cada marca `[x]` indica funcionalidad codificada en el repo, **no un lanzamiento
 - [x] PWA estática con fallback offline sin caché de información privada.
 - [~] Pruebas de aislamiento de academias, clases concurrentes y sobrecupo con PostgreSQL; falta cobertura integral de rutas y E2E.
 - [x] Versionar `pnpm-lock.yaml` y utilizar instalación congelada en CI.
-- [ ] Plantilla staging HTTPS con Docker, Caddy, PostgreSQL y backup/restore manual en Git; faltan despliegue real, copias programadas y restauración probada.
+- [~] Plantilla staging HTTPS con Docker, Caddy, PostgreSQL y backup/restore manual en Git; faltan despliegue real, copias programadas y restauración probada.
 
 ## Etapa 1 — MVP operativo
 - [x] Better Auth + Google, sesiones y onboarding self-service OWNER implementados en código.
@@ -24,7 +24,7 @@ Cada marca `[x]` indica funcionalidad codificada en el repo, **no un lanzamiento
 - [x] Registro manual de cobros; no captura pagos externos.
 - [x] Profe Studio con catálogo público, precio COP y contacto externo, desactivado por defecto.
 - [ ] E2E de Google OAuth con credenciales reales y despliegue staging.
-- [~] Reprogramación auditada y reservas existentes, franjas semanales, **ausencias y festivos manuales**, series semanales de 2–16 clases y notificaciones in-app transaccionales. Faltan festivos automáticos por país, sedes/aulas, edición masiva de series, email/WhatsApp/push y calendario avanzado.
+- [~] Reprogramación auditada y reservas existentes, franjas semanales, **ausencias y festivos manuales**, series semanales de 2–16 clases y notificaciones in-app transaccionales. Se implementaron festivos nacionales de Colombia con política opt-in, sedes/aulas y edición masiva de series. Faltan otros países, email/WhatsApp/push y sincronización de calendario.
 - [ ] Checkout con pasarela, conciliación, reembolsos y facturación.
 - [ ] E2E de flujos, privacidad/menores y auditoría multi-tenant integral.
 
@@ -42,8 +42,8 @@ Cada marca `[x]` indica funcionalidad codificada en el repo, **no un lanzamiento
 
 ## Etapa 3 — academia y white-label avanzados
 - [ ] Roles de acudientes verificados, privacidad para menores y reportes familiares.
-- [~] Series semanales de clases, todas o ninguna, con validación DST y conflictos; cancelación masiva de futuras sesiones con avisos in-app, sin alterar clases anteriores. Falta edición masiva y reservas recurrentes de estudiantes.
-- [ ] Sedes/aulas, docentes sustitutos y recursos compartidos.
+- [~] Series semanales de clases, todas o ninguna, con validación DST y conflictos; cancelación masiva de futuras sesiones con avisos in-app, sin alterar clases anteriores. Edición masiva de futuras sesiones y reservas recurrentes de alumnos implementadas.
+- [~] Sedes y aulas con exclusión de horarios y capacidad; faltan docentes sustitutos y recursos complementarios.
 - [ ] Dominios personalizados, branding completo, multimoneda y planes comerciales.
 - [ ] OneDrive, Dropbox, Outlook/Teams y más conectores.
 - [ ] Instancias dedicadas con activación segura del propietario.
@@ -86,3 +86,11 @@ Cumplir [RELEASE_CHECKLIST.md](RELEASE_CHECKLIST.md). Nunca considerar CI verde 
 - [x] Directorio (personas y docentes) separado en Tenancy; emails visibles únicamente a OWNER/ADMIN.
 - [x] Consulta Aula Digital del alumno en Classroom con filtro de matrícula, materiales publicados y sesiones de la academia.
 - [x] Pruebas de regresión de acceso, aislamiento de academia y ruta conservada.
+
+## Hito 13 — Agenda avanzada (2026-11-23)
+- [x] Reservas recurrentes futuras de alumnos y cancelación de reservas propias, ambas transaccionales y aisladas por academia.
+- [x] Edición masiva de próximas clases semanales con validación DST, permisos, disponibilidad, capacidad, auditoría y avisos internos.
+- [x] Calendario calculado de festivos de Colombia, incluidas Leyes 51/1983 y 2578/2026, opcional por academia y sin cambios retroactivos.
+- [x] Sedes y aulas, aforo y exclusión de horario físico; selección en la gestión de clases y series.
+- [x] Pruebas PostgreSQL y CI de reservas concurrentes, calendario, series y aulas.
+- [ ] Ferias/feriados de otros países y regiones, suplencias, integraciones de proveedores y QA manual.

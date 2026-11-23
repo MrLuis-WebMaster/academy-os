@@ -2,7 +2,7 @@
 
 ## Entregas codificadas en `main`
 - Login Better Auth + Google: flujo implementado, necesita credenciales OAuth, base real y validación E2E; registro de propietario mediante onboarding de tres pasos.
-- Persistencia Prisma/PostgreSQL con migraciones `0_init` a `12_weekly_series`, guards de sesiones y permisos tenant.
+- Persistencia Prisma/PostgreSQL con migraciones versionadas hasta `14_campuses_rooms`, guards de sesiones y permisos tenant.
 - Profesores, alumnos, cursos, materias, asignación de profesores, temas y matrículas.
 - Clases virtuales/presenciales/híbridas, enlaces manuales, detección básica de choques, cancelaciones, reserva de cupos transaccional y asistencia.
 - Aula Digital protegida para inscripciones y publicaciones de materiales HTTPS.
@@ -92,6 +92,14 @@
 - Historial personal de reservas migrado a Scheduling por capas: solo rol STUDENT, validación en Prisma y filtro por alumno y academia.
 - Catálogo interno separado: directorio por Tenancy (personal OWNER/ADMIN, docentes STAFF) y Aula Digital por Classroom (material publicado en cursos inscritos).
 - AppModule ya delega las rutas por academia a sus módulos; conserva el endpoint HTTP sin cambio de contrato.
+
+## Hito 13 — Reservas recurrentes, festivos y aulas (2026-11-23)
+
+- Reserva de todas las clases futuras confirmadas de una serie como una sola transacción, con control de aforo y matriculación e idempotencia para clases ya reservadas.
+- Edición masiva de sesiones futuras en series, respetando histórico, DST local, ausencias, disponibilidad, capacidad mínima para reservas existentes, cambios auditados y avisos internos.
+- Calendario de festivos nacionales de Colombia y restricción opcional por academia. Otros países no están soportados todavía.
+- Sedes y aulas con disponibilidad y capacidad física, validación de academia y bloqueo de choques horarios entre profesores distintos.
+- Gestión visual de estas funciones desde los paneles de profesores, administradores y alumnos; no equivale a pruebas manuales de usuarios.
 
 ## Límites no resueltos
 - OAuth Google en entorno real, test del callback, cookies, sesiones y logout end-to-end.
