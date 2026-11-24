@@ -7,12 +7,16 @@ import App from '../App.vue';
 import OperationsPanel from './OperationsPanel.vue';
 import StudentClassroom from './StudentClassroom.vue';
 import GuardianPortal from './GuardianPortal.vue';
+import PlatformConsole from './PlatformConsole.vue';
+import {apiJson} from '../shared/api-client';
 import NotificationCenter from './NotificationCenter.vue';
 
 type Workspace = { id: string; name: string; slug: string; type: 'SOLO'|'ACADEMY'; brandColor: string };
 type Membership = { role: string; workspace: Workspace };
 type Identity = { id: string; name: string; email: string };
-const state = ref<'loading'|'login'|'setup'|'ready'|'error'>('loading');
+const state = ref<'loading'|'login'|'setup'|'ready'|'platform'|'error'>('loading');
+const platformRoute=/^\/platform\/?$/.test(window.location.pathname);
+const operator=ref(false);
 const googleConfigured = ref(false);
 const user = ref<Identity | null>(null);
 const memberships = ref<Membership[]>([]);
@@ -39,6 +43,7 @@ watch(() => selected.value?.brandColor, color => {
 
 async function load() {
   state.value = 'loading';
+  operator.value=false;
   error.value = '';
   try {
     const config = await fetch('/api/v1/auth-config');
@@ -58,6 +63,11 @@ async function load() {
       body=await refreshed.json() as {user:Identity;memberships:Membership[]};
     }
     user.value = body.user; memberships.value = body.memberships;
+    try{operator.value=(await apiJson<{operator:boolean}>('/api/v1/platform/access')).operator;}catch(e){if(platformRoute)throw e;}
+    if(platformRoute){
+      if(!operator.value)throw Error('No tienes acceso a la consola de plataforma.');
+      selected.value=null;state.value='platform';return;
+    }
     if (!memberships.value.length) {
       name.value = `Academia de ${body.user.name.split(' ')[0]}`;
       state.value = 'setup';
@@ -69,12 +79,12 @@ async function load() {
 }
 async function signIn() {
   busy.value = true; error.value='';
-  try { const { error: authError } = await authClient.signIn.social({ provider:'google', callbackURL: window.location.origin }); if(authError) throw Error(authError.message || 'Error de acceso'); }
+  try { const { error: authError } = await authClient.signIn.social({ provider:'google', callbackURL: window.location.origin+(platformRoute?'/platform':'/') }); if(authError) throw Error(authError.message || 'Error de acceso'); }
   catch (e) { error.value = e instanceof Error ? e.message : 'No pudimos iniciar sesión.'; }
   finally { busy.value = false; }
 }
 function newWorkspace(){state.value='setup';step.value=1;name.value=`Academia de ${user.value?.name.split(' ')[0] || 'Mi nombre'}`;type.value='SOLO';subjects.value=[];requestId.value=crypto.randomUUID();error.value='';}
-async function signOut() { await authClient.signOut(); user.value=null; memberships.value=[]; selected.value=null; state.value='login'; demo.value=false; }
+async function signOut() { await authClient.signOut(); user.value=null; memberships.value=[]; selected.value=null; state.value='login'; demo.value=false; operator.value=false; }
 async function create() {
   busy.value=true; error.value='';
   try {
@@ -104,6 +114,10 @@ onMounted(()=>{
 
 <template>
   <div v-if="state==='loading'" class="grid min-h-screen place-items-center bg-canvas"><span class="flex items-center gap-2 text-sm text-brand"><LoaderCircle class="animate-spin" :size="20"/> Preparando tu espacio...</span></div>
+  <template v-else-if="state==='platform'">
+    <header class="flex flex-wrap items-center justify-between gap-3 border-b border-outline bg-surface px-4 py-3 md:px-8"><UiBrand/><div class="flex flex-wrap items-center gap-3"><a href="/" class="text-xs font-bold text-brand">Ir a mi espacio</a><UiThemeSwitcher/><UiButton variant="secondary" size="sm" @click="signOut">Cerrar sesión</UiButton></div></header>
+    <PlatformConsole/>
+  </template>
   <template v-else-if="state==='ready' || demo">
     <div class="min-h-screen">
       <div class="flex flex-wrap items-center justify-between gap-3 border-b border-outline bg-surface px-4 py-2 text-xs md:px-8">
@@ -117,6 +131,7 @@ onMounted(()=>{
             <CalendarDays :size="17" aria-hidden="true"/>
             <span class="hidden lg:inline">Mi calendario</span>
           </a>
+          <a v-if="!demo&&operator" href="/platform" class="rounded-lg border border-outline px-3 py-2 font-bold text-brand">Plataforma</a>
           <UiThemeSwitcher />
           <select v-if="!demo && memberships.length>1" aria-label="Elegir academia" class="rounded-lg border border-outline px-2 py-1 text-xs" :value="selected?.id" @change="selected=memberships.find(m=>m.workspace.id===($event.target as HTMLSelectElement).value)?.workspace || null"><option v-for="m in memberships" :key="m.workspace.id" :value="m.workspace.id">{{ m.workspace.name }}</option></select>
           <button v-if="!demo" class="rounded-lg border border-outline px-3 py-2 font-bold text-muted" @click="newWorkspace">Nueva academia</button>
@@ -139,9 +154,10 @@ onMounted(()=>{
         <p class="mt-4 text-sm leading-7 text-muted">Organiza tus clases, acompaña a tus alumnos y crea tu propio espacio educativo. Sin contraseñas ni formularios largos.</p>
         <UiButton variant="secondary" size="lg" class="mt-8" block :loading="busy" :disabled="!googleConfigured" @click="signIn"><span class="text-xl font-black text-[#4285F4]">G</span>Continuar con Google</UiButton>
         <p v-if="!googleConfigured" class="mt-3 text-center text-xs text-warning">El administrador debe configurar Google OAuth en el servidor para habilitar el acceso.</p>
-        <p class="mt-6 text-center text-xs text-muted">¿Solo quieres explorar? <button class="font-bold text-brand underline" @click="demo=true">Ver una demostración</button></p>
+        <p v-if="!platformRoute" class="mt-6 text-center text-xs text-muted">¿Solo quieres explorar? <button class="font-bold text-brand underline" @click="demo=true">Ver una demostración</button></p>
       </template>
       <template v-else-if="state==='setup'">
+        <a v-if="operator" href="/platform" class="mb-4 block text-xs font-bold text-brand">Ir a la administración de plataforma</a>
         <div class="mb-6 flex justify-between text-xs font-bold text-brand"><span>Configura tu espacio</span><span>Paso {{ step }} de 3</span></div>
         <div class="mb-8 grid grid-cols-3 gap-2"><div v-for="i in 3" :key="i" :class="i<=step?'bg-brand':'bg-brand-soft'" class="h-1.5 rounded-full"></div></div>
         <template v-if="step===1">
@@ -164,7 +180,7 @@ onMounted(()=>{
         <p v-if="error" role="alert" class="mt-4 rounded-xl bg-danger-soft p-3 text-xs font-medium text-danger">{{ error }}</p>
         <div class="mt-8 flex items-center justify-between gap-3"><button v-if="step>1" class="flex items-center gap-2 text-xs font-bold text-muted" @click="step--"><ArrowLeft :size="15"/> Volver</button><span v-else></span><UiButton :loading="busy" @click="next">{{ step===3?'Crear mi espacio':'Continuar' }}<Check v-if="step===3" :size="15"/><ArrowRight v-else :size="15"/></UiButton></div>
       </template>
-      <template v-else><h1 class="text-xl font-extrabold">No pudimos iniciar AcademyOS</h1><p class="mt-4 text-sm text-muted">{{ error }}</p><UiButton class="mt-5" @click="load">Reintentar</UiButton></template>
+      <template v-else><h1 class="text-xl font-extrabold">No pudimos iniciar AcademyOS</h1><p class="mt-4 text-sm text-muted">{{ error }}</p><UiButton class="mt-5" @click="load">Reintentar</UiButton><a v-if="platformRoute" href="/" class="mt-4 block text-sm text-brand">Volver a AcademyOS</a></template>
       <p v-if="error && state==='login'" role="alert" class="mt-4 rounded-xl bg-danger-soft p-3 text-sm text-danger">{{ error }}</p>
       <div class="mt-9 flex items-center gap-2 border-t border-outline pt-5 text-xs text-muted"><BookOpen :size="15"/> AcademyOS · Acceso seguro</div>
     </main>
