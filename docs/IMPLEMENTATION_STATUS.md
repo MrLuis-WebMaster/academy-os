@@ -223,3 +223,9 @@ pnpm typecheck && pnpm test && pnpm build
 - Consola /platform para operador verificado sin membresía obligatoria, overview de academias/planes y auditoría de cambios; panel de academia separado.
 - Cuotas compartidas de IA 10/30/100 intentos diarios UTC (Starter/Pro/Academy), con bloqueo transaccional y visualización de uso. Flag de enforcement apagado por defecto conserva 10 diarios.
 - Pruebas de dominio aisladas: 4 exitosas; suite de integración ampliada, sin ejecución confirmada. Sin acceso DNS local para clonar el repositorio. No se cobraron suscripciones ni se usaron proveedores reales. Ver SAAS_PLANS.md.
+
+
+## Hito 31 — checkout Wompi para paquetes (piloto)
+- Checkout alojado COP, firma y expiración del servidor, referencia persistida, webhook con checksum y consulta autenticada al proveedor.
+- UI del alumno y gestor, sandbox sin créditos, camino de entrega transaccional de producción desactivado por defecto; revisión de incompatibilidades/anulaciones. Una academia piloto por instalación.
+- Migración zc_package_checkout y pruebas simuladas/PostgreSQL añadidas, sin ejecución confirmada. Pendientes sandbox real, conciliación, recuperación de checkout, reembolsos, múltiples comercios y facturación SaaS. Ver [WOMPI_CHECKOUT.md](WOMPI_CHECKOUT.md).
