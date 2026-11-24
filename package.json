@@ -16,6 +16,7 @@
     "db:migrate": "pnpm --filter @academy-os/api db:migrate",
     "arch:check": "node scripts/check-architecture.mjs",
     "staging:check": "node scripts/check-staging-config.mjs",
-    "staging:check:test": "node --test scripts/check-staging-config.test.mjs"
+    "staging:check:test": "node --test scripts/check-staging-config.test.mjs",
+    "commerce:csv:test": "pnpm --filter @academy-os/api exec tsx --test ../../scripts/credit-audit-csv.test.mjs"
   }
 }
