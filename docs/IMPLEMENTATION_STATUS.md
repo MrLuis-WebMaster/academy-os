@@ -211,3 +211,10 @@ pnpm typecheck && pnpm test && pnpm build
 - Revisión de OWNER/ADMIN, referencia externa única, importe comprobado manualmente y entrega transaccional e idempotente de créditos con aviso interno.
 - Pantallas de estudiante y gestión, migración za_package_orders, flag desactivado por defecto y pruebas PostgreSQL añadidas.
 - Pendientes CI, pruebas de interfaz y pasarela real con eventos firmados, conciliación y suscripciones. Ver [PACKAGE_ORDERS.md](PACKAGE_ORDERS.md).
+
+
+## Hito 29 — planes SaaS y administración de plataforma inicial
+- Planes STARTER/PRO/ACADEMY con asignación manual, expiración y auditoría. Operadores allowlisted por ID y cuenta verificada; consulta de plan y consumo por academia.
+- Límites provisionales de alumnos, profesores y almacenamiento aplicados en aceptación de invitaciones y nuevas cargas cuando el flag está activo. Sin eliminación de datos por downgrade.
+- Panel de plan/uso y asignación inicial, migración zb_saas_plans y pruebas PostgreSQL añadidas.
+- Pendientes CI, consola global independiente, vista de auditoría, cuotas IA, precios, cobros y renovaciones reales. Ver [SAAS_PLANS.md](SAAS_PLANS.md).
