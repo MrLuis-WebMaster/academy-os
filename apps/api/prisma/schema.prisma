@@ -160,6 +160,7 @@ model Workspace {
   classPackages ClassPackage[]
   packageEntitlements ClassPackageEntitlement[]
   packageOrders PackageOrder[]
+  wompiMerchant WompiMerchant?
   saasSubscription SaasSubscription?
   saasPlanChanges SaasPlanChange[]
 }
@@ -980,4 +981,15 @@ model PackageCheckout {
  createdAt DateTime @default(now())
  order PackageOrder @relation(fields:[orderId],references:[id],onDelete:Cascade)
  @@index([nextCheckAt])
+}
+
+model WompiMerchant {
+ workspaceId String @id
+ publicKeyHash String @unique
+ encryptedCredentials String @db.Text
+ acceptingPayments Boolean @default(false)
+ configuredByUserId String
+ createdAt DateTime @default(now())
+ updatedAt DateTime @updatedAt
+ workspace Workspace @relation(fields:[workspaceId],references:[id],onDelete:Cascade)
 }
