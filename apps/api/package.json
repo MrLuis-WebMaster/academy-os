@@ -11,7 +11,8 @@
     "db:generate": "prisma generate",
     "db:validate": "prisma validate",
     "db:migrate": "prisma migrate dev",
-    "worker:reminders": "node dist/workers/reminders.js"
+    "worker:reminders": "node dist/workers/reminders.js",
+    "worker:calendar-sync": "node dist/workers/calendar-sync.js"
   },
   "dependencies": {
     "@nestjs/common": "12.6.0",
