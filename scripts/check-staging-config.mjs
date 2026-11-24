@@ -99,6 +99,8 @@ export function validateStagingConfig(env) {
     }
     if (mode==='prod' && (env.ACADEMY_WOMPI_LIVE_ENABLED!=='true'||!env.ACADEMY_WOMPI_ISSUER_ID?.trim())) errors.push('ACADEMY_WOMPI_LIVE_ENABLED: production requires explicit activation and owner attribution');
   }
+  if (env.ACADEMY_PAYMENT_RECONCILIATION_ENABLED && !['true','false'].includes(env.ACADEMY_PAYMENT_RECONCILIATION_ENABLED)) errors.push('ACADEMY_PAYMENT_RECONCILIATION_ENABLED: must be true or false');
+  if (env.ACADEMY_PAYMENT_RECONCILIATION_ENABLED==='true' && env.ACADEMY_WOMPI_ENABLED!=='true') errors.push('ACADEMY_PAYMENT_RECONCILIATION_ENABLED: requires Wompi');
   return errors;
 }
 
