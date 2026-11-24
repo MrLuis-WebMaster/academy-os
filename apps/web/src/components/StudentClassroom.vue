@@ -5,6 +5,7 @@ import {apiJson,workspacePath} from '../shared/api-client';
 import {BookOpen,CalendarDays,ExternalLink,FolderOpen,GraduationCap,MapPin,Video} from 'lucide-vue-next';
 import StudentPractice from './StudentPractice.vue';
 import LearningAssetsStudent from './LearningAssetsStudent.vue';
+import PackageOrdersStudent from './PackageOrdersStudent.vue';
 import StudentBookings from './StudentBookings.vue';
 import StudentTutor from './StudentTutor.vue';
 
@@ -72,6 +73,7 @@ watch(()=>props.workspace.id,()=>void load());
  enrollment.course.sessions.map(session=>({
   ...session,requiresPackage:enrollment.course.requiresPackage,
  })))" @updated="refreshMeetingLinks" />
+<PackageOrdersStudent :workspace-id="workspace.id" />
 <StudentPractice :workspace-id="workspace.id" />
 <LearningAssetsStudent :workspace-id="workspace.id" />
 <StudentTutor :workspace-id="workspace.id" :courses="courses.map(x=>x.course)" /></div>
