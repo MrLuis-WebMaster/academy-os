@@ -12,21 +12,21 @@ export class CheckoutUseCases{
   return {enabled:newGateway?.config()?.workspaceId===w,reconciliationEnabled:config?.workspaceId===w,environment:config?.workspaceId===w?config.environment:null,items:(await this.repo.list(w,u)).map(checkoutView)};
  }
  async start(w:string,u:string,id:string){
+  if(!await this.members.hasAnyRole(w,u,['STUDENT']))throw new CheckoutUnavailable('Checkout not available');
   const gateway=await this.resolve(w,true);
   const config=gateway?.config();
   if(!gateway||!config||config.workspaceId!==w)throw new CheckoutDisabled('Checkout not enabled for this academy');
-  if(!await this.members.hasAnyRole(w,u,['STUDENT']))throw new CheckoutUnavailable('Checkout not available');
   const row=await this.repo.create(w,u,id,config,gateway.reference(),new Date(Date.now()+30*60_000));
   if(row.providerTransactionId||row.providerStatus!=='PENDING'||row.expiresAt<=new Date())throw new CheckoutConflict('Checkout expired or resolved; contact your academy');
   return {...checkoutView(row),url:gateway.url(row)};
  }
  async reconcile(w:string,u:string,id:string,raw:unknown){
-  const gateway=await this.resolve(w,false);
-  const config=gateway?.config();
-  if(!gateway||!config||config.workspaceId!==w)throw new CheckoutDisabled('Checkout not enabled for this academy');
   const manager=await this.members.hasAnyRole(w,u,['OWNER','ADMIN']);
   if(!manager&&!await this.members.hasAnyRole(w,u,['STUDENT']))throw new CheckoutUnavailable('Checkout not available');
   const row=await this.repo.target(w,u,id,manager);
+  const gateway=await this.resolve(w,false);
+  const config=gateway?.config();
+  if(!gateway||!config||config.workspaceId!==w)throw new CheckoutDisabled('Checkout not enabled for this academy');
   if(row.environment!==config.environment||row.merchantKeyHash!==config.merchantKeyHash)throw new CheckoutConflict('Merchant configuration changed');
   const submitted=raw&&typeof raw==='object'?(raw as Record<string,unknown>).transactionId:undefined;
   const transactionId=submitted??row.providerTransactionId;
