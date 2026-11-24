@@ -183,3 +183,12 @@ Cumplir [RELEASE_CHECKLIST.md](RELEASE_CHECKLIST.md). Nunca considerar CI verde 
 - [x] Pruebas de exportación, escapado y nombre de archivo incorporadas a CI (`pnpm commerce:csv:test`).
 - [ ] Validación con navegadores y hojas de cálculo reales, exportación paginada completa y controles de retención/privacidad, reservadas para una etapa posterior.
 - [ ] El CSV no certifica pagos, no sustituye contabilidad y solo cubre las últimas 200 asignaciones que devuelve el endpoint.
+
+
+## Hito 25 — Google Calendar y Meet, conexión y exportación individual
+- [x] OAuth separado del login, PKCE, scopes limitados, estado temporal vinculado a la cuenta y academia, cifrado autenticado de credenciales.
+- [x] Desconexión local y cancelación de solicitudes pendientes, renovación de access token y CAS de credenciales.
+- [x] Exportación explícita de clases: alta, edición y retirada de eventos privados, ID determinista, permiso docente por asignación, opción Meet para clases virtuales/híbridas.
+- [x] Interfaz de Gestión real, configuración desactivada por defecto, preflight y tests simulados agregados a la suite.
+- [ ] Sincronización automática con outbox, recuperación/conciliación y revocación remota; publicación segura del enlace de Meet en la clase, pruebas PostgreSQL de carreras del nuevo contexto y validación de proveedor real.
+- [ ] Zoom, Google Drive y restantes conectores.
