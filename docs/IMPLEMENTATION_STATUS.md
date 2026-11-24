@@ -183,3 +183,10 @@ pnpm db:generate
 pnpm --filter @academy-os/api exec prisma migrate deploy
 pnpm typecheck && pnpm test && pnpm build
 ```
+
+
+## Hito 25 — Google Calendar y Meet
+- Conexión independiente del login con credenciales cifradas, PKCE y estado de autorización de un uso vinculado al usuario/academia.
+- Exportación manual de sesiones propias (docente) o de la academia (gestores), actualización/retiro de eventos existentes, solicitud opcional de Meet y renovación de tokens. No se transmiten listas de alumnos ni notas. El título se transmite explícitamente y debe revisarse.
+- UI real de configuración y selección de clases, migración `z7_google_oauth`, tests con transporte simulado y preflight de staging.
+- Proveedor desactivado por defecto. CI no confirmado; pendientes sincronización automática, publicación de Meet en la sesión, revocación remota y pruebas reales. Ver `INTEGRATIONS.md`.
