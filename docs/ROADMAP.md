@@ -221,3 +221,9 @@ Cumplir [RELEASE_CHECKLIST.md](RELEASE_CHECKLIST.md). Nunca considerar CI verde 
 - Límites provisionales de alumnos, profesores y almacenamiento aplicados en aceptación de invitaciones y nuevas cargas cuando el flag está activo. Sin eliminación de datos por downgrade.
 - Panel de plan/uso y asignación inicial, migración zb_saas_plans y pruebas PostgreSQL añadidas.
 - Pendientes CI, consola global independiente, vista de auditoría, cuotas IA, precios, cobros y renovaciones reales. Ver [SAAS_PLANS.md](SAAS_PLANS.md).
+
+## Hito 30 — consola global y cuotas de IA
+- [x] Ruta /platform independiente del espacio educativo, protegida por operador autorizado y verificado; resumen global, asignación y auditoría paginada.
+- [x] Límites diarios compartidos de IA por plan, visualización de consumo y bloqueo coordinado con cambios de plan; modo informativo conserva 10 intentos por día.
+- [x] Pruebas de autorización, paginación y cuota concurrente añadidas; cuatro comprobaciones aisladas de dominio ejecutadas exitosamente.
+- [ ] CI, compilación y pruebas de PostgreSQL/navegador confirmadas; validación real, medición de tokens/costes, facturación y pasarela.
