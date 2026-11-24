@@ -40,7 +40,7 @@ export class WompiGateway implements PaymentGateway{
   const config=this.config();if(!config||row.environment!==config.environment||row.merchantKeyHash!==config.merchantKeyHash)throw new CheckoutDisabled('Merchant configuration changed');
   const amount=row.amountInCents.toString(),expiration=row.expiresAt.toISOString();
   const url=new URL('https://checkout.wompi.co/p/');
-  url.search=new URLSearchParams({'public-key':this.settings.publicKey,currency:'COP','amount-in-cents':amount,reference:row.reference,'signature:integrity':sha(row.reference+amount+'COP'+expiration+this.settings.integrityKey),'expiration-time':expiration,'redirect-url':new URL('/?paymentReturn=1',this.settings.webOrigin).toString()}).toString();
+  url.search=new URLSearchParams({'public-key':this.settings.publicKey,currency:'COP','amount-in-cents':amount,reference:row.reference,'signature:integrity':sha(row.reference+amount+'COP'+expiration+this.settings.integrityKey),'expiration-time':expiration,'redirect-url':new URL('/?paymentReturn=1&order='+encodeURIComponent(row.orderId),this.settings.webOrigin).toString()}).toString();
   return url.toString();
  }
  async verifyEvent(raw:unknown){
