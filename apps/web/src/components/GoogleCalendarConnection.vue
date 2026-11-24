@@ -73,7 +73,7 @@ async function disconnect(){
 }
 async function exportClass(){
  const lesson=selected.value;
- if(!lesson||busy.value||syncLoading.value||!status.value?.connected||!status.value?.configured)return;
+ if(!lesson||busy.value||syncLoading.value||!syncState.value||!status.value?.connected||!status.value?.configured)return;
  const action=lesson.status==='CANCELLED'?'Eliminar el evento asociado de tu calendario':'Enviar el título y horario de la clase a tu calendario privado';
  if(!window.confirm(action+'? El título se enviará tal como está escrito; comprueba que no incluya datos personales. No se adjuntan listas de alumnos ni notas.'+(publishMeet.value?' También reemplazarás el enlace de la clase por el de Meet para los alumnos con reserva.':'')+(autoSync.value&&lesson.status==='CONFIRMED'?' Autorizas futuros cambios de título, fecha y cancelación de esta clase en Google.':'')))return;
  const workspace=props.workspaceId;busy.value=true;error.value='';notice.value='';meetUrl.value=null;
@@ -124,7 +124,7 @@ onMounted(()=>{void refresh();});
      <p v-if="syncState?.enabled" class="text-xs text-muted">{{syncState.lastErrorCode?'La sincronización necesita revisión.':syncState.pending?'Hay cambios pendientes de enviar.':'Sincronización automática autorizada.'}}</p>
      <UiButton v-if="syncState?.enabled" type="button" size="sm" variant="secondary" :disabled="busy||syncLoading" @click="stopSync">Detener sincronización</UiButton>
     </div>
-    <UiButton type="submit" :disabled="busy||syncLoading||!selected||!status.configured">{{selected?.status==='CANCELLED'?'Retirar evento':'Exportar / actualizar evento'}}</UiButton>
+    <UiButton type="submit" :disabled="busy||syncLoading||!syncState||!selected||!status.configured">{{selected?.status==='CANCELLED'?'Retirar evento':'Exportar / actualizar evento'}}</UiButton>
     <p v-if="meetUrl" class="break-all text-xs"><a :href="meetUrl" target="_blank" rel="noopener noreferrer" class="text-brand underline">{{meetUrl}}</a></p>
    </form>
    <a v-if="status.connected" href="https://myaccount.google.com/connections" target="_blank" rel="noopener noreferrer" class="text-xs text-brand underline">Gestionar permisos en Google</a>
