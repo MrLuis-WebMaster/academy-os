@@ -64,6 +64,26 @@ services:
     command: ["pnpm", "--filter", "@academy-os/api", "worker:reminders"]
     # Deliberately no public ports. This worker only writes opt-in in-app notices.
 
+  calendar-sync:
+    profiles: ["calendar-sync"]
+    build:
+      context: .
+      dockerfile: deploy/staging/Dockerfile.api
+    restart: unless-stopped
+    depends_on:
+      api:
+        condition: service_healthy
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: ${STAGING_DATABASE_URL:?Set a URL with host postgres and the encoded password}
+      WEB_ORIGIN: https://${STAGING_DOMAIN}
+      GOOGLE_CALENDAR_ENABLED: ${GOOGLE_CALENDAR_ENABLED:-false}
+      GOOGLE_CALENDAR_SYNC_WORKER_ENABLED: ${GOOGLE_CALENDAR_SYNC_WORKER_ENABLED:-false}
+      GOOGLE_INTEGRATIONS_CLIENT_ID: ${GOOGLE_INTEGRATIONS_CLIENT_ID:-}
+      GOOGLE_INTEGRATIONS_CLIENT_SECRET: ${GOOGLE_INTEGRATIONS_CLIENT_SECRET:-}
+      INTEGRATION_ENCRYPTION_KEY: ${INTEGRATION_ENCRYPTION_KEY:-}
+    command: ["pnpm", "--filter", "@academy-os/api", "worker:calendar-sync"]
+
   web:
     build:
       context: .
