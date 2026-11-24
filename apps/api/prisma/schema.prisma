@@ -161,6 +161,7 @@ model Workspace {
   packageEntitlements ClassPackageEntitlement[]
   packageOrders PackageOrder[]
   wompiMerchant WompiMerchant?
+  paymentEvents PaymentEventInbox[]
   saasSubscription SaasSubscription?
   saasPlanChanges SaasPlanChange[]
 }
@@ -992,4 +993,28 @@ model WompiMerchant {
  createdAt DateTime @default(now())
  updatedAt DateTime @updatedAt
  workspace Workspace @relation(fields:[workspaceId],references:[id],onDelete:Cascade)
+}
+
+model PaymentEventInbox {
+ id String @id @default(cuid())
+ workspaceId String
+ environment String
+ merchantKeyHash String
+ eventKey String
+ transactionId String
+ amountInCents BigInt
+ signedStatus String
+ state String @default("QUEUED")
+ attempts Int @default(0)
+ nextAttemptAt DateTime @default(now())
+ leaseToken String?
+ leaseUntil DateTime?
+ lastErrorCode String?
+ resolution String?
+ createdAt DateTime @default(now())
+ processedAt DateTime?
+ workspace Workspace @relation(fields:[workspaceId],references:[id],onDelete:Cascade)
+ @@unique([workspaceId,environment,merchantKeyHash,eventKey])
+ @@index([workspaceId,state,nextAttemptAt])
+ @@index([workspaceId,createdAt,id])
 }
