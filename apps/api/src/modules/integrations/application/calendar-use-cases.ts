@@ -4,18 +4,22 @@ import {CalendarSyncConflict,calendarEventBody,safeMeetUrl} from '../domain/cale
 import {IntegrationDenied,IntegrationUnavailable,type GoogleCredential} from '../domain/google-connection.js';
 export class ExportClassToCalendar{
  constructor(private readonly repo:CalendarExportRepository,private readonly provider:CalendarEventPort,private readonly crypto:IntegrationCryptoPort){}
- async execute(workspaceId:string,userId:string,sessionId:string,raw:unknown){
+ async execute(workspaceId:string,userId:string,sessionId:string,raw:unknown,expectedConnection?:{id:string;generation:Date}){
   if(!raw||typeof raw!=='object'||typeof (raw as Record<string,unknown>).createMeet!=='boolean')
    throw new CalendarSyncConflict('Explicit conference preference required');
   if(!this.provider.configured())throw new IntegrationUnavailable('Google Calendar integration is disabled');
   const snapshot=await this.repo.snapshot(workspaceId,userId,sessionId);
   if(!snapshot)throw new IntegrationDenied('No authorized connection or class found');
+  if(expectedConnection&&(snapshot.connectionId!==expectedConnection.id||snapshot.connectedAt.getTime()!==expectedConnection.generation.getTime()))
+   throw new IntegrationDenied('Calendar connection changed');
   const eventId=this.crypto.digest(JSON.stringify(['academy-os-event',snapshot.connectionId,workspaceId,sessionId]));
   calendarEventBody(eventId,snapshot.lesson);
-  const input=raw as {createMeet:boolean;publishMeet?:unknown};
+  const input=raw as {createMeet:boolean;publishMeet?:unknown;autoSync?:unknown};
   const createMeet=input.createMeet;
   if(input.publishMeet!==undefined&&typeof input.publishMeet!=='boolean')throw new CalendarSyncConflict('Invalid publication preference');
   const publishMeet=input.publishMeet===true;
+  if(input.autoSync!==undefined&&typeof input.autoSync!=='boolean')throw new CalendarSyncConflict('Invalid synchronization preference');
+  if(expectedConnection&&input.autoSync!==undefined)throw new CalendarSyncConflict('Worker cannot change consent');
   if(publishMeet&&(!createMeet||snapshot.lesson.status!=='CONFIRMED'||snapshot.lesson.mode==='ONSITE'||snapshot.lesson.endsAt<=new Date()))
    throw new CalendarSyncConflict('Meet publication requires an active virtual class and explicit conference request');
   if(createMeet&&snapshot.lesson.mode==='ONSITE')throw new CalendarSyncConflict('An in-person class cannot request a virtual meeting');
@@ -27,7 +31,11 @@ export class ExportClassToCalendar{
    if(!await this.repo.replaceCredential(workspaceId,userId,snapshot.connectionId,snapshot.encryptedCredentials,encrypted))
     throw new CalendarSyncConflict('The connection changed; try again');
   }
-  const result=await this.provider.sync(credentials.accessToken,eventId,snapshot.lesson,createMeet);
+  const result=await this.provider.sync(credentials.accessToken,eventId,snapshot.lesson,createMeet,!!expectedConnection);
+  if(typeof input.autoSync==='boolean'){
+   if(!await this.repo.setAutoSync(workspaceId,userId,snapshot,input.autoSync&&result.state==='saved'))
+    throw new CalendarSyncConflict('Calendar event saved, but the connection changed; review synchronization settings');
+  }
   const url=safeMeetUrl(result.meetUrl);
   if(publishMeet&&result.state==='saved'&&url){
    if(!await this.repo.publishMeet(workspaceId,userId,snapshot,url))
