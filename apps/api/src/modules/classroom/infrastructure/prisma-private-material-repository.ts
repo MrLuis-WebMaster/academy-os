@@ -35,7 +35,8 @@ export class PrismaPrivateMaterialRepository implements PrivateMaterialRepositor
    const access=await staff(tx,workspaceId,userId);
    const course=await tx.course.findFirst({where:{id:input.courseId,workspaceId,...(access.manager?{}:{teachers:{some:{teacher:{workspaceId,userId}}}})},select:{id:true}});
    if(!course)throw new PrivateMaterialMissing('Course not available');
-   const usage=await tx.privateMaterialFile.aggregate({where:{resource:{workspaceId}},_sum:{sizeBytes:true}});
+   const usage=await tx.privateMaterialFile.aggregate({where:{resource:{workspaceId}},_sum:{sizeBytes:true},_count:{_all:true}});
+   if(usage._count._all>=200)throw new PrivateMaterialQuota('Academy private file count limit exceeded');
    if((usage._sum.sizeBytes??0)+input.sizeBytes>MAX_WORKSPACE_BYTES)throw new PrivateMaterialQuota('Academy private file quota exceeded');
    const resource=await tx.resource.create({data:{workspaceId,courseId:course.id,title:input.title,source:'UPLOAD',published:false,aiAuthorized:false},select:{id:true}});
    const row=await tx.privateMaterialFile.create({data:{resourceId:resource.id,filename:input.filename,mimeType:input.mimeType,sizeBytes:input.sizeBytes,content:Buffer.from(input.content)},select:meta});
