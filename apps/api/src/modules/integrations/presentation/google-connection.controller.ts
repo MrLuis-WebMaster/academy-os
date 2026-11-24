@@ -42,6 +42,15 @@ export class GoogleConnectionController{
   res.setHeader('Cache-Control','no-store');res.setHeader('Referrer-Policy','no-referrer');
   return res.redirect(303,target.toString());
  }
+ @Get('workspaces/:workspaceId/integrations/google-calendar/classes/:sessionId/sync')
+ async syncStatus(@Req() req:AuthenticatedRequest,@Param('workspaceId') workspaceId:string,@Param('sessionId') sessionId:string){
+  try{return await this.exporter.status(workspaceId,req.academyUser!.id,sessionId);}catch(e){return this.translate(e);}
+ }
+ @Delete('workspaces/:workspaceId/integrations/google-calendar/classes/:sessionId/sync')
+ async stopSync(@Req() req:AuthenticatedRequest,@Param('workspaceId') workspaceId:string,@Param('sessionId') sessionId:string){
+  this.assertOrigin(req);
+  try{return await this.exporter.stop(workspaceId,req.academyUser!.id,sessionId);}catch(e){return this.translate(e);}
+ }
  @Post('workspaces/:workspaceId/integrations/google-calendar/classes/:sessionId/export')
  async exportClass(@Req() req:AuthenticatedRequest,@Param('workspaceId') workspaceId:string,@Param('sessionId') sessionId:string,@Body() raw:unknown){
   this.assertOrigin(req);
