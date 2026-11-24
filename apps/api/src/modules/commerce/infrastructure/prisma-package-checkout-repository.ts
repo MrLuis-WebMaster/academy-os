@@ -30,7 +30,9 @@ export class PrismaPackageCheckoutRepository implements CheckoutRepository{
  }
  async create(w:string,u:string,id:string,config:CheckoutConfig,reference:string,expiresAt:Date){
   return prisma.$transaction(async tx=>{
+   await tx.$queryRaw`SELECT pg_advisory_xact_lock(hashtext(${'academy-os:merchant:'+w}))::text`;
    await lock(tx,id);
+   if(config.workspaceConfigured&&!await tx.wompiMerchant.findFirst({where:{workspaceId:w,publicKeyHash:config.merchantKeyHash,acceptingPayments:true},select:{workspaceId:true}}))throw new CheckoutUnavailable('Merchant no longer accepts payments');
    if(config.workspaceId!==w||!await student(tx,w,u))throw new CheckoutUnavailable('Checkout not available');
    if(config.environment==='prod'&&(!config.issuerId||!await tx.workspaceMember.findFirst({where:{workspaceId:w,userId:config.issuerId,role:'OWNER',user:{emailVerified:true}},select:{id:true}})))throw new CheckoutUnavailable('Merchant owner not available');
    const order=await tx.packageOrder.findFirst({where:{id,workspaceId:w,studentUserId:u,status:'PENDING',package:{workspaceId:w,active:true}},include:{checkout:true,package:{select:{courseId:true,courseRestricted:true}}}});
