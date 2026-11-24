@@ -15,7 +15,7 @@ export class PrismaStudentClassroomRead implements StudentClassroomReadRepositor
         course:{select:{
           id:true,title:true,summary:true,requiresPackage:true,subject:{select:{name:true}},
           resources:{
-            where:{workspaceId,published:true},
+            where:{workspaceId,published:true,OR:[{source:'EXTERNAL_URL'},{source:'UPLOAD',privateFile:{isNot:null}}]},
             select:{id:true,title:true,source:true,url:true},
           },
           sessions:{
