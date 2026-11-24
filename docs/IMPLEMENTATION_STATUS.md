@@ -197,3 +197,10 @@ pnpm typecheck && pnpm test && pnpm build
 - Enlaces del Aula Digital restringidos a alumnos matriculados con reserva activa, actualizados tras reservar o cancelar.
 - Migración `z8_calendar_sync_links`: revisiones y cola persistente de cambios para clases autorizadas, worker con reintentos limitados y leases; controles de sincronización y detención en Gestión real.
 - Worker opcional desactivado; pruebas de aplicación y PostgreSQL codificadas. No se ha comprobado ejecución CI verde ni activado proveedor real.
+
+
+## Hito 27 — archivos privados de curso
+- Carga de PDF/PNG/JPEG con límite de 5 MiB, cuota de 100 MiB y 200 archivos por academia, almacenamiento PostgreSQL con metadatos y contenido transaccionales.
+- Gestión por OWNER/ADMIN y docentes asignados; publicación explícita, retirada, eliminación y descargas autenticadas para alumnos matriculados. Sin IA ni enlaces públicos.
+- UI conectada y pruebas de dominio y PostgreSQL añadidas. Migración z9_private_material_files. Desactivado por defecto.
+- Pendientes: CI confirmado, pruebas HTTP y navegador, antivirus/cuarentena, almacenamiento de objetos a escala, límites de tasa y conectores Drive/Dropbox/OneDrive. Ver [PRIVATE_FILES.md](PRIVATE_FILES.md).
