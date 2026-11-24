@@ -200,3 +200,10 @@ Cumplir [RELEASE_CHECKLIST.md](RELEASE_CHECKLIST.md). Nunca considerar CI verde 
 - [x] Suscripciones de sincronización opt-in por clase, revisiones persistentes, cola transaccional para cambios de título/horario/estado y worker con lease, reintentos y estado de revisión.
 - [x] Interfaz para autorizar, consultar o detener sincronización; perfil Docker Compose desactivado por defecto; tests simulados y de PostgreSQL añadidos.
 - [ ] Confirmar CI, validar OAuth/Meet y sincronización con proveedor real; verificar recuperación, límites, condiciones de carrera con ediciones externas y monitoreo. La sincronización es unidireccional desde AcademyOS y no recrea eventos remotos eliminados automáticamente.
+
+
+## Hito 27 — archivos privados de curso
+- Carga de PDF/PNG/JPEG con límite de 5 MiB, cuota de 100 MiB y 200 archivos por academia, almacenamiento PostgreSQL con metadatos y contenido transaccionales.
+- Gestión por OWNER/ADMIN y docentes asignados; publicación explícita, retirada, eliminación y descargas autenticadas para alumnos matriculados. Sin IA ni enlaces públicos.
+- UI conectada y pruebas de dominio y PostgreSQL añadidas. Migración z9_private_material_files. Desactivado por defecto.
+- Pendientes: CI confirmado, pruebas HTTP y navegador, antivirus/cuarentena, almacenamiento de objetos a escala, límites de tasa y conectores Drive/Dropbox/OneDrive. Ver [PRIVATE_FILES.md](PRIVATE_FILES.md).
