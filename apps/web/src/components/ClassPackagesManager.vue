@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import {computed,onMounted,ref,watch} from 'vue';
-import {Gift,PackageCheck,RefreshCw,Ticket,ClipboardList,ShieldX} from 'lucide-vue-next';
+import {Gift,PackageCheck,RefreshCw,Ticket,ClipboardList,ShieldX,Download} from 'lucide-vue-next';
 import {UiAlert,UiButton,UiCard} from '@academy-os/ui';
 import {apiJson,workspacePath} from '../shared/api-client';
+import {serializeCreditAuditCsv,creditAuditFilename} from '../shared/credit-audit-csv';
 
 type Plan={
  id:string;title:string;courseId:string|null;courseRestricted:boolean;sessionCredits:number;
@@ -60,6 +61,19 @@ async function loadGrants(){
    grantsError.value=e instanceof Error?e.message:'No se pudo abrir el historial de créditos.';
   }
  }finally{if(n===grantsVersion)grantsLoading.value=false;}
+}
+function exportGrantsCsv(){
+ if(grantsLoading.value||grantsError.value||!grants.value.length)return;
+ const workspace=props.workspaceId;
+ // No network call: only the current workspace's authorized, already-loaded rows.
+ const csv=serializeCreditAuditCsv(grants.value);
+ const blob=new Blob([csv],{type:'text/csv;charset=utf-8'});
+ const url=URL.createObjectURL(blob);
+ const link=document.createElement('a');
+ link.href=url;
+ link.download=creditAuditFilename(workspace);
+ document.body.appendChild(link);
+ try{link.click();}finally{link.remove();window.setTimeout(()=>URL.revokeObjectURL(url),1000);}
 }
 async function revokeGrant(grant:GrantRow){
  if(busy.value||grant.revokedAt||grant.futureBookings)return;
@@ -201,11 +215,16 @@ onMounted(()=>{void load();void loadGrants();});
     <div class="flex items-center gap-2"><ClipboardList :size="18" class="text-brand"/>
      <h3 class="text-sm font-extrabold">Historial de créditos emitidos</h3>
     </div>
-    <UiButton size="sm" variant="secondary" :disabled="grantsLoading" @click="loadGrants">
-     <RefreshCw :size="14"/> Actualizar
-    </UiButton>
+    <div class="flex flex-wrap items-center gap-2">
+     <UiButton size="sm" variant="secondary" :disabled="grantsLoading||!!grantsError||!grants.length" @click="exportGrantsCsv">
+      <Download :size="14"/> Exportar CSV
+     </UiButton>
+     <UiButton size="sm" variant="secondary" :disabled="grantsLoading" @click="loadGrants">
+      <RefreshCw :size="14"/> Actualizar
+     </UiButton>
+    </div>
    </div>
-   <p class="mt-2 text-xs text-muted">Últimas 200 asignaciones de esta academia, ordenadas por emisión. Puedes revocar créditos sin uso futuro, registrando un motivo. Las reservas futuras deben cancelarse primero.</p>
+   <p class="mt-2 text-xs text-muted">Últimas 200 asignaciones de esta academia, ordenadas por emisión. El CSV solo incluye los registros cargados, no es un estado financiero ni un historial completo. Puedes revocar créditos sin uso futuro, registrando un motivo. Las reservas futuras deben cancelarse primero.</p>
    <p v-if="grantsLoading" class="mt-3 text-xs text-muted">Consultando asignaciones…</p>
    <p v-else-if="!grants.length" class="mt-3 text-xs text-muted">Todavía no hay asignaciones registradas.</p>
    <div v-else class="mt-3 max-h-[650px] space-y-3 overflow-y-auto">
