@@ -12,5 +12,5 @@ export function amountInCents(priceCOP:number){
  return priceCOP*100;
 }
 export function checkoutView(row:CheckoutRecord){
- return {orderId:row.orderId,environment:row.environment,providerStatus:row.providerStatus,resolution:row.resolution,expiresAt:row.expiresAt};
+ return {orderId:row.orderId,environment:row.environment,providerStatus:row.providerStatus,resolution:row.resolution,expiresAt:row.expiresAt,transactionKnown:Boolean(row.providerTransactionId)};
 }
