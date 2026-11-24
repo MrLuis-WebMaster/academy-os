@@ -13,7 +13,8 @@ initializeTheme();
 const routeSlug=window.location.pathname.match(/^\/academy\/([a-z0-9]+(?:-[a-z0-9]+)*)\/?$/)?.[1];
 const slug = routeSlug || new URLSearchParams(window.location.search).get('academy');
 const preview=import.meta.env.DEV && new URLSearchParams(window.location.search).has('design-system');
-const app=preview?createApp(DesignSystemPreview):slug?createApp(PublicStorefront,{slug}):createApp(AuthGate);
+const platformRoute=/^\/platform\/?$/.test(window.location.pathname);
+const app=platformRoute?createApp(AuthGate):preview?createApp(DesignSystemPreview):slug?createApp(PublicStorefront,{slug}):createApp(AuthGate);
 app.use(createPinia()).use(VueQueryPlugin).mount('#app');
 
 if ('serviceWorker' in navigator && import.meta.env.PROD) {
