@@ -29,6 +29,33 @@ export class PrismaSaasRepository implements SaasRepository{
    return rows.map(({saasSubscription,...row})=>({...row,assignment:saasSubscription}));
   });
  }
+ async overview(u:string){
+  return prisma.$transaction(async tx=>{
+   if(!await this.operator(tx,u))throw new SaasDenied('Platform operator required');
+   const now=new Date();
+   const active={OR:[{validUntil:null},{validUntil:{gt:now}}]};
+   const [solo,institutional,activePro,activeAcademy,expired]=await Promise.all([
+    tx.workspace.count({where:{type:'SOLO'}}),
+    tx.workspace.count({where:{type:'ACADEMY'}}),
+    tx.saasSubscription.count({where:{plan:'PRO',...active}}),
+    tx.saasSubscription.count({where:{plan:'ACADEMY',...active}}),
+    tx.saasSubscription.count({where:{plan:{in:['PRO','ACADEMY']},validUntil:{lte:now}}}),
+   ]);
+   const academies=solo+institutional;
+   return {academies,solo,institutional,activePro,activeAcademy,starter:Math.max(0,academies-activePro-activeAcademy),expired};
+  },{isolationLevel:'RepeatableRead'});
+ }
+ async audit(u:string,w:string,after:string|null){
+  return prisma.$transaction(async tx=>{
+   if(!await this.operator(tx,u))throw new SaasDenied('Platform operator required');
+   if(!await tx.workspace.findUnique({where:{id:w},select:{id:true}}))throw new SaasMissing('Academy not found');
+   const cursor=after?await tx.saasPlanChange.findFirst({where:{workspaceId:w,id:after},select:{id:true,createdAt:true}}):null;
+   if(after&&!cursor)throw new SaasMissing('Audit cursor not found');
+   return tx.saasPlanChange.findMany({where:{workspaceId:w,...(cursor?{OR:[{createdAt:{lt:cursor.createdAt}},{createdAt:cursor.createdAt,id:{lt:cursor.id}}]}:{})},
+    orderBy:[{createdAt:'desc'},{id:'desc'}],take:50,
+    select:{id:true,actorUserId:true,previousPlan:true,nextPlan:true,validUntil:true,reason:true,createdAt:true}});
+  });
+ }
  async assign(u:string,w:string,input:{plan:PlanCode;validUntil:Date|null;reason:string}){
   return prisma.$transaction(async tx=>{
    await lockPlan(tx,w);
