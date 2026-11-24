@@ -1,11 +1,13 @@
 export type PlanCode='STARTER'|'PRO'|'ACADEMY';
 export const PLAN_LIMITS={
- STARTER:{students:30,teachers:1,storageBytes:25*1024*1024},
- PRO:{students:150,teachers:5,storageBytes:50*1024*1024},
- ACADEMY:{students:1000,teachers:30,storageBytes:100*1024*1024},
+ STARTER:{students:30,teachers:1,storageBytes:25*1024*1024,aiDailyAttempts:10},
+ PRO:{students:150,teachers:5,storageBytes:50*1024*1024,aiDailyAttempts:30},
+ ACADEMY:{students:1000,teachers:30,storageBytes:100*1024*1024,aiDailyAttempts:100},
 } as const;
 export type Assignment={plan:PlanCode;validUntil:Date|null};
-export type Usage={students:number;teachers:number;storageBytes:number};
+export type Usage={students:number;teachers:number;storageBytes:number;aiDailyAttempts?:number};
+export const utcDayStart=(now=new Date())=>new Date(Date.UTC(now.getUTCFullYear(),now.getUTCMonth(),now.getUTCDate()));
+export const DEFAULT_AI_DAILY_LIMIT=10;
 export class SaasDenied extends Error{}
 export class SaasMissing extends Error{}
 export class SaasInvalid extends Error{}
