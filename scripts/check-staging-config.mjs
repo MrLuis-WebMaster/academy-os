@@ -80,6 +80,9 @@ export function validateStagingConfig(env) {
   if (env.ACADEMY_PRIVATE_FILES_ENABLED && !['true', 'false'].includes(env.ACADEMY_PRIVATE_FILES_ENABLED)) {
     errors.push('ACADEMY_PRIVATE_FILES_ENABLED: must be true or false');
   }
+  if (env.ACADEMY_PACKAGE_ORDERS_ENABLED && !['true', 'false'].includes(env.ACADEMY_PACKAGE_ORDERS_ENABLED)) {
+    errors.push('ACADEMY_PACKAGE_ORDERS_ENABLED: must be true or false');
+  }
   return errors;
 }
 
