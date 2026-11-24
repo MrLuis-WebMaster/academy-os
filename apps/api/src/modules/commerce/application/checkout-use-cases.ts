@@ -1,9 +1,10 @@
 import type {MembershipPort} from '../../academics/application/ports.js';
+import type {PaymentEventInbox} from './payment-event-inbox.js';
 import type {MerchantGatewayResolver} from './merchant-ports.js';
 import type {CheckoutRepository,PaymentGateway} from './checkout-ports.js';
 import {CheckoutDisabled,CheckoutUnavailable,CheckoutConflict,checkoutView} from '../domain/checkout.js';
 export class CheckoutUseCases{
- constructor(private readonly repo:CheckoutRepository,private readonly gateway:PaymentGateway,private readonly members:MembershipPort,private readonly merchants?:MerchantGatewayResolver){}
+ constructor(private readonly repo:CheckoutRepository,private readonly gateway:PaymentGateway,private readonly members:MembershipPort,private readonly merchants?:MerchantGatewayResolver,private readonly inbox?:PaymentEventInbox){}
  private async resolve(w:string,forNewPayment:boolean){return this.merchants?this.merchants.resolve(w,forNewPayment):this.gateway;}
  async list(w:string,u:string){
   if(!await this.members.hasAnyRole(w,u,['STUDENT']))throw new CheckoutUnavailable('Checkout not available');
@@ -40,6 +41,12 @@ export class CheckoutUseCases{
   const gateway=workspaceId?await this.resolve(workspaceId,false):this.gateway;
   const config=gateway?.config();
   if(!gateway||!config||(workspaceId&&config.workspaceId!==workspaceId))throw new CheckoutDisabled('Checkout disabled');
+  if(this.inbox){
+   if(!gateway.authenticateEvent)throw new CheckoutDisabled('Durable event processing unavailable');
+   const event=gateway.authenticateEvent(raw);if(!event)return {handled:false};
+   await this.inbox.enqueue(config,event);
+   return {accepted:true};
+  }
   const verified=await gateway.verifyEvent(raw);
   if(!verified)return {handled:false};
   return this.repo.apply(config,verified);
