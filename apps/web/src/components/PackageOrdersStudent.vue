@@ -12,6 +12,7 @@ const returnOrder=returnUrl.searchParams.get('paymentReturn')==='1'?returnUrl.se
 const returnId=returnOrder?returnUrl.searchParams.get('id')??'':'';
 const safeReturnId=/^[a-zA-Z0-9_-]{1,128}$/.test(returnId)?returnId:'';
 if(returnOrder){for(const key of ['paymentReturn','order','id'])returnUrl.searchParams.delete(key);window.history.replaceState({},'',returnUrl.pathname+returnUrl.search+returnUrl.hash);}
+const reconciliationEnabled=ref(false);
 const checkoutEnabled=ref(false),checkoutEnvironment=ref<string|null>(null),checkouts=ref<Checkout[]>([]);
 const checkoutPath=(w:string)=>workspacePath(w,'/package-checkout');
 const checkoutFor=(id:string)=>checkouts.value.find(x=>x.orderId===id);
@@ -23,11 +24,11 @@ const path=(w:string,suffix='')=>workspacePath(w,'/package-orders'+suffix);
 const money=(v:number)=>new Intl.NumberFormat('es-CO',{style:'currency',currency:'COP',maximumFractionDigits:0}).format(v);
 const labels:Record<string,string>={PENDING:'Pendiente de revisión',FULFILLED:'Créditos entregados',CANCELLED:'Cancelada',REJECTED:'Rechazada'};
 async function load(){
- const w=props.workspaceId,n=++version;loading.value=true;enabled.value=false;checkoutEnabled.value=false;checkoutEnvironment.value=null;checkouts.value=[];plans.value=[];orders.value=[];error.value='';
+ const w=props.workspaceId,n=++version;loading.value=true;enabled.value=false;checkoutEnabled.value=false;reconciliationEnabled.value=false;checkoutEnvironment.value=null;checkouts.value=[];plans.value=[];orders.value=[];error.value='';
  try{
-  const [catalog,mine,checkout]=await Promise.all([apiJson<{enabled:boolean;items:Plan[]}>(path(w,'/catalog')),apiJson<Order[]>(path(w,'/mine')),apiJson<{enabled:boolean;environment:string|null;items:Checkout[]}>(checkoutPath(w))]);
+  const [catalog,mine,checkout]=await Promise.all([apiJson<{enabled:boolean;items:Plan[]}>(path(w,'/catalog')),apiJson<Order[]>(path(w,'/mine')),apiJson<{enabled:boolean;reconciliationEnabled:boolean;environment:string|null;items:Checkout[]}>(checkoutPath(w))]);
   if(n!==version||w!==props.workspaceId)return;
-  enabled.value=catalog.enabled;plans.value=catalog.items;orders.value=mine;checkoutEnabled.value=checkout.enabled;checkoutEnvironment.value=checkout.environment;checkouts.value=checkout.items;
+  enabled.value=catalog.enabled;plans.value=catalog.items;orders.value=mine;checkoutEnabled.value=checkout.enabled;reconciliationEnabled.value=checkout.reconciliationEnabled;checkoutEnvironment.value=checkout.environment;checkouts.value=checkout.items;
  }catch(e){if(n===version)error.value=e instanceof Error?e.message:'No se pudo consultar el catálogo.';}
  finally{if(n===version)loading.value=false;}
 }
@@ -96,7 +97,7 @@ watch(()=>props.workspaceId,()=>{notice.value='';void load();});onMounted(()=>vo
     <UiButton v-if="checkoutEnabled&&order.status==='PENDING'&&(!checkoutFor(order.id)||(!checkoutFor(order.id)?.transactionKnown&&checkoutFor(order.id)?.providerStatus==='PENDING'&&new Date(checkoutFor(order.id)!.expiresAt)>new Date()))" size="sm" :disabled="busy" @click="pay(order)">{{checkoutEnvironment==='test'?'Probar checkout':'Pagar con Wompi'}}</UiButton>
     <UiButton v-if="order.status==='PENDING'&&(!checkoutFor(order.id)||checkoutFor(order.id)?.environment==='test'||checkoutFor(order.id)?.resolution==='NOT_PAID')" size="sm" variant="secondary" :disabled="busy" @click="cancel(order)">Cancelar</UiButton>
    </div>
-   <PaymentReconcile v-if="checkoutEnabled&&checkoutFor(order.id)" :key="workspaceId+':'+order.id" :workspace-id="workspaceId" :order-id="order.id" :transaction-known="checkoutFor(order.id)?.transactionKnown??false" :initial-id="returnOrder===order.id?safeReturnId:''" @updated="load"/>
+   <PaymentReconcile v-if="reconciliationEnabled&&checkoutFor(order.id)" :key="workspaceId+':'+order.id" :workspace-id="workspaceId" :order-id="order.id" :transaction-known="checkoutFor(order.id)?.transactionKnown??false" :initial-id="returnOrder===order.id?safeReturnId:''" @updated="load"/>
   </div>
   <UiAlert v-if="error" tone="danger">{{error}}</UiAlert><UiAlert v-if="notice" tone="success">{{notice}}</UiAlert>
  </UiCard>
