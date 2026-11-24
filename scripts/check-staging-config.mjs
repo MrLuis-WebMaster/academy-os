@@ -71,6 +71,12 @@ export function validateStagingConfig(env) {
       errors.push('INTEGRATION_ENCRYPTION_KEY: provide 32 random bytes in hexadecimal');
     }
   }
+  if (env.GOOGLE_CALENDAR_SYNC_WORKER_ENABLED && !['true', 'false'].includes(env.GOOGLE_CALENDAR_SYNC_WORKER_ENABLED)) {
+    errors.push('GOOGLE_CALENDAR_SYNC_WORKER_ENABLED: must be true or false');
+  }
+  if (env.GOOGLE_CALENDAR_SYNC_WORKER_ENABLED === 'true' && env.GOOGLE_CALENDAR_ENABLED !== 'true') {
+    errors.push('GOOGLE_CALENDAR_SYNC_WORKER_ENABLED: requires GOOGLE_CALENDAR_ENABLED=true');
+  }
   return errors;
 }
 
