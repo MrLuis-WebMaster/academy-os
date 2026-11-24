@@ -930,6 +930,7 @@ model PackageOrder {
  student User @relation("PackageOrderStudent",fields:[studentUserId],references:[id],onDelete:Cascade)
  reviewer User? @relation("PackageOrderReviewer",fields:[reviewedByUserId],references:[id],onDelete:SetNull)
  entitlement ClassPackageEntitlement? @relation(fields:[entitlementId],references:[id],onDelete:SetNull)
+ checkout PackageCheckout?
  @@unique([workspaceId,studentUserId,requestId])
  @@unique([workspaceId,paymentReference])
  @@index([workspaceId,status,createdAt])
@@ -958,4 +959,19 @@ model SaasPlanChange {
  createdAt DateTime @default(now())
  workspace Workspace @relation(fields:[workspaceId],references:[id],onDelete:Cascade)
  @@index([workspaceId,createdAt])
+}
+
+model PackageCheckout {
+ orderId String @id
+ reference String @unique
+ merchantKeyHash String
+ environment String
+ amountInCents BigInt
+ expiresAt DateTime
+ providerTransactionId String? @unique
+ providerStatus String @default("PENDING")
+ resolution String @default("WAITING")
+ verifiedAt DateTime?
+ createdAt DateTime @default(now())
+ order PackageOrder @relation(fields:[orderId],references:[id],onDelete:Cascade)
 }
