@@ -3,6 +3,7 @@ import type {GoogleCredential} from '../domain/google-connection.js';
 export type CalendarExportSnapshot={connectionId:string;connectedAt:Date;encryptedCredentials:string;lesson:CalendarClass & {meetingUrl:string|null;provider:string|null}};
 export interface CalendarExportRepository{
  snapshot(workspaceId:string,userId:string,sessionId:string):Promise<CalendarExportSnapshot|null>;
+ autoSyncStatus(workspaceId:string,userId:string,sessionId:string):Promise<{enabled:boolean;pending:boolean;lastErrorCode:string|null}>;
  setAutoSync(workspaceId:string,userId:string,snapshot:CalendarExportSnapshot,enabled:boolean):Promise<boolean>;
  publishMeet(workspaceId:string,userId:string,snapshot:CalendarExportSnapshot,meetUrl:string):Promise<boolean>;
  replaceCredential(workspaceId:string,userId:string,connectionId:string,oldValue:string,newValue:string):Promise<boolean>;
