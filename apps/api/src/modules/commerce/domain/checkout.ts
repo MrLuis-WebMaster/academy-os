@@ -1,5 +1,5 @@
 export type PaymentEnvironment='test'|'prod';
-export type CheckoutConfig={workspaceId:string;environment:PaymentEnvironment;merchantKeyHash:string;issuerId:string|null};
+export type CheckoutConfig={workspaceId:string;environment:PaymentEnvironment;merchantKeyHash:string;issuerId:string|null;workspaceConfigured?:boolean};
 export type CheckoutRecord={orderId:string;reference:string;environment:string;merchantKeyHash:string;amountInCents:bigint;expiresAt:Date;providerStatus:string;resolution:string;providerTransactionId:string|null};
 export type VerifiedTransaction={id:string;reference:string;amountInCents:number;currency:'COP';status:'PENDING'|'APPROVED'|'DECLINED'|'VOIDED'|'ERROR'};
 export class CheckoutDisabled extends Error{}
