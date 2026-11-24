@@ -358,6 +358,7 @@ model ExternalConnection {
   provider          Provider
   externalAccountId String?
   secretReference   String?    // Secret-manager reference only: never raw OAuth tokens.
+  encryptedCredentials String? @db.Text // AES-GCM encrypted provider credentials; never exposed by HTTP.
   connectedAt       DateTime   @default(now())
   workspace         Workspace  @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
   user              User       @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -848,4 +849,15 @@ model LearningAsset {
  reflection ClassReflection @relation(fields:[reflectionId],references:[id],onDelete:Cascade)
  author User @relation(fields:[createdByUserId],references:[id])
  @@index([reflectionId,publishedAt])
+}
+
+model IntegrationOAuthAttempt {
+  stateHash         String @id
+  workspaceId       String
+  userId            String
+  encryptedVerifier String @db.Text
+  expiresAt         DateTime
+  claimedAt         DateTime?
+  @@index([workspaceId, userId])
+  @@index([expiresAt])
 }
