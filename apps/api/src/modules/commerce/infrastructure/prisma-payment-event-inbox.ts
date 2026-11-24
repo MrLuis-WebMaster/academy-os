@@ -9,7 +9,13 @@ async function authorize(tx:Prisma.TransactionClient,w:string,u:string){
 }
 export class PrismaPaymentEventInbox implements PaymentEventInbox{
  async enqueue(config:CheckoutConfig,event:SignedPaymentEvent){
-  await prisma.paymentEventInbox.createMany({data:[{workspaceId:config.workspaceId,environment:config.environment,merchantKeyHash:config.merchantKeyHash,eventKey:event.eventKey,transactionId:event.transactionId,amountInCents:BigInt(event.amountInCents),signedStatus:event.signedStatus}],skipDuplicates:true});
+  await prisma.$transaction(async tx=>{
+   if(config.workspaceConfigured){
+    await tx.$queryRaw`SELECT pg_advisory_xact_lock(hashtext(${'academy-os:merchant:'+config.workspaceId}))::text`;
+    if(!await tx.wompiMerchant.findFirst({where:{workspaceId:config.workspaceId,publicKeyHash:config.merchantKeyHash},select:{workspaceId:true}}))throw new CheckoutConflict('Merchant configuration changed');
+   }
+   await tx.paymentEventInbox.createMany({data:[{workspaceId:config.workspaceId,environment:config.environment,merchantKeyHash:config.merchantKeyHash,eventKey:event.eventKey,transactionId:event.transactionId,amountInCents:BigInt(event.amountInCents),signedStatus:event.signedStatus}],skipDuplicates:true});
+  });
  }
  async claim(config:CheckoutConfig,now:Date){
   const lease=randomUUID(),until=new Date(now.getTime()+120_000);
