@@ -49,6 +49,8 @@ export class PrismaPackageOrderRepository implements PackageOrderRepository{
    if(!row)throw new OrderMissing('Order not available');
    if(row.status==='CANCELLED')return row;
    if(row.status!=='PENDING')throw new OrderConflict('Only pending orders can be cancelled');
+   const checkout=await tx.packageCheckout.findUnique({where:{orderId:id},select:{environment:true,resolution:true}});
+   if(checkout?.environment==='prod'&&checkout.resolution!=='NOT_PAID')throw new OrderConflict('Online payment requires reconciliation before cancellation');
    return tx.packageOrder.update({where:{id},data:{status:'CANCELLED'},select});
   });
  }
@@ -65,6 +67,8 @@ export class PrismaPackageOrderRepository implements PackageOrderRepository{
     const {studentUserId,courseIdSnapshot,paymentReference,...view}=row;return view;
    }
    if(row.status!=='PENDING')throw new OrderConflict('Order has already been resolved');
+   const checkout=await tx.packageCheckout.findUnique({where:{orderId:id},select:{environment:true,resolution:true}});
+   if(checkout&&(input.action==='fulfill'||(checkout.environment==='prod'&&checkout.resolution!=='NOT_PAID')))throw new OrderConflict('Online checkout orders require gateway reconciliation');
    const now=new Date();
    if(input.action==='reject')return tx.packageOrder.update({where:{id},data:{status:'REJECTED',reviewedByUserId:u,reviewNote:input.note,reviewedAt:now},select});
    if(input.amountCOP!==row.priceCOP)throw new OrderConflict('Amount must match the original order');
