@@ -4,6 +4,17 @@ import {CalendarSyncConflict,calendarEventBody,safeMeetUrl} from '../domain/cale
 import {IntegrationDenied,IntegrationUnavailable,type GoogleCredential} from '../domain/google-connection.js';
 export class ExportClassToCalendar{
  constructor(private readonly repo:CalendarExportRepository,private readonly provider:CalendarEventPort,private readonly crypto:IntegrationCryptoPort){}
+ async status(workspaceId:string,userId:string,sessionId:string){
+  const snapshot=await this.repo.snapshot(workspaceId,userId,sessionId);
+  if(!snapshot)throw new IntegrationDenied('No authorized connection or class found');
+  return this.repo.autoSyncStatus(workspaceId,userId,sessionId);
+ }
+ async stop(workspaceId:string,userId:string,sessionId:string){
+  const snapshot=await this.repo.snapshot(workspaceId,userId,sessionId);
+  if(!snapshot)throw new IntegrationDenied('No authorized connection or class found');
+  if(!await this.repo.setAutoSync(workspaceId,userId,snapshot,false))throw new CalendarSyncConflict('Connection changed');
+  return {enabled:false};
+ }
  async execute(workspaceId:string,userId:string,sessionId:string,raw:unknown,expectedConnection?:{id:string;generation:Date}){
   if(!raw||typeof raw!=='object'||typeof (raw as Record<string,unknown>).createMeet!=='boolean')
    throw new CalendarSyncConflict('Explicit conference preference required');
