@@ -142,3 +142,10 @@ AcademyOS sirve a profesores independientes (**SOLO**) y pequeñas academias con
 - [Seguridad y privacidad](docs/SECURITY.md)
 
 **No completado:** OAuth y sincronización de Google Meet/Calendar, Zoom o Drive; verificación con credenciales reales de Clase Viva con IA y Profe SOS; procesamiento de pagos, recordatorios automáticos, acceso por dominio propio, recuperación de cuentas, iconos PWA multi-dispositivo y dominios independientes certificados. Estas capacidades requieren código adicional, verificación con proveedores y en algunos casos credenciales privadas.
+
+
+## Exportación administrativa de créditos — 2026-11-23
+
+Desde **Gestión real → Paquetes de clases → Historial de créditos emitidos**, OWNER/ADMIN puede descargar en CSV los **hasta 200 registros cargados** para la academia activa. Los datos provienen de la ruta protegida existente y contienen referencias de emisiones y revocaciones, no un extracto bancario ni cobros confirmados. El serializador escapa comillas y neutraliza fórmulas en celdas manipulables. No requiere proveedor externo.
+
+La prueba `pnpm commerce:csv:test` corre en CI. Sigue pendiente probar la descarga en navegadores reales, confirmar CI verde y habilitar exportación histórica paginada con política de privacidad. El despliegue staging añade encabezado `Cache-Control: no-store` a API y desindexación; no implica una auditoría integral de seguridad.
