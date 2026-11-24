@@ -56,7 +56,7 @@ export class PrismaPackageOrderRepository implements PackageOrderRepository{
  }
  async list(w:string,u:string){
   return prisma.$transaction(async tx=>{await allow(tx,w,u,true);return tx.packageOrder.findMany({
-   where:{workspaceId:w,package:{workspaceId:w}},select:{...select,student:{select:{name:true}},paymentReference:true,reviewNote:true,reviewer:{select:{name:true}}},orderBy:{createdAt:'desc'},take:200});});
+   where:{workspaceId:w,package:{workspaceId:w}},select:{...select,student:{select:{name:true}},paymentReference:true,reviewNote:true,reviewer:{select:{name:true}},checkout:{select:{environment:true,providerStatus:true,resolution:true,reference:true,providerTransactionId:true}}},orderBy:{createdAt:'desc'},take:200});});
  }
  async review(w:string,u:string,id:string,input:ReviewOrder){
   return prisma.$transaction(async tx=>{
