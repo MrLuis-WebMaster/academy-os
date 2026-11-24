@@ -239,3 +239,8 @@ pnpm typecheck && pnpm test && pnpm build
 - Configuración por OWNER verificado, cifrado AES-GCM ligado a academia, unicidad de llave pública, pausa de nuevas compras y continuidad de conciliación.
 - Resolución de pasarela por academia, webhook aislado, worker paginado, UI de configuración y migración ze_workspace_wompi_merchants. Piloto anterior conservado.
 - Pruebas añadidas, CI no confirmado. Solo sandbox; pendientes verificación de titularidad, rotación, reembolsos, inbox durable, producción multi-comercio y cobros SaaS. Ver [WOMPI_CHECKOUT.md](WOMPI_CHECKOUT.md).
+
+## Hito 34 — bandeja durable de eventos de pago
+- Recepción firmada, huella única por comercio/academia/ambiente, persistencia mínima antes de respuesta y worker con leases y reintentos.
+- Historial paginado y reintento de fallidos por OWNER/ADMIN; reutiliza verificación y entrega idempotente. Flag apagado por defecto, requiere worker. Migración zf_payment_event_inbox y pruebas añadidas.
+- Pendientes CI/sandbox, rate limiting, retención, alertas operativas, disputas/reembolsos y facturación SaaS. Ver [WOMPI_CHECKOUT.md](WOMPI_CHECKOUT.md).
