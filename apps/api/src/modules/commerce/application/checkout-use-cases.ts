@@ -13,7 +13,7 @@ export class CheckoutUseCases{
   if(!config||config.workspaceId!==w)throw new CheckoutDisabled('Checkout not enabled for this academy');
   if(!await this.members.hasAnyRole(w,u,['STUDENT']))throw new CheckoutUnavailable('Checkout not available');
   const row=await this.repo.create(w,u,id,config,this.gateway.reference(),new Date(Date.now()+30*60_000));
-  if(row.providerStatus!=='PENDING'||row.expiresAt<=new Date())throw new CheckoutConflict('Checkout expired or resolved; contact your academy');
+  if(row.providerTransactionId||row.providerStatus!=='PENDING'||row.expiresAt<=new Date())throw new CheckoutConflict('Checkout expired or resolved; contact your academy');
   return {...checkoutView(row),url:this.gateway.url(row)};
  }
  async reconcile(w:string,u:string,id:string,raw:unknown){
