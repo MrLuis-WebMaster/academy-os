@@ -20,6 +20,11 @@ export class CheckoutController{
   if(req.headers.origin!==new URL(process.env.WEB_ORIGIN||'http://localhost:5173').origin)throw new ForbiddenException('Invalid request origin');
   try{return await this.checkout.start(w,req.academyUser!.id,id);}catch(e){return this.fail(e);}
  }
+ @Post('workspaces/:workspaceId/package-checkout/:orderId/reconcile')
+ async reconcile(@Req() req:AuthenticatedRequest,@Param('workspaceId') w:string,@Param('orderId') id:string,@Body() raw:unknown){
+  if(req.headers.origin!==new URL(process.env.WEB_ORIGIN||'http://localhost:5173').origin)throw new ForbiddenException('Invalid request origin');
+  try{return await this.checkout.reconcile(w,req.academyUser!.id,id,raw);}catch(e){return this.fail(e);}
+ }
  @Public()
  @Post('payments/wompi/events')
  @HttpCode(200)
