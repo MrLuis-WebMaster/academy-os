@@ -18,6 +18,16 @@ export class PrismaPackageCheckoutRepository implements CheckoutRepository{
    return tx.packageCheckout.findMany({where:{order:{workspaceId:w,studentUserId:u,package:{workspaceId:w}}},orderBy:{createdAt:'desc'},take:100});
   });
  }
+ async target(w:string,u:string,id:string,manager:boolean){
+  return prisma.$transaction(async tx=>{
+   const role=manager?{in:['OWNER','ADMIN'] as const}:{in:['STUDENT'] as const};
+   const access=await tx.workspaceMember.findFirst({where:{workspaceId:w,userId:u,role:{in:[...role.in]}},select:{id:true}});
+   if(!access)throw new CheckoutUnavailable('Checkout not available');
+   const row=await tx.packageCheckout.findFirst({where:{orderId:id,order:{workspaceId:w,package:{workspaceId:w},...(manager?{}:{studentUserId:u})}}});
+   if(!row)throw new CheckoutUnavailable('Checkout not available');
+   return row;
+  });
+ }
  async create(w:string,u:string,id:string,config:CheckoutConfig,reference:string,expiresAt:Date){
   return prisma.$transaction(async tx=>{
    await lock(tx,id);
