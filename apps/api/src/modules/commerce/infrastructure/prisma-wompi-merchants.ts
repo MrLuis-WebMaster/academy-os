@@ -36,7 +36,7 @@ export class PrismaWompiMerchants implements MerchantRepository,MerchantGatewayR
    return await prisma.$transaction(async tx=>{
     await lockMerchant(tx,w);await this.owner(tx,w,u);
     // Prevent changing credentials while any checkout history exists: no loss of reconciliation keys.
-    if(await tx.packageCheckout.count({where:{order:{workspaceId:w}}}))throw new CheckoutConflict('Merchant credentials cannot change while checkout history exists');
+    if(await tx.packageCheckout.count({where:{order:{workspaceId:w}}})||await tx.paymentEventInbox.count({where:{workspaceId:w}}))throw new CheckoutConflict('Merchant credentials cannot change while checkout history exists');
     const encryptedCredentials=this.crypto.seal(JSON.stringify(credentials),merchantContext(w,publicKeyHash));
     const data={publicKeyHash,encryptedCredentials,configuredByUserId:u,acceptingPayments:false};
     const row=await tx.wompiMerchant.upsert({where:{workspaceId:w},create:{workspaceId:w,...data},update:data,select:{acceptingPayments:true}});
