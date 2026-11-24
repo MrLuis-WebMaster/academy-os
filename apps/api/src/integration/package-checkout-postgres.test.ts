@@ -5,6 +5,7 @@ import {prisma} from '../lib/prisma.js';
 import {PrismaPackageOrderRepository} from '../modules/commerce/infrastructure/prisma-package-order-repository.js';
 import {PrismaPackageCheckoutRepository} from '../modules/commerce/infrastructure/prisma-package-checkout-repository.js';
 import {CheckoutUnavailable,type CheckoutConfig,type VerifiedTransaction} from '../modules/commerce/domain/checkout.js';
+import {PrismaPaymentReconciliation} from '../modules/commerce/infrastructure/prisma-payment-reconciliation.js';
 import {OrderConflict} from '../modules/commerce/domain/package-order.js';
 test('PostgreSQL: sandbox cannot issue credits; verified live fixture issues once and flags void',async()=>{
  const nonce=randomUUID().slice(0,12);
@@ -25,6 +26,20 @@ test('PostgreSQL: sandbox cannot issue credits; verified live fixture issues onc
   await assert.rejects(()=>checkout.create(other.id,student.id,order.id,sandbox,randomUUID(),new Date(Date.now()+1800000)),CheckoutUnavailable);
   const started=await checkout.create(w.id,student.id,order.id,sandbox,'AO-'+randomUUID(),new Date(Date.now()+1800000));
   const testPayment:VerifiedTransaction={id:'test-'+nonce,reference:started.reference,amountInCents:10000000,currency:'COP',status:'APPROVED'};
+  assert.equal((await checkout.apply(sandbox,{...testPayment,status:'PENDING'})).resolution,'WAITING');
+  const queue=new PrismaPaymentReconciliation(),now=new Date();
+  const claimed=await Promise.all([queue.claim(sandbox,now),queue.claim(sandbox,now)]);
+  const job=claimed.find(x=>x!==null);
+  assert.ok(job);assert.equal(claimed.filter(Boolean).length,1);
+  assert.equal(job.transactionId,testPayment.id);
+  assert.equal(await queue.claim({...sandbox,workspaceId:other.id},now),null);
+  await queue.finish({...job,lease:'invalid-lease'},now,'VERIFICATION_FAILED');
+  assert.equal((await prisma.packageCheckout.findUniqueOrThrow({where:{orderId:order.id}})).checkAttempts,0);
+  await queue.finish(job,now,'VERIFICATION_FAILED');
+  const retry=await prisma.packageCheckout.findUniqueOrThrow({where:{orderId:order.id}});
+  assert.equal(retry.checkAttempts,1);assert.equal(retry.checkLease,null);
+  assert.ok(retry.nextCheckAt>now);
+  assert.equal(await queue.claim(sandbox,now),null);
   assert.equal((await checkout.apply(sandbox,testPayment)).resolution,'TEST_APPROVED');
   assert.equal(await prisma.classPackageEntitlement.count({where:{workspaceId:w.id}}),0);
   await assert.rejects(()=>orders.review(w.id,owner.id,order.id,{action:'fulfill',paymentReference:'TEST',amountCOP:100000,note:'invalid manual fulfillment',confirmedExternalPayment:true}),OrderConflict);
