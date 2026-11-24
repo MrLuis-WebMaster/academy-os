@@ -44,6 +44,22 @@ services:
       retries: 12
       start_period: 35s
 
+  reminders:
+    profiles: ["reminders"]
+    build:
+      context: .
+      dockerfile: deploy/staging/Dockerfile.api
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: ${STAGING_DATABASE_URL:?Set a URL with host postgres and the encoded password}
+      ACADEMY_IN_APP_REMINDERS_ENABLED: "true"
+    command: ["pnpm", "--filter", "@academy-os/api", "worker:reminders"]
+    # Deliberately no public ports. This worker only writes opt-in in-app notices.
+
   web:
     build:
       context: .
