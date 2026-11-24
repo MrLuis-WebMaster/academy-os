@@ -24,3 +24,13 @@ Referencias oficiales:
 - https://docs.wompi.co/docs/colombia/widget-checkout-web/
 - https://docs.wompi.co/docs/colombia/eventos/
 - https://docs.wompi.co/docs/colombia/transacciones/
+
+
+## Hito 32 — conciliación y recuperación
+- El retorno de Wompi lleva el ID de transacción como parámetro de URL (documentación oficial Widget & Checkout Web, paso 4). AcademyOS lo propone en la solicitud correspondiente, si el alumno sigue en el espacio correcto y conserva la sesión. Si no, el alumno o gestor puede indicar el ID manualmente. No se considera evidencia de pago hasta consultar al proveedor.
+- POST /api/v1/workspaces/:workspaceId/package-checkout/:orderId/reconcile exige sesión, origen y rol OWNER/ADMIN o STUDENT titular de la orden. Verifica comercio, ambiente y referencia exacta antes de reutilizar la entrega idempotente. El ID es únicamente una pista, no una afirmación confiable.
+- El worker opt-in consulta transacciones PENDING ya identificadas, con leases persistentes de 120 segundos y máximo 12 comprobaciones automáticas, intervalos crecientes de hasta 30 minutos si sigue pendiente o 60 si falla el proveedor. Se procesan hasta cinco por ciclo de 60 segundos. El panel del gestor informa errores y agotamiento; puede consultar manualmente. No se hacen cargos ni devoluciones desde el worker. No se consulta por referencia sin ID: si no llega ni webhook ni retorno con ID, se requiere encontrarlo en el panel de Wompi. Una anulación posterior a aprobación puede detectarse por webhook o consulta manual, no por este worker de pendientes.
+- Aplicar migración zd_checkout_reconciliation. Activar ACADEMY_PAYMENT_RECONCILIATION_ENABLED=true únicamente junto con la configuración de sandbox validada. Perfil Compose payment-reconciliation, sin puertos públicos, depende del API saludable. Comando local/compilado: pnpm --filter @academy-os/api worker:payment-reconciliation (opción --once). Por defecto desactivado.
+- Se añadió un formulario Vue reutilizable para recuperar el pago desde alumno y gestor. Evita reabrir el checkout si ya tiene un ID de transacción. La consulta manual sigue disponible para casos pendientes y cerrados.
+- Pruebas nuevas de recuperación por ID, rechazo de referencia ajena, backoff, concurrencia y leases PostgreSQL. Suite completa y CI no confirmados; no se ejecutaron transacciones reales.
+- Pendientes antes de producción: inbox durable para eventos firmados cuyo GET falle antes de vincular ID, limitación de tasa, resolución administrativa formal de casos sin ID o en disputa, recuperación segura de checkout vencido, múltiples intentos de pago por orden, reembolsos y conciliación bancaria real. El worker no sustituye la contabilidad ni garantiza detectar todos los pagos desconocidos. No habilitar producción todavía.
