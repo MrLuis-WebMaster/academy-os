@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import {onMounted,ref,watch} from 'vue';
+import PaymentReconcile from './PaymentReconcile.vue';
 import {ClipboardCheck,RefreshCw} from 'lucide-vue-next';
 import {UiAlert,UiButton,UiCard} from '@academy-os/ui';
 import {apiJson,workspacePath} from '../shared/api-client';
@@ -36,13 +37,14 @@ watch(()=>props.workspaceId,()=>{selected.value=null;notice.value='';void load()
 <template>
  <UiCard class="mt-6">
   <template #header><div class="flex items-center gap-3"><ClipboardCheck :size="22" class="text-brand"/><div><h2 class="text-lg font-extrabold">Solicitudes de compra</h2><p class="mt-1 text-xs text-muted">Control de pagos externos y entrega de paquetes.</p></div></div></template>
-  <UiAlert tone="warning">Comprueba el importe y la referencia directamente en el banco o proveedor. No hay cobro, conciliación bancaria ni reembolso automático.</UiAlert>
+  <UiAlert tone="warning">Comprueba el importe y la referencia directamente en el banco o proveedor. Wompi permite consultar la transacción; los pagos externos y los reembolsos siguen requiriendo revisión.</UiAlert>
   <UiButton size="sm" variant="ghost" :disabled="loading||busy" @click="load"><RefreshCw :size="14"/> Actualizar</UiButton>
   <p v-if="loading" class="text-xs text-muted">Consultando solicitudes…</p>
   <p v-else-if="!orders.length" class="text-xs text-muted">Sin solicitudes registradas.</p>
   <article v-for="row in orders" :key="row.id" class="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-outline p-3">
    <div><p class="text-sm font-bold">{{row.title}} · {{row.student.name}}</p><p class="text-xs text-muted">{{money(row.priceCOP)}} · {{row.credits}} créditos · {{labels[row.status]||row.status}}</p><p v-if="row.paymentReference" class="break-all text-xs text-muted">Referencia: {{row.paymentReference}} · {{row.reviewer?.name}}</p><p v-if="row.reviewNote" class="text-xs text-muted">{{row.reviewNote}}</p></div>
    <div v-if="row.checkout" class="text-xs text-muted"><p>Wompi · {{row.checkout.environment==='test'?'Pruebas':'Producción'}} · {{row.checkout.providerStatus}}</p><p class="break-all">{{row.checkout.resolution}} · {{row.checkout.reference}}</p><p v-if="row.checkout.providerTransactionId" class="break-all">Transacción: {{row.checkout.providerTransactionId}}</p><p v-if="row.checkout.resolution==='REVIEW_REQUIRED'" class="text-warning">Requiere conciliación externa. No asignar créditos manualmente.</p></div>
+   <PaymentReconcile v-if="row.checkout" :key="workspaceId+':'+row.id" :workspace-id="workspaceId" :order-id="row.id" :transaction-known="Boolean(row.checkout.providerTransactionId)" @updated="load"/>
    <UiButton v-if="row.status==='PENDING'&&(!row.checkout||row.checkout.environment==='test'||row.checkout.resolution==='NOT_PAID')" size="sm" variant="secondary" :disabled="busy" @click="choose(row)">Revisar</UiButton>
   </article>
   <form v-if="selected" class="mt-4 space-y-3 rounded-xl border border-outline p-4" @submit.prevent="review">
