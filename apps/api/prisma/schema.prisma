@@ -280,6 +280,7 @@ model ClassSession {
   seriesId String?
   seriesIndex Int?
   series ClassSeries? @relation(fields:[seriesId],references:[id],onDelete:SetNull)
+  calendarSyncLinks CalendarSyncLink[]
   reflection  ClassReflection?
   resources   Resource[]
   @@index([workspaceId, startsAt])
@@ -363,6 +364,7 @@ model ExternalConnection {
   workspace         Workspace  @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
   user              User       @relation(fields: [userId], references: [id], onDelete: Cascade)
   @@unique([workspaceId, userId, provider])
+  calendarSyncLinks CalendarSyncLink[]
 }
 
 // Required Better Auth 1.7 authentication records, separate from tenant roles.
@@ -860,4 +862,23 @@ model IntegrationOAuthAttempt {
   claimedAt         DateTime?
   @@index([workspaceId, userId])
   @@index([expiresAt])
+}
+
+model CalendarSyncLink {
+  id                   String @id @default(cuid())
+  connectionId         String
+  sessionId            String
+  connectionGeneration DateTime
+  revision             Int @default(1)
+  deliveredRevision    Int @default(0)
+  attempts             Int @default(0)
+  nextAttemptAt         DateTime @default(now())
+  leaseToken            String?
+  leaseUntil            DateTime?
+  lastErrorCode         String?
+  connection           ExternalConnection @relation(fields:[connectionId], references:[id], onDelete:Cascade)
+  session              ClassSession @relation(fields:[sessionId], references:[id], onDelete:Cascade)
+  @@unique([connectionId,sessionId])
+  @@index([nextAttemptAt])
+  @@index([sessionId])
 }
