@@ -26,7 +26,7 @@ export class PrivateMaterialsController{
   try{return await this.files.list(workspaceId,req.academyUser!.id);}catch(e){return this.fail(e);}
  }
  @Post()
- @UseInterceptors(FileInterceptor('file',{limits:{fileSize:MAX_FILE_BYTES,files:1,fields:2,fieldSize:1024,parts:3}}))
+ @UseInterceptors(FileInterceptor('file',{limits:{fileSize:MAX_FILE_BYTES,files:1,fields:2,fieldSize:1024,parts:4}}))
  async create(@Req() req:AuthenticatedRequest,@Param('workspaceId') workspaceId:string,@Body() raw:unknown,@UploadedFile() file:unknown){
   this.origin(req);
   try{return await this.files.create(workspaceId,req.academyUser!.id,raw,file);}catch(e){return this.fail(e);}
