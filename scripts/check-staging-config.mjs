@@ -100,7 +100,12 @@ export function validateStagingConfig(env) {
     if (mode==='prod' && (env.ACADEMY_WOMPI_LIVE_ENABLED!=='true'||!env.ACADEMY_WOMPI_ISSUER_ID?.trim())) errors.push('ACADEMY_WOMPI_LIVE_ENABLED: production requires explicit activation and owner attribution');
   }
   if (env.ACADEMY_PAYMENT_RECONCILIATION_ENABLED && !['true','false'].includes(env.ACADEMY_PAYMENT_RECONCILIATION_ENABLED)) errors.push('ACADEMY_PAYMENT_RECONCILIATION_ENABLED: must be true or false');
-  if (env.ACADEMY_PAYMENT_RECONCILIATION_ENABLED==='true' && env.ACADEMY_WOMPI_ENABLED!=='true') errors.push('ACADEMY_PAYMENT_RECONCILIATION_ENABLED: requires Wompi');
+  if (env.ACADEMY_PAYMENT_RECONCILIATION_ENABLED==='true' && env.ACADEMY_WOMPI_ENABLED!=='true' && env.ACADEMY_WORKSPACE_WOMPI_ENABLED!=='true') errors.push('ACADEMY_PAYMENT_RECONCILIATION_ENABLED: requires Wompi');
+  if (env.ACADEMY_WORKSPACE_WOMPI_ENABLED && !['true','false'].includes(env.ACADEMY_WORKSPACE_WOMPI_ENABLED)) errors.push('ACADEMY_WORKSPACE_WOMPI_ENABLED: must be true or false');
+  if (env.ACADEMY_WORKSPACE_WOMPI_ENABLED==='true') {
+    if (env.ACADEMY_PACKAGE_ORDERS_ENABLED!=='true') errors.push('ACADEMY_WORKSPACE_WOMPI_ENABLED: requires package orders');
+    if (!/^[a-fA-F0-9]{64}$/.test(env.ACADEMY_MERCHANT_ENCRYPTION_KEY||'')) errors.push('ACADEMY_MERCHANT_ENCRYPTION_KEY: requires 64 hex characters');
+  }
   return errors;
 }
 
