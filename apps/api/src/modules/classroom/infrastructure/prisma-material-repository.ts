@@ -9,7 +9,7 @@ import {
 export class PrismaMaterialRepository implements MaterialRepository {
   async listByWorkspace(workspaceId:string) {
     return prisma.resource.findMany({
-      where:{workspaceId},
+      where:{workspaceId,source:{not:'UPLOAD'}},
       select:{
         id:true,title:true,url:true,courseId:true,published:true,source:true,aiAuthorized:true,
       },
