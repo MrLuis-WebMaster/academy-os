@@ -97,6 +97,32 @@ services:
       INTEGRATION_ENCRYPTION_KEY: ${INTEGRATION_ENCRYPTION_KEY:-}
     command: ["pnpm", "--filter", "@academy-os/api", "worker:calendar-sync"]
 
+  payment-reconciliation:
+    profiles: ["payment-reconciliation"]
+    build:
+      context: .
+      dockerfile: deploy/staging/Dockerfile.api
+    restart: unless-stopped
+    depends_on:
+      api:
+        condition: service_healthy
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: ${STAGING_DATABASE_URL:?Set a URL with host postgres and the encoded password}
+      WEB_ORIGIN: https://${STAGING_DOMAIN}
+      ACADEMY_PACKAGE_ORDERS_ENABLED: ${ACADEMY_PACKAGE_ORDERS_ENABLED:-false}
+      ACADEMY_PAYMENT_RECONCILIATION_ENABLED: ${ACADEMY_PAYMENT_RECONCILIATION_ENABLED:-false}
+      ACADEMY_WOMPI_ENABLED: ${ACADEMY_WOMPI_ENABLED:-false}
+      ACADEMY_WOMPI_LIVE_ENABLED: ${ACADEMY_WOMPI_LIVE_ENABLED:-false}
+      ACADEMY_WOMPI_ENVIRONMENT: ${ACADEMY_WOMPI_ENVIRONMENT:-test}
+      ACADEMY_WOMPI_WORKSPACE_ID: ${ACADEMY_WOMPI_WORKSPACE_ID:-}
+      ACADEMY_WOMPI_PUBLIC_KEY: ${ACADEMY_WOMPI_PUBLIC_KEY:-}
+      ACADEMY_WOMPI_PRIVATE_KEY: ${ACADEMY_WOMPI_PRIVATE_KEY:-}
+      ACADEMY_WOMPI_INTEGRITY_KEY: ${ACADEMY_WOMPI_INTEGRITY_KEY:-}
+      ACADEMY_WOMPI_EVENTS_KEY: ${ACADEMY_WOMPI_EVENTS_KEY:-}
+      ACADEMY_WOMPI_ISSUER_ID: ${ACADEMY_WOMPI_ISSUER_ID:-}
+    command: ["pnpm", "--filter", "@academy-os/api", "worker:payment-reconciliation"]
+
   web:
     build:
       context: .
