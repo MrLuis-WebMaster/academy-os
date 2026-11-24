@@ -1,11 +1,17 @@
 <script setup lang="ts">
 import {onMounted,ref,watch} from 'vue';
+import PaymentReconcile from './PaymentReconcile.vue';
 import {ShoppingBag,RefreshCw} from 'lucide-vue-next';
 import {UiCard,UiButton,UiAlert} from '@academy-os/ui';
 import {apiJson,workspacePath} from '../shared/api-client';
 type Plan={id:string;title:string;priceCOP:number;sessionCredits:number;validDays:number;courseId:string|null};
 type Order={id:string;packageId:string;title:string;priceCOP:number;credits:number;validDays:number;status:string;createdAt:string};
-type Checkout={orderId:string;environment:string;providerStatus:string;resolution:string;expiresAt:string};
+type Checkout={orderId:string;environment:string;providerStatus:string;resolution:string;expiresAt:string;transactionKnown:boolean};
+const returnUrl=new URL(window.location.href);
+const returnOrder=returnUrl.searchParams.get('paymentReturn')==='1'?returnUrl.searchParams.get('order')??'':'';
+const returnId=returnOrder?returnUrl.searchParams.get('id')??'':'';
+const safeReturnId=/^[a-zA-Z0-9_-]{1,128}$/.test(returnId)?returnId:'';
+if(returnOrder){for(const key of ['paymentReturn','order','id'])returnUrl.searchParams.delete(key);window.history.replaceState({},'',returnUrl.pathname+returnUrl.search+returnUrl.hash);}
 const checkoutEnabled=ref(false),checkoutEnvironment=ref<string|null>(null),checkouts=ref<Checkout[]>([]);
 const checkoutPath=(w:string)=>workspacePath(w,'/package-checkout');
 const checkoutFor=(id:string)=>checkouts.value.find(x=>x.orderId===id);
@@ -42,6 +48,7 @@ async function request(plan:Plan){
 async function pay(order:Order){
  if(busy.value||!checkoutEnabled.value||order.status!=='PENDING')return;
  const sandbox=checkoutEnvironment.value==='test';
+ if(checkoutFor(order.id)&&!window.confirm('Si ya intentaste pagar, verifica primero el estado de la transacción. ¿Continuar al checkout?'))return;
  if(!window.confirm(sandbox?'¿Abrir checkout de pruebas? Usa únicamente datos de prueba; no se entregan créditos.':'¿Ir a Wompi para pagar '+money(order.priceCOP)+' a tu academia?'))return;
  const w=props.workspaceId;busy.value=true;error.value='';notice.value='';
  try{
@@ -86,9 +93,10 @@ watch(()=>props.workspaceId,()=>{notice.value='';void load();});onMounted(()=>vo
    <div><p class="text-sm font-semibold">{{order.title}}</p><p class="text-xs text-muted">{{money(order.priceCOP)}} · {{labels[order.status]||order.status}} · {{new Date(order.createdAt).toLocaleDateString('es-CO')}}</p></div>
    <div class="flex flex-wrap gap-2">
     <span v-if="checkoutFor(order.id)" class="text-xs text-muted">Wompi: {{checkoutFor(order.id)?.providerStatus}} · {{checkoutFor(order.id)?.resolution}}</span>
-    <UiButton v-if="checkoutEnabled&&order.status==='PENDING'&&(!checkoutFor(order.id)||(checkoutFor(order.id)?.providerStatus==='PENDING'&&new Date(checkoutFor(order.id)!.expiresAt)>new Date()))" size="sm" :disabled="busy" @click="pay(order)">{{checkoutEnvironment==='test'?'Probar checkout':'Pagar con Wompi'}}</UiButton>
+    <UiButton v-if="checkoutEnabled&&order.status==='PENDING'&&(!checkoutFor(order.id)||(!checkoutFor(order.id)?.transactionKnown&&checkoutFor(order.id)?.providerStatus==='PENDING'&&new Date(checkoutFor(order.id)!.expiresAt)>new Date()))" size="sm" :disabled="busy" @click="pay(order)">{{checkoutEnvironment==='test'?'Probar checkout':'Pagar con Wompi'}}</UiButton>
     <UiButton v-if="order.status==='PENDING'&&(!checkoutFor(order.id)||checkoutFor(order.id)?.environment==='test'||checkoutFor(order.id)?.resolution==='NOT_PAID')" size="sm" variant="secondary" :disabled="busy" @click="cancel(order)">Cancelar</UiButton>
    </div>
+   <PaymentReconcile v-if="checkoutEnabled&&checkoutFor(order.id)" :key="workspaceId+':'+order.id" :workspace-id="workspaceId" :order-id="order.id" :transaction-known="checkoutFor(order.id)?.transactionKnown??false" :initial-id="returnOrder===order.id?safeReturnId:''" @updated="load"/>
   </div>
   <UiAlert v-if="error" tone="danger">{{error}}</UiAlert><UiAlert v-if="notice" tone="success">{{notice}}</UiAlert>
  </UiCard>
