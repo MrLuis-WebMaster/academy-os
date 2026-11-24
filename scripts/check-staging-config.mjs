@@ -60,6 +60,17 @@ export function validateStagingConfig(env) {
   if (env.ACADEMY_AI_ENABLED && !['true', 'false'].includes(env.ACADEMY_AI_ENABLED)) {
     errors.push('ACADEMY_AI_ENABLED: must be true or false');
   }
+  if (env.GOOGLE_CALENDAR_ENABLED && !['true', 'false'].includes(env.GOOGLE_CALENDAR_ENABLED)) {
+    errors.push('GOOGLE_CALENDAR_ENABLED: must be true or false');
+  }
+  if (env.GOOGLE_CALENDAR_ENABLED === 'true') {
+    for (const key of ['GOOGLE_INTEGRATIONS_CLIENT_ID', 'GOOGLE_INTEGRATIONS_CLIENT_SECRET']) {
+      if (!env[key]?.trim() || /REPLACE_WITH|CHANGE_ME|YOUR_|placeholder/i.test(env[key])) errors.push(key + ': required when Google Calendar is enabled');
+    }
+    if (!/^[a-fA-F0-9]{64}$/.test(env.INTEGRATION_ENCRYPTION_KEY || '') || /^(.)\1{63}$/.test(env.INTEGRATION_ENCRYPTION_KEY || '')) {
+      errors.push('INTEGRATION_ENCRYPTION_KEY: provide 32 random bytes in hexadecimal');
+    }
+  }
   return errors;
 }
 
