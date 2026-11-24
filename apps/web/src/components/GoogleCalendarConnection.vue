@@ -49,7 +49,7 @@ async function exportClass(){
  const lesson=selected.value;
  if(!lesson||busy.value||!status.value?.connected||!status.value?.configured)return;
  const action=lesson.status==='CANCELLED'?'Eliminar el evento asociado de tu calendario':'Enviar el título y horario de la clase a tu calendario privado';
- if(!window.confirm(action+'? No se compartirán nombres ni datos de alumnos.'))return;
+ if(!window.confirm(action+'? El título se enviará tal como está escrito; comprueba que no incluya datos personales. No se adjuntan listas de alumnos ni notas.'))return;
  const workspace=props.workspaceId;busy.value=true;error.value='';notice.value='';meetUrl.value=null;
  try{
   const result=await apiJson<{state:'saved'|'removed';meetUrl:string|null;conferencePending:boolean}>(path(workspace,'/classes/'+encodeURIComponent(lesson.id)+'/export'),'POST',{createMeet:createMeet.value});
