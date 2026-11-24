@@ -192,3 +192,11 @@ Cumplir [RELEASE_CHECKLIST.md](RELEASE_CHECKLIST.md). Nunca considerar CI verde 
 - [x] Interfaz de Gestión real, configuración desactivada por defecto, preflight y tests simulados agregados a la suite.
 - [ ] Sincronización automática con outbox, recuperación/conciliación y revocación remota; publicación segura del enlace de Meet en la clase, pruebas PostgreSQL de carreras del nuevo contexto y validación de proveedor real.
 - [ ] Zoom, Google Drive y restantes conectores.
+
+
+## Hito 26 — publicación Meet y sincronización Calendar por clase
+- [x] Publicación opt-in del enlace generado por Google con comprobaciones de membresía, conexión y estado de clase en transacción; no acepta URLs arbitrarias desde el cliente.
+- [x] Aula Digital muestra enlaces de reunión únicamente a estudiantes matriculados con reserva activa; refresco tras reservas y cancelaciones.
+- [x] Suscripciones de sincronización opt-in por clase, revisiones persistentes, cola transaccional para cambios de título/horario/estado y worker con lease, reintentos y estado de revisión.
+- [x] Interfaz para autorizar, consultar o detener sincronización; perfil Docker Compose desactivado por defecto; tests simulados y de PostgreSQL añadidos.
+- [ ] Confirmar CI, validar OAuth/Meet y sincronización con proveedor real; verificar recuperación, límites, condiciones de carrera con ediciones externas y monitoreo. La sincronización es unidireccional desde AcademyOS y no recrea eventos remotos eliminados automáticamente.
