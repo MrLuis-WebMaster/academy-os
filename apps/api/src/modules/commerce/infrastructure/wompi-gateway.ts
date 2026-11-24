@@ -43,6 +43,13 @@ export class WompiGateway implements PaymentGateway{
   url.search=new URLSearchParams({'public-key':this.settings.publicKey,currency:'COP','amount-in-cents':amount,reference:row.reference,'signature:integrity':sha(row.reference+amount+'COP'+expiration+this.settings.integrityKey),'expiration-time':expiration,'redirect-url':new URL('/?paymentReturn=1&order='+encodeURIComponent(row.orderId),this.settings.webOrigin).toString()}).toString();
   return url.toString();
  }
+ authenticateEvent(raw:unknown){
+  const config=this.config();if(!config)throw new CheckoutDisabled('Checkout disabled');
+  const event=verifyWompiSignature(raw,this.settings.eventsKey,config.environment);
+  if(!event)return null;
+  const signature=object(object(raw).signature);
+  return {eventKey:sha(String(signature.checksum).toLowerCase()),transactionId:event.id,amountInCents:event.amountInCents,signedStatus:event.status};
+ }
  async verifyEvent(raw:unknown){
   const config=this.config();if(!config)throw new CheckoutDisabled('Checkout disabled');
   const event=verifyWompiSignature(raw,this.settings.eventsKey,config.environment);
