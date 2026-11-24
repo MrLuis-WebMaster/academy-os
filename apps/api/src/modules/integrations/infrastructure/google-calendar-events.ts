@@ -46,7 +46,7 @@ export class GoogleCalendarEvents implements CalendarEventPort{
   const query='?sendUpdates=none&conferenceDataVersion=1';
   if(lesson.status==='CANCELLED'){
    if(current&&current.status!=='cancelled'){
-    const response=await this.call(token,'/'+eventId+query,'DELETE');
+    const response=await this.call(token,'/'+eventId+'?sendUpdates=none','DELETE');
     if(!response.ok&&![404,410].includes(response.status))throw new CalendarProviderError('Calendar removal failed');
    }
    return {state:'removed',meetUrl:null,conferencePending:false};
