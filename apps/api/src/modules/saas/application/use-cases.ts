@@ -1,8 +1,8 @@
 import type {SaasRepository} from './ports.js';
-import {SaasDenied,SaasInvalid,parseAssignment,planSummary,PLAN_LIMITS} from '../domain/plan.js';
+import {SaasDenied,SaasInvalid,parseAssignment,planSummary,PLAN_LIMITS,DEFAULT_AI_DAILY_LIMIT} from '../domain/plan.js';
 export class SaasUseCases{
  constructor(private readonly repo:SaasRepository,private readonly enforced:boolean){}
- async summary(w:string,u:string){const data=await this.repo.summary(w,u);return {...planSummary(data.assignment,data.usage,this.enforced),catalog:PLAN_LIMITS};}
+ async summary(w:string,u:string){const data=await this.repo.summary(w,u);return {...planSummary(data.assignment,data.usage,this.enforced),catalog:PLAN_LIMITS,operationalAiDailyLimit: this.enforced?planSummary(data.assignment,data.usage,this.enforced).limits.aiDailyAttempts:DEFAULT_AI_DAILY_LIMIT};}
  async access(u:string){return {operator:await this.repo.isOperator(u)};}
  async list(u:string,after:unknown){if(!await this.repo.isOperator(u))throw new SaasDenied('Platform operator required');
   if(after!==undefined&&after!==null&&(typeof after!=='string'||after.length>128))throw new SaasInvalid('Invalid cursor');
