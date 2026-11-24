@@ -1,7 +1,7 @@
 import {prisma} from '../../../lib/prisma.js';
 import type {Prisma} from '../../../generated/prisma/client.js';
 import type {SaasRepository} from '../application/ports.js';
-import {SaasDenied,SaasMissing,type PlanCode} from '../domain/plan.js';
+import {SaasDenied,SaasMissing,utcDayStart,type PlanCode} from '../domain/plan.js';
 import {lockPlan} from './plan-policy.js';
 export class PrismaSaasRepository implements SaasRepository{
  constructor(private readonly operatorIds:ReadonlySet<string>){}
@@ -12,13 +12,14 @@ export class PrismaSaasRepository implements SaasRepository{
  async summary(w:string,u:string){
   return prisma.$transaction(async tx=>{
    if(!await tx.workspaceMember.findFirst({where:{workspaceId:w,userId:u,role:{in:['OWNER','ADMIN']}},select:{id:true}}))throw new SaasDenied('Academy manager required');
-   const [assignment,students,teachers,storage]=await Promise.all([
+   const [assignment,students,teachers,storage,aiDailyAttempts]=await Promise.all([
     tx.saasSubscription.findUnique({where:{workspaceId:w},select:{plan:true,validUntil:true}}),
     tx.workspaceMember.count({where:{workspaceId:w,role:'STUDENT'}}),
     tx.teacherProfile.count({where:{workspaceId:w}}),
     tx.privateMaterialFile.aggregate({where:{resource:{workspaceId:w}},_sum:{sizeBytes:true}}),
+    tx.aiGeneration.count({where:{workspaceId:w,createdAt:{gte:utcDayStart()}}}),
    ]);
-   return {assignment,usage:{students,teachers,storageBytes:storage._sum.sizeBytes??0}};
+   return {assignment,usage:{students,teachers,storageBytes:storage._sum.sizeBytes??0,aiDailyAttempts}};
   });
  }
  async list(u:string,after:string|null){
