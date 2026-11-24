@@ -1,4 +1,8 @@
 import {Module} from '@nestjs/common';
+import {CheckoutController} from './presentation/checkout.controller.js';
+import {CheckoutUseCases} from './application/checkout-use-cases.js';
+import {PrismaPackageCheckoutRepository} from './infrastructure/prisma-package-checkout-repository.js';
+import {WompiGateway} from './infrastructure/wompi-gateway.js';
 import {PackageOrdersController} from './presentation/package-orders.controller.js';
 import {PackageOrderUseCases} from './application/order-use-cases.js';
 import {PrismaPackageOrderRepository} from './infrastructure/prisma-package-order-repository.js';
@@ -11,8 +15,18 @@ import {PrismaStudioRepository} from './infrastructure/prisma-studio-repository.
 import {StudioController} from './presentation/studio.controller.js';
 
 @Module({
-  controllers:[StudioController,ClassPackagesController,PackageOrdersController],
+  controllers:[StudioController,ClassPackagesController,PackageOrdersController,CheckoutController],
   providers:[{
+    provide:CheckoutUseCases,
+    useFactory:()=>new CheckoutUseCases(new PrismaPackageCheckoutRepository(),new WompiGateway({
+      enabled:process.env.ACADEMY_WOMPI_ENABLED==='true'&&process.env.ACADEMY_PACKAGE_ORDERS_ENABLED==='true'&&
+        (process.env.ACADEMY_WOMPI_ENVIRONMENT!=='prod'||process.env.ACADEMY_WOMPI_LIVE_ENABLED==='true'),
+      workspaceId:process.env.ACADEMY_WOMPI_WORKSPACE_ID||'',environment:process.env.ACADEMY_WOMPI_ENVIRONMENT||'test',
+      publicKey:process.env.ACADEMY_WOMPI_PUBLIC_KEY||'',privateKey:process.env.ACADEMY_WOMPI_PRIVATE_KEY||'',
+      integrityKey:process.env.ACADEMY_WOMPI_INTEGRITY_KEY||'',eventsKey:process.env.ACADEMY_WOMPI_EVENTS_KEY||'',
+      issuerId:process.env.ACADEMY_WOMPI_ISSUER_ID||'',webOrigin:process.env.WEB_ORIGIN||'http://localhost:5173',
+    }),new PrismaMembershipAdapter()),
+  },{
     provide:PackageOrderUseCases,
     useFactory:()=>new PackageOrderUseCases(new PrismaPackageOrderRepository(),new PrismaMembershipAdapter(),process.env.ACADEMY_PACKAGE_ORDERS_ENABLED==='true'),
   },{
