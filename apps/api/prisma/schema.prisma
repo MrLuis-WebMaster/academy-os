@@ -972,6 +972,12 @@ model PackageCheckout {
  providerStatus String @default("PENDING")
  resolution String @default("WAITING")
  verifiedAt DateTime?
+ nextCheckAt DateTime @default(now())
+ checkAttempts Int @default(0)
+ checkLease String?
+ checkLeaseUntil DateTime?
+ checkError String?
  createdAt DateTime @default(now())
  order PackageOrder @relation(fields:[orderId],references:[id],onDelete:Cascade)
+ @@index([nextCheckAt])
 }
