@@ -5,10 +5,13 @@
         X-Content-Type-Options "nosniff"
         X-Frame-Options "DENY"
         Referrer-Policy "strict-origin-when-cross-origin"
+        Strict-Transport-Security "max-age=31536000"
+        X-Robots-Tag "noindex, nofollow"
     }
 
     @api path /api/*
     handle @api {
+        header Cache-Control "no-store"
         reverse_proxy api:3001
     }
 
