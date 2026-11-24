@@ -7,6 +7,10 @@ import {IntegrationDenied,IntegrationUnavailable,InvalidAuthorization} from '../
 @Controller()
 export class GoogleConnectionController{
  constructor(private readonly connection:GoogleCalendarConnection){}
+ private assertOrigin(req:AuthenticatedRequest){
+  const expected=new URL(process.env.WEB_ORIGIN||'http://localhost:5173').origin;
+  if(req.headers.origin!==expected)throw new ForbiddenException('Invalid request origin');
+ }
  private translate(error:unknown):never{
   if(error instanceof IntegrationDenied)throw new ForbiddenException(error.message);
   if(error instanceof IntegrationUnavailable)throw new ServiceUnavailableException(error.message);
@@ -19,6 +23,7 @@ export class GoogleConnectionController{
  }
  @Post('workspaces/:workspaceId/integrations/google-calendar/authorize')
  async authorize(@Req() req:AuthenticatedRequest,@Param('workspaceId') workspaceId:string){
+  this.assertOrigin(req);
   try{return await this.connection.start(workspaceId,req.academyUser!.id);}catch(e){return this.translate(e);}
  }
  @Get('integrations/google-calendar/callback')
@@ -35,6 +40,7 @@ export class GoogleConnectionController{
  }
  @Delete('workspaces/:workspaceId/integrations/google-calendar')
  async disconnect(@Req() req:AuthenticatedRequest,@Param('workspaceId') workspaceId:string){
+  this.assertOrigin(req);
   try{return await this.connection.disconnect(workspaceId,req.academyUser!.id);}catch(e){return this.translate(e);}
  }
 }
