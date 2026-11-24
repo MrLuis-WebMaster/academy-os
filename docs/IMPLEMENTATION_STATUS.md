@@ -204,3 +204,10 @@ pnpm typecheck && pnpm test && pnpm build
 - Gestión por OWNER/ADMIN y docentes asignados; publicación explícita, retirada, eliminación y descargas autenticadas para alumnos matriculados. Sin IA ni enlaces públicos.
 - UI conectada y pruebas de dominio y PostgreSQL añadidas. Migración z9_private_material_files. Desactivado por defecto.
 - Pendientes: CI confirmado, pruebas HTTP y navegador, antivirus/cuarentena, almacenamiento de objetos a escala, límites de tasa y conectores Drive/Dropbox/OneDrive. Ver [PRIVATE_FILES.md](PRIVATE_FILES.md).
+
+
+## Hito 28 — solicitudes de compra y entrega de paquetes
+- Catálogo elegible del alumno, orden con snapshot de precio/créditos, estados e historial.
+- Revisión de OWNER/ADMIN, referencia externa única, importe comprobado manualmente y entrega transaccional e idempotente de créditos con aviso interno.
+- Pantallas de estudiante y gestión, migración za_package_orders, flag desactivado por defecto y pruebas PostgreSQL añadidas.
+- Pendientes CI, pruebas de interfaz y pasarela real con eventos firmados, conciliación y suscripciones. Ver [PACKAGE_ORDERS.md](PACKAGE_ORDERS.md).
