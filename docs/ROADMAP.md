@@ -175,3 +175,11 @@ Cumplir [RELEASE_CHECKLIST.md](RELEASE_CHECKLIST.md). Nunca considerar CI verde 
 - [x] Bloqueo concurrente por asignación compartido con consumo automático de crédito y revalidación en transacción.
 - [x] UI administrativa, pruebas de control de acceso, reconciliación de saldo y no duplicar avisos.
 - [ ] Exportación CSV de auditoría, conciliación bancaria real, soporte de reembolso monetario, múltiples roles de contabilidad y política legal de retención.
+
+
+## Hito 24 — exportación administrativa de créditos (2026-11-23)
+- [x] El panel de paquetes permite descargar CSV del historial de asignaciones autorizado por el backend y filtrado por academia.
+- [x] El CSV incluye emisor, alumno, paquete, referencias, créditos, fechas, revocación y reservas futuras; serialización UTF-8 y mitigación de inyección de fórmulas de hoja de cálculo.
+- [x] Pruebas de exportación, escapado y nombre de archivo incorporadas a CI (`pnpm commerce:csv:test`).
+- [ ] Validación con navegadores y hojas de cálculo reales, exportación paginada completa y controles de retención/privacidad, reservadas para una etapa posterior.
+- [ ] El CSV no certifica pagos, no sustituye contabilidad y solo cubre las últimas 200 asignaciones que devuelve el endpoint.
