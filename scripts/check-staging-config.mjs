@@ -77,6 +77,9 @@ export function validateStagingConfig(env) {
   if (env.GOOGLE_CALENDAR_SYNC_WORKER_ENABLED === 'true' && env.GOOGLE_CALENDAR_ENABLED !== 'true') {
     errors.push('GOOGLE_CALENDAR_SYNC_WORKER_ENABLED: requires GOOGLE_CALENDAR_ENABLED=true');
   }
+  if (env.ACADEMY_PRIVATE_FILES_ENABLED && !['true', 'false'].includes(env.ACADEMY_PRIVATE_FILES_ENABLED)) {
+    errors.push('ACADEMY_PRIVATE_FILES_ENABLED: must be true or false');
+  }
   return errors;
 }
 
