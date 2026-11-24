@@ -16,6 +16,12 @@ export class PrismaCalendarExport implements CalendarExportRepository{
    return {connectionId:connection.id,connectedAt:connection.connectedAt,encryptedCredentials:connection.encryptedCredentials,lesson};
   });
  }
+ async autoSyncStatus(workspaceId:string,userId:string,sessionId:string){
+  const link=await prisma.calendarSyncLink.findFirst({where:{sessionId,connection:{workspaceId,userId,provider:'GOOGLE_CALENDAR'},session:{workspaceId}},
+   select:{revision:true,deliveredRevision:true,lastErrorCode:true,connectionGeneration:true,connection:{select:{connectedAt:true}}}});
+  const enabled=!!link&&link.connectionGeneration.getTime()===link.connection.connectedAt.getTime();
+  return {enabled,pending:enabled&&!!link&&link.revision>link.deliveredRevision,lastErrorCode:enabled?link?.lastErrorCode??null:null};
+ }
  async setAutoSync(workspaceId:string,userId:string,snapshot:CalendarExportSnapshot,enabled:boolean){
   return prisma.$transaction(async tx=>{
    await tx.$queryRaw`SELECT pg_advisory_xact_lock(hashtext(${'academy-os:booking:'+snapshot.lesson.id}))::text`;
