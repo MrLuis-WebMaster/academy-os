@@ -86,6 +86,19 @@ export function validateStagingConfig(env) {
   if (env.ACADEMY_SAAS_QUOTAS_ENABLED && !['true', 'false'].includes(env.ACADEMY_SAAS_QUOTAS_ENABLED)) {
     errors.push('ACADEMY_SAAS_QUOTAS_ENABLED: must be true or false');
   }
+  for (const key of ['ACADEMY_WOMPI_ENABLED','ACADEMY_WOMPI_LIVE_ENABLED']) {
+    if (env[key] && !['true','false'].includes(env[key])) errors.push(key+': must be true or false');
+  }
+  if (env.ACADEMY_WOMPI_ENABLED==='true') {
+    const mode=env.ACADEMY_WOMPI_ENVIRONMENT||'test';
+    if (!['test','prod'].includes(mode)) errors.push('ACADEMY_WOMPI_ENVIRONMENT: expected test or prod');
+    if (env.ACADEMY_PACKAGE_ORDERS_ENABLED!=='true') errors.push('ACADEMY_WOMPI_ENABLED: requires package orders');
+    if (!env.ACADEMY_WOMPI_WORKSPACE_ID?.trim()) errors.push('ACADEMY_WOMPI_WORKSPACE_ID: pilot academy required');
+    for (const [key,prefix] of [['PUBLIC_KEY','pub_'+mode+'_'],['PRIVATE_KEY','prv_'+mode+'_'],['INTEGRITY_KEY',mode+'_integrity_'],['EVENTS_KEY',mode+'_events_']]) {
+      if (!env['ACADEMY_WOMPI_'+key]?.startsWith(prefix)) errors.push('ACADEMY_WOMPI_'+key+': missing or wrong environment');
+    }
+    if (mode==='prod' && (env.ACADEMY_WOMPI_LIVE_ENABLED!=='true'||!env.ACADEMY_WOMPI_ISSUER_ID?.trim())) errors.push('ACADEMY_WOMPI_LIVE_ENABLED: production requires explicit activation and owner attribution');
+  }
   return errors;
 }
 
