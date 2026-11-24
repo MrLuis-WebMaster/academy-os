@@ -40,20 +40,26 @@ export class WompiGateway implements PaymentGateway{
   const config=this.config();if(!config||row.environment!==config.environment||row.merchantKeyHash!==config.merchantKeyHash)throw new CheckoutDisabled('Merchant configuration changed');
   const amount=row.amountInCents.toString(),expiration=row.expiresAt.toISOString();
   const url=new URL('https://checkout.wompi.co/p/');
-  url.search=new URLSearchParams({'public-key':this.settings.publicKey,currency:'COP','amount-in-cents':amount,reference:row.reference,'signature:integrity':sha(row.reference+amount+'COP'+expiration+this.settings.integrityKey),'expiration-time':expiration,'redirect-url':new URL('/',this.settings.webOrigin).toString()}).toString();
+  url.search=new URLSearchParams({'public-key':this.settings.publicKey,currency:'COP','amount-in-cents':amount,reference:row.reference,'signature:integrity':sha(row.reference+amount+'COP'+expiration+this.settings.integrityKey),'expiration-time':expiration,'redirect-url':new URL('/?paymentReturn=1',this.settings.webOrigin).toString()}).toString();
   return url.toString();
  }
  async verifyEvent(raw:unknown){
   const config=this.config();if(!config)throw new CheckoutDisabled('Checkout disabled');
   const event=verifyWompiSignature(raw,this.settings.eventsKey,config.environment);
   if(!event)return null;
-  // Signature may not cover reference or currency. Re-read all fields from the merchant-authenticated API.
+  const verified=await this.readTransaction(event.id);
+  if(verified.amountInCents!==event.amountInCents)throw new InvalidPaymentEvent('Payment amount mismatch');
+  return verified;
+ }
+ async readTransaction(id:string){
+  const config=this.config();if(!config)throw new CheckoutDisabled('Checkout disabled');
+  if(!/^[a-zA-Z0-9_-]{1,128}$/.test(id))throw new InvalidPaymentEvent('Invalid transaction ID');
   const origin=config.environment==='test'?'https://sandbox.wompi.co':'https://production.wompi.co';
   try{
-   const response=await this.request(origin+'/v1/transactions/'+encodeURIComponent(event.id),{headers:{Accept:'application/json',Authorization:'Bearer '+this.settings.privateKey},redirect:'error',signal:AbortSignal.timeout(10000)});
+   const response=await this.request(origin+'/v1/transactions/'+encodeURIComponent(id),{headers:{Accept:'application/json',Authorization:'Bearer '+this.settings.privateKey},redirect:'error',signal:AbortSignal.timeout(10000)});
    if(!response.ok)throw new Error('provider response');
    const verified=transaction(object(await response.json()).data);
-   if(verified.id!==event.id||verified.amountInCents!==event.amountInCents)throw new Error('provider mismatch');
+   if(verified.id!==id)throw new Error('provider mismatch');
    return verified;
   }catch{throw new PaymentProviderUnavailable('Payment verification temporarily unavailable');}
  }
