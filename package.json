@@ -14,6 +14,8 @@
     "db:generate": "pnpm --filter @academy-os/api db:generate",
     "db:validate": "pnpm --filter @academy-os/api db:validate",
     "db:migrate": "pnpm --filter @academy-os/api db:migrate",
-    "arch:check": "node scripts/check-architecture.mjs"
+    "arch:check": "node scripts/check-architecture.mjs",
+    "staging:check": "node scripts/check-staging-config.mjs",
+    "staging:check:test": "node --test scripts/check-staging-config.test.mjs"
   }
 }
