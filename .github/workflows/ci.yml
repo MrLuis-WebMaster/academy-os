@@ -44,6 +44,7 @@ jobs:
           STAGING_DATABASE_URL: postgresql://academy:github-ci-test-only@postgres:5432/academy_os
         run: docker compose -f compose.staging.yaml config --quiet
       - run: pnpm staging:check:test
+      - run: pnpm commerce:csv:test
       - run: pnpm arch:check
       - run: pnpm typecheck
       - run: pnpm test
