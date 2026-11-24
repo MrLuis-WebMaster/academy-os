@@ -38,3 +38,8 @@ test('enabled Calendar requires separate OAuth secrets and a nontrivial encrypti
     GOOGLE_INTEGRATIONS_CLIENT_ID:'test-integration-id',GOOGLE_INTEGRATIONS_CLIENT_SECRET:'test-integration-secret',
     INTEGRATION_ENCRYPTION_KEY:key}),[]);
 });
+
+test('calendar worker cannot run without the integration enabled',()=>{
+ const errors=validateStagingConfig({...valid,GOOGLE_CALENDAR_SYNC_WORKER_ENABLED:'true',GOOGLE_CALENDAR_ENABLED:'false'});
+ assert.ok(errors.some(e=>e.startsWith('GOOGLE_CALENDAR_SYNC_WORKER_ENABLED')));
+});
