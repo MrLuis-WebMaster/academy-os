@@ -27,3 +27,14 @@ test('env reader rejects duplicate keys and supports comments and quotes', () =>
   assert.deepEqual(parseEnv('# comment\nPORT="3001"\n'), {PORT:'3001'});
   assert.throws(() => parseEnv('PORT=3001\nPORT=3002'), /Duplicate key/);
 });
+
+test('enabled Calendar requires separate OAuth secrets and a nontrivial encryption key', () => {
+  const errors=validateStagingConfig({...valid,GOOGLE_CALENDAR_ENABLED:'true'});
+  assert.ok(errors.some(e=>e.startsWith('GOOGLE_INTEGRATIONS_CLIENT_ID')));
+  assert.ok(errors.some(e=>e.startsWith('GOOGLE_INTEGRATIONS_CLIENT_SECRET')));
+  assert.ok(errors.some(e=>e.startsWith('INTEGRATION_ENCRYPTION_KEY')));
+  const key='0123456789abcdef'.repeat(4);
+  assert.deepEqual(validateStagingConfig({...valid,GOOGLE_CALENDAR_ENABLED:'true',
+    GOOGLE_INTEGRATIONS_CLIENT_ID:'test-integration-id',GOOGLE_INTEGRATIONS_CLIENT_SECRET:'test-integration-secret',
+    INTEGRATION_ENCRYPTION_KEY:key}),[]);
+});
