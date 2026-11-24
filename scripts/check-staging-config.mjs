@@ -106,6 +106,8 @@ export function validateStagingConfig(env) {
     if (env.ACADEMY_PACKAGE_ORDERS_ENABLED!=='true') errors.push('ACADEMY_WORKSPACE_WOMPI_ENABLED: requires package orders');
     if (!/^[a-fA-F0-9]{64}$/.test(env.ACADEMY_MERCHANT_ENCRYPTION_KEY||'')) errors.push('ACADEMY_MERCHANT_ENCRYPTION_KEY: requires 64 hex characters');
   }
+  if (env.ACADEMY_PAYMENT_INBOX_ENABLED && !['true','false'].includes(env.ACADEMY_PAYMENT_INBOX_ENABLED)) errors.push('ACADEMY_PAYMENT_INBOX_ENABLED: must be true or false');
+  if (env.ACADEMY_PAYMENT_INBOX_ENABLED==='true' && env.ACADEMY_PAYMENT_RECONCILIATION_ENABLED!=='true') errors.push('ACADEMY_PAYMENT_INBOX_ENABLED: requires the reconciliation worker');
   return errors;
 }
 
