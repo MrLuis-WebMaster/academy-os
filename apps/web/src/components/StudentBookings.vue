@@ -11,6 +11,7 @@ type Booking={id:string;sessionId:string;status:'BOOKED'|'CANCELLED';bookedAt:st
  }>};
 };
 const props=defineProps<{workspaceId:string;sessions:ClassSession[]}>();
+const emit=defineEmits<{updated:[]}>();
 const mine=ref<Booking[]>([]),loading=ref(false),busy=ref(''),error=ref(''),notice=ref('');
 type Entitlement={
  id:string;studentUserId:string;credits:number;used:number;remaining:number;available:number;
@@ -148,6 +149,7 @@ async function reserve(sessionId:string){
  try{
   await requestFor(workspaceId,'','POST',{sessionId});
   if(workspaceId!==props.workspaceId)return;
+  emit('updated');
   await load();
   await loadCredits();
   if(workspaceId===props.workspaceId)notice.value=props.sessions.find(item=>item.id===sessionId)?.requiresPackage
@@ -164,6 +166,7 @@ async function cancel(booking:Booking){
  try{
   await requestFor(workspaceId,'/'+encodeURIComponent(booking.id)+'/cancel','PATCH');
   if(workspaceId!==props.workspaceId)return;
+  emit('updated');
   await load();
   await loadCredits();
   if(workspaceId===props.workspaceId)notice.value='Reserva cancelada.';
@@ -180,6 +183,7 @@ async function reserveSeries(seriesId:string){
    workspaceId,'/series','POST',{seriesId},
   );
   if(workspaceId!==props.workspaceId)return;
+  emit('updated');
   await load();
   await loadCredits();
   if(workspaceId===props.workspaceId){
@@ -204,6 +208,7 @@ async function cancelSeries(seriesId:string,title:string){
    workspaceId,'/series/'+encodeURIComponent(seriesId)+'/cancel-future','PATCH',
   );
   if(workspaceId!==props.workspaceId)return;
+  emit('updated');
   await load();
   await loadCredits();
   if(workspaceId===props.workspaceId){
