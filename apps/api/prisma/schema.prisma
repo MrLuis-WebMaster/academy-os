@@ -160,6 +160,8 @@ model Workspace {
   classPackages ClassPackage[]
   packageEntitlements ClassPackageEntitlement[]
   packageOrders PackageOrder[]
+  saasSubscription SaasSubscription?
+  saasPlanChanges SaasPlanChange[]
 }
 
 model WorkspaceMember {
@@ -931,4 +933,29 @@ model PackageOrder {
  @@unique([workspaceId,studentUserId,requestId])
  @@unique([workspaceId,paymentReference])
  @@index([workspaceId,status,createdAt])
+}
+
+enum SaasPlanCode {
+ STARTER
+ PRO
+ ACADEMY
+}
+model SaasSubscription {
+ workspaceId String @id
+ plan SaasPlanCode
+ validUntil DateTime?
+ updatedAt DateTime @updatedAt
+ workspace Workspace @relation(fields:[workspaceId],references:[id],onDelete:Cascade)
+}
+model SaasPlanChange {
+ id String @id @default(cuid())
+ workspaceId String
+ actorUserId String
+ previousPlan SaasPlanCode
+ nextPlan SaasPlanCode
+ validUntil DateTime?
+ reason String
+ createdAt DateTime @default(now())
+ workspace Workspace @relation(fields:[workspaceId],references:[id],onDelete:Cascade)
+ @@index([workspaceId,createdAt])
 }
