@@ -8,7 +8,7 @@ export class PrismaStudentClassroomRead implements StudentClassroomReadRepositor
       where:{workspaceId,userId:actorId,role:'STUDENT'},select:{id:true},
     });
     if(!member)throw new StudentClassroomAccessDenied();
-    return prisma.enrollment.findMany({
+    const enrollments=await prisma.enrollment.findMany({
       where:{userId:actorId,course:{workspaceId}},
       select:{
         id:true,
@@ -24,11 +24,18 @@ export class PrismaStudentClassroomRead implements StudentClassroomReadRepositor
             select:{
               id:true,title:true,startsAt:true,endsAt:true,seriesId:true,seriesIndex:true,
               mode:true,location:true,meetingUrl:true,
+              bookings:{where:{workspaceId,userId:actorId,status:'BOOKED'},select:{id:true},take:1},
             },
           },
         }},
       },
       orderBy:{createdAt:'desc'},
     });
+    // Keep unreserved sessions visible for booking, but never expose their join URLs.
+    return enrollments.map(enrollment=>({...enrollment,course:{...enrollment.course,
+      sessions:enrollment.course.sessions.map(({bookings,meetingUrl,...session})=>({
+        ...session,meetingUrl:bookings.length&&session.mode!=='ONSITE'?meetingUrl:null,
+      })),
+    }}));
   }
 }
