@@ -2,7 +2,9 @@ import {Module} from '@nestjs/common';
 import {CheckoutController} from './presentation/checkout.controller.js';
 import {CheckoutUseCases} from './application/checkout-use-cases.js';
 import {PrismaPackageCheckoutRepository} from './infrastructure/prisma-package-checkout-repository.js';
-import {configuredWompi} from './infrastructure/wompi-config.js';
+import {configuredWorkspaceMerchants} from './infrastructure/prisma-wompi-merchants.js';
+import {MerchantController} from './presentation/merchant.controller.js';
+import {MerchantUseCases} from './application/merchant-use-cases.js';
 import {PackageOrdersController} from './presentation/package-orders.controller.js';
 import {PackageOrderUseCases} from './application/order-use-cases.js';
 import {PrismaPackageOrderRepository} from './infrastructure/prisma-package-order-repository.js';
@@ -15,10 +17,13 @@ import {PrismaStudioRepository} from './infrastructure/prisma-studio-repository.
 import {StudioController} from './presentation/studio.controller.js';
 
 @Module({
-  controllers:[StudioController,ClassPackagesController,PackageOrdersController,CheckoutController],
+  controllers:[StudioController,ClassPackagesController,PackageOrdersController,CheckoutController,MerchantController],
   providers:[{
     provide:CheckoutUseCases,
-    useFactory:()=>new CheckoutUseCases(new PrismaPackageCheckoutRepository(),configuredWompi(),new PrismaMembershipAdapter()),
+    useFactory:()=>{const merchants=configuredWorkspaceMerchants();return new CheckoutUseCases(new PrismaPackageCheckoutRepository(),merchants.legacy(),new PrismaMembershipAdapter(),merchants);},
+  },{
+    provide:MerchantUseCases,
+    useFactory:()=>new MerchantUseCases(configuredWorkspaceMerchants(),new PrismaMembershipAdapter()),
   },{
     provide:PackageOrderUseCases,
     useFactory:()=>new PackageOrderUseCases(new PrismaPackageOrderRepository(),new PrismaMembershipAdapter(),process.env.ACADEMY_PACKAGE_ORDERS_ENABLED==='true'),
