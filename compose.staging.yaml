@@ -36,6 +36,10 @@ services:
       ACADEMY_AI_ENABLED: ${ACADEMY_AI_ENABLED:-false}
       ACADEMY_AI_MODEL: ${ACADEMY_AI_MODEL:-gpt-5-mini}
       OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      GOOGLE_CALENDAR_ENABLED: ${GOOGLE_CALENDAR_ENABLED:-false}
+      GOOGLE_INTEGRATIONS_CLIENT_ID: ${GOOGLE_INTEGRATIONS_CLIENT_ID:-}
+      GOOGLE_INTEGRATIONS_CLIENT_SECRET: ${GOOGLE_INTEGRATIONS_CLIENT_SECRET:-}
+      INTEGRATION_ENCRYPTION_KEY: ${INTEGRATION_ENCRYPTION_KEY:-}
     command: ["sh", "-c", "pnpm --filter @academy-os/api exec prisma migrate deploy && pnpm --filter @academy-os/api start"]
     healthcheck:
       test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3001/api/v1/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
