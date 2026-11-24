@@ -229,3 +229,8 @@ pnpm typecheck && pnpm test && pnpm build
 - Checkout alojado COP, firma y expiración del servidor, referencia persistida, webhook con checksum y consulta autenticada al proveedor.
 - UI del alumno y gestor, sandbox sin créditos, camino de entrega transaccional de producción desactivado por defecto; revisión de incompatibilidades/anulaciones. Una academia piloto por instalación.
 - Migración zc_package_checkout y pruebas simuladas/PostgreSQL añadidas, sin ejecución confirmada. Pendientes sandbox real, conciliación, recuperación de checkout, reembolsos, múltiples comercios y facturación SaaS. Ver [WOMPI_CHECKOUT.md](WOMPI_CHECKOUT.md).
+
+## Hito 32 — recuperación y conciliación de checkout
+- Consulta autenticada por ID de Wompi desde alumno titular y gestor, retorno informativo y formulario reutilizable; verificación del servidor y entrega idempotente.
+- Worker opt-in de transacciones pendientes con ID conocido, leases, backoff, 12 intentos y estados visibles. Migración zd_checkout_reconciliation y perfil Compose. Pruebas añadidas, CI no confirmado.
+- Pendientes: inbox de eventos durables, casos sin ID, reembolsos, checkout vencido, múltiples comercios y facturación SaaS. Ver [WOMPI_CHECKOUT.md](WOMPI_CHECKOUT.md).
