@@ -227,3 +227,9 @@ Cumplir [RELEASE_CHECKLIST.md](RELEASE_CHECKLIST.md). Nunca considerar CI verde 
 - [x] Límites diarios compartidos de IA por plan, visualización de consumo y bloqueo coordinado con cambios de plan; modo informativo conserva 10 intentos por día.
 - [x] Pruebas de autorización, paginación y cuota concurrente añadidas; cuatro comprobaciones aisladas de dominio ejecutadas exitosamente.
 - [ ] CI, compilación y pruebas de PostgreSQL/navegador confirmadas; validación real, medición de tokens/costes, facturación y pasarela.
+
+
+## Hito 31 — checkout Wompi para paquetes (piloto)
+- Checkout alojado COP, firma y expiración del servidor, referencia persistida, webhook con checksum y consulta autenticada al proveedor.
+- UI del alumno y gestor, sandbox sin créditos, camino de entrega transaccional de producción desactivado por defecto; revisión de incompatibilidades/anulaciones. Una academia piloto por instalación.
+- Migración zc_package_checkout y pruebas simuladas/PostgreSQL añadidas, sin ejecución confirmada. Pendientes sandbox real, conciliación, recuperación de checkout, reembolsos, múltiples comercios y facturación SaaS. Ver [WOMPI_CHECKOUT.md](WOMPI_CHECKOUT.md).
