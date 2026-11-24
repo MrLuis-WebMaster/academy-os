@@ -22,6 +22,8 @@ function fixture(){
    assert.equal(w,'a');assert.equal(u,'teacher');assert.equal(old.lesson.meetingUrl,'https://example.test/manual');
    assert.equal(url,'https://meet.google.com/abc-defg-hij');published++;return accept;
   },
+  autoSyncStatus:async()=>({enabled:false,pending:false,lastErrorCode:null}),
+  setAutoSync:async()=>true,
   replaceCredential:async()=>true,
  };
  const provider:CalendarEventPort={
