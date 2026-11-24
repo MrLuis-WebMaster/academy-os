@@ -9,7 +9,7 @@ export class InvitationRoleDenied extends Error {
   constructor(){super('Only academy owners can invite new admins');this.name='InvitationRoleDenied';}
 }
 export class InvitationLimitReached extends Error {
-  constructor(){super('Daily invitation limit reached');this.name='InvitationLimitReached';}
+  constructor(message='Daily invitation limit reached'){super(message);this.name='InvitationLimitReached';}
 }
 export class InvitationUnavailable extends Error {
   constructor(){super('Invitation expired or already used');this.name='InvitationUnavailable';}
