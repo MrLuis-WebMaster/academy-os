@@ -39,3 +39,10 @@ Consultar también STAGING_DEPLOYMENT.md, SECURITY.md, ROADMAP.md y RELEASE_CHEC
 - Tarjetas interactivas y microlecciones validadas, solo para alumnos matriculados tras aprobación de notas y recursos.
 - Borradores con IA opcional, sin proveedor real validado, aprobación humana obligatoria y límites compartidos por academia.
 - Pendiente comercial esencial: pagos reales, entitlement de acceso a clases de pago, facturación y renovaciones automáticas.
+
+
+## Avance técnico adicional — 2026-11-23
+
+- Staging dispone de un worker de recordatorios interno y opcional mediante perfil Compose, sin puertos públicos ni transporte externo.
+- Se añadió verificación offline de configuración con pruebas en CI: `pnpm staging:check` / `pnpm staging:check:test`.
+- **Sin cambios al estado de lanzamiento:** todavía no hay un staging desplegado ni credenciales reales validadas. La comprobación de configuración no sustituye la seguridad operativa, OAuth ni pruebas E2E.
