@@ -25,3 +25,12 @@ Se añadió una plantilla Docker Compose con NestJS, Vite compilado, PostgreSQL 
 ## Qué falta para producción
 
 Rate limiting a nivel de gateway, escaneo de dependencias/contenedores, observabilidad, políticas de retención y datos de menores, OAuth real, auditoría de todos los roles, envío externo de avisos, pagos, pagos reversibles, cumplimiento legal y despliegue con cero downtime. No usar esta composición como afirmación de un producto lanzado.
+
+
+## Preflight sin conexión a proveedores
+
+Antes de levantar staging, ejecutar `pnpm staging:check` desde la raíz (lee `.env.staging`) o `node scripts/check-staging-config.mjs /ruta/segura/.env.staging`. Comprueba campos obligatorios, claves de ejemplo, formato de dominio, longitud mínima de contraseñas y coincidencia con la URL PostgreSQL. **No revela valores de secretos** y su aprobación no demuestra que Google OAuth o TLS funcionen ni que los secretos sean criptográficamente fuertes. La batería de pruebas del validador se ejecuta en CI mediante `pnpm staging:check:test`.
+
+### Servicio opt-in de recordatorios
+
+El Compose incluye el servicio `reminders` bajo el perfil explícito `reminders`; no se levanta con el comando de staging predeterminado. Para iniciarlo tras configurar base, monitoreo y alertas, usar `docker compose --env-file .env.staging -f compose.staging.yaml --profile reminders up -d reminders`. El proceso no publica puertos, ejecuta el worker in-app existente y se reinicia si el contenedor falla. Solo genera avisos dentro de la aplicación, no correo, push ni WhatsApp. Revisar `REMINDER_DELIVERY.md` antes de habilitarlo.
