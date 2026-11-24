@@ -26,6 +26,10 @@ export class CheckoutController{
   try{return await this.checkout.reconcile(w,req.academyUser!.id,id,raw);}catch(e){return this.fail(e);}
  }
  @Public()
+ @Post('payments/wompi/workspaces/:workspaceId/events')
+ @HttpCode(200)
+ async workspaceEvent(@Param('workspaceId') w:string,@Body() raw:unknown){try{return await this.checkout.webhook(raw,w);}catch(e){return this.fail(e);}}
+ @Public()
  @Post('payments/wompi/events')
  @HttpCode(200)
  async event(@Body() raw:unknown){try{return await this.checkout.webhook(raw);}catch(e){return this.fail(e);}}
