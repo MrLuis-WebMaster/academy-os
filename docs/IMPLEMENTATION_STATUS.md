@@ -218,3 +218,8 @@ pnpm typecheck && pnpm test && pnpm build
 - Límites provisionales de alumnos, profesores y almacenamiento aplicados en aceptación de invitaciones y nuevas cargas cuando el flag está activo. Sin eliminación de datos por downgrade.
 - Panel de plan/uso y asignación inicial, migración zb_saas_plans y pruebas PostgreSQL añadidas.
 - Pendientes CI, consola global independiente, vista de auditoría, cuotas IA, precios, cobros y renovaciones reales. Ver [SAAS_PLANS.md](SAAS_PLANS.md).
+
+## Hito 30 — administración global y IA por plan
+- Consola /platform para operador verificado sin membresía obligatoria, overview de academias/planes y auditoría de cambios; panel de academia separado.
+- Cuotas compartidas de IA 10/30/100 intentos diarios UTC (Starter/Pro/Academy), con bloqueo transaccional y visualización de uso. Flag de enforcement apagado por defecto conserva 10 diarios.
+- Pruebas de dominio aisladas: 4 exitosas; suite de integración ampliada, sin ejecución confirmada. Sin acceso DNS local para clonar el repositorio. No se cobraron suscripciones ni se usaron proveedores reales. Ver SAAS_PLANS.md.
