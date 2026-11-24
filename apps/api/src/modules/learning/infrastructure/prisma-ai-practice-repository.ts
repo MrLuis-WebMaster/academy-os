@@ -4,7 +4,8 @@ import type {PracticeSuggestion} from '../domain/suggestion.js';
 import {AiQuotaReached} from '../application/suggest-practice-use-case.js';
 import {defaultTeachingMethodology,parseTeachingMethodology} from '../domain/teaching-methodology.js';
 
-const DAILY_LIMIT=10;
+import {lockPlan,limitsFor,quotasEnabled} from '../../saas/infrastructure/plan-policy.js';
+import {utcDayStart,DEFAULT_AI_DAILY_LIMIT} from '../../saas/domain/plan.js';
 export class PrismaAiPracticeRepository implements AiPracticeRepository {
   async isAssignedTeacher(workspaceId:string,userId:string,sessionId:string){
     return Boolean(await prisma.classSession.findFirst({
@@ -25,11 +26,12 @@ export class PrismaAiPracticeRepository implements AiPracticeRepository {
   }
   async reserveDailyAttempt(workspaceId:string,userId:string,sessionId:string,model:string){
     return prisma.$transaction(async tx=>{
-      const today=new Date();
-      const dayStart=new Date(Date.UTC(today.getUTCFullYear(),today.getUTCMonth(),today.getUTCDate()));
+      await lockPlan(tx,workspaceId);
+      const dayStart=utcDayStart();
       await tx.$queryRaw`SELECT pg_advisory_xact_lock(hashtext(${'academy-os:ai:'+workspaceId+':'+dayStart.toISOString()}))::text AS lock_acquired`;
       const used=await tx.aiGeneration.count({where:{workspaceId,createdAt:{gte:dayStart}}});
-      if(used>=DAILY_LIMIT)throw new AiQuotaReached();
+      const dailyLimit=quotasEnabled()?(await limitsFor(tx,workspaceId)).aiDailyAttempts:DEFAULT_AI_DAILY_LIMIT;
+      if(used>=dailyLimit)throw new AiQuotaReached();
       const generation=await tx.aiGeneration.create({
         data:{workspaceId,actorUserId:userId,sessionId,model,status:'PENDING'},
         select:{id:true},
