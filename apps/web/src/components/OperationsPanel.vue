@@ -2,6 +2,7 @@
 import { apiRequest, workspacePath } from '../shared/api-client';
 import { computed, onMounted, ref, watch } from 'vue';
 import { UiButton, UiCard, UiEmptyState } from '@academy-os/ui';
+import SaasPlanPanel from './SaasPlanPanel.vue';
 import PackageOrdersManager from './PackageOrdersManager.vue';
 import PrivateMaterialsManager from './PrivateMaterialsManager.vue';
 import GoogleCalendarConnection from './GoogleCalendarConnection.vue';
@@ -365,6 +366,7 @@ const input='mt-2 w-full rounded-xl border border-outline bg-surface p-3 text-sm
     <StudioEditor v-if="status==='ready' && ['OWNER','ADMIN'].includes(role)" :workspace="workspace" :courses="courses" />
     <StaffAttendance v-if="status==='ready'" :workspace-id="workspace.id" />
     <FinanceLedger v-if="status==='ready' && ['OWNER','ADMIN'].includes(role)" :workspace-id="workspace.id" :role="role" :students="members" :courses="courses" />
+    <SaasPlanPanel v-if="status==='ready' && ['OWNER','ADMIN'].includes(role)" :workspace-id="workspace.id" />
     <PackageOrdersManager v-if="status==='ready' && ['OWNER','ADMIN'].includes(role)" :workspace-id="workspace.id" />
     <ClassPackagesManager v-if="status==='ready' && ['OWNER','ADMIN'].includes(role)" :workspace-id="workspace.id" :students="members" :courses="courses" />
     <CurriculumManager v-if="status==='ready'" :workspace-id="workspace.id" :role="role" :courses="courses" :teachers="teachers" />
