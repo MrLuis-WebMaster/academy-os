@@ -6,10 +6,12 @@ import {apiJson,workspacePath} from '../shared/api-client';
 
 type Lesson={id:string;title:string;startsAt:string;status:string;mode:string};
 const props=defineProps<{workspaceId:string;sessions:Lesson[]}>();
-const selectedId=ref(''),createMeet=ref(false),meetUrl=ref<string|null>(null);
+const emit=defineEmits<{updated:[]}>();
+const selectedId=ref(''),createMeet=ref(false),publishMeet=ref(false),meetUrl=ref<string|null>(null);
 const exportable=computed(()=>props.sessions.filter(s=>['CONFIRMED','CANCELLED'].includes(s.status)));
 const selected=computed(()=>exportable.value.find(s=>s.id===selectedId.value));
-watch(selectedId,()=>{createMeet.value=false;meetUrl.value=null;});
+watch(selectedId,()=>{createMeet.value=false;publishMeet.value=false;meetUrl.value=null;});
+watch(createMeet,value=>{if(!value)publishMeet.value=false;});
 
 type Status={configured:boolean;connected:boolean;connectedAt:string|null};
 const status=ref<Status|null>(null),loading=ref(false),busy=ref(false),error=ref(''),notice=ref('');
@@ -49,12 +51,13 @@ async function exportClass(){
  const lesson=selected.value;
  if(!lesson||busy.value||!status.value?.connected||!status.value?.configured)return;
  const action=lesson.status==='CANCELLED'?'Eliminar el evento asociado de tu calendario':'Enviar el título y horario de la clase a tu calendario privado';
- if(!window.confirm(action+'? El título se enviará tal como está escrito; comprueba que no incluya datos personales. No se adjuntan listas de alumnos ni notas.'))return;
+ if(!window.confirm(action+'? El título se enviará tal como está escrito; comprueba que no incluya datos personales. No se adjuntan listas de alumnos ni notas.'+(publishMeet.value?' También reemplazarás el enlace de la clase por el de Meet para los alumnos con reserva.':'')))return;
  const workspace=props.workspaceId;busy.value=true;error.value='';notice.value='';meetUrl.value=null;
  try{
-  const result=await apiJson<{state:'saved'|'removed';meetUrl:string|null;conferencePending:boolean}>(path(workspace,'/classes/'+encodeURIComponent(lesson.id)+'/export'),'POST',{createMeet:createMeet.value});
+  const result=await apiJson<{state:'saved'|'removed';meetUrl:string|null;conferencePending:boolean;meetPublished:boolean}>(path(workspace,'/classes/'+encodeURIComponent(lesson.id)+'/export'),'POST',{createMeet:createMeet.value,publishMeet:publishMeet.value});
   if(workspace!==props.workspaceId)return;
   notice.value=result.state==='removed'?'Evento eliminado o ya ausente.':result.conferencePending?'Evento guardado. Google está preparando la reunión; vuelve a sincronizar para consultar el enlace.':'Evento guardado en Google Calendar.';
+  if(result.meetPublished){notice.value='Enlace Meet publicado en la clase para alumnos con reserva.';emit('updated');}
   if(result.meetUrl&&/^https:\/\/meet\.google\.com\/[A-Za-z0-9-]+$/.test(result.meetUrl))meetUrl.value=result.meetUrl;
  }catch(e){if(workspace===props.workspaceId)error.value=e instanceof Error?e.message:'No se pudo exportar la clase.';}
  finally{busy.value=false;}
@@ -75,7 +78,7 @@ onMounted(()=>{void refresh();});
    <UiAlert v-if="!status.configured" tone="warning">La integración está deshabilitada en el servidor. No se puede iniciar una nueva autorización.</UiAlert>
    <p v-if="status.connected" class="text-sm font-semibold text-success">Cuenta autorizada localmente el {{status.connectedAt?new Date(status.connectedAt).toLocaleDateString('es-CO'):'día registrado'}}.</p>
    <p v-else class="text-sm text-muted">Todavía no hay una conexión guardada.</p>
-   <p class="text-xs text-muted">Puedes enviar clases individualmente a tu calendario principal y actualizar o retirar eventos ya exportados. No hay sincronización automática; un enlace Meet generado no se publica a estudiantes automáticamente.</p>
+   <p class="text-xs text-muted">Puedes enviar clases individualmente a tu calendario principal y actualizar o retirar eventos ya exportados. No hay sincronización automática; puedes publicar el enlace Meet en la clase mediante una autorización explícita.</p>
    <div class="flex flex-wrap gap-2">
     <UiButton v-if="status.configured" :disabled="busy" @click="connect">{{status.connected?'Volver a autorizar':'Conectar Google Calendar'}}</UiButton>
     <UiButton v-if="status.connected" variant="secondary" :disabled="busy" @click="disconnect">Desconectar</UiButton>
@@ -88,6 +91,7 @@ onMounted(()=>{void refresh();});
      </select>
     </label>
     <label v-if="selected&&selected.mode!=='ONSITE'&&selected.status==='CONFIRMED'" class="flex items-center gap-2 text-xs"><input v-model="createMeet" type="checkbox" :disabled="busy"/> Solicitar enlace Google Meet</label>
+    <label v-if="createMeet&&selected?.status==='CONFIRMED'" class="flex items-center gap-2 text-xs"><input v-model="publishMeet" type="checkbox" :disabled="busy"/> Publicar o reemplazar enlace de clase para alumnos con reserva</label>
     <UiButton type="submit" :disabled="busy||!selected">{{selected?.status==='CANCELLED'?'Retirar evento':'Exportar / actualizar evento'}}</UiButton>
     <p v-if="meetUrl" class="break-all text-xs"><a :href="meetUrl" target="_blank" rel="noopener noreferrer" class="text-brand underline">{{meetUrl}}</a></p>
    </form>
