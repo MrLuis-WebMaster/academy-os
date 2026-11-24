@@ -64,7 +64,7 @@ export class PrismaWompiMerchants implements MerchantRepository,MerchantGatewayR
   try{
    const credentials=parseMerchantCredentials(JSON.parse(this.crypto.open(row.encryptedCredentials,merchantContext(w,row.publicKeyHash))));
    if(hash(credentials.publicKey)!==row.publicKeyHash)return null;
-   const gateway=new WompiGateway({enabled:true,workspaceId:w,environment:'test',...credentials,issuerId:'',webOrigin:this.webOrigin});
+   const gateway=new WompiGateway({enabled:true,workspaceId:w,environment:'test',...credentials,issuerId:'',webOrigin:this.webOrigin,workspaceConfigured:true});
    return gateway.config()?gateway:null;
   }catch{throw new CheckoutDisabled('Merchant credentials unavailable');}
  }
