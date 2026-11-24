@@ -33,3 +33,12 @@ OAuth state+PKCE where appropriate, least-privilege scopes, backend token vault,
 - There is one shared cap of **10 attempts per academy per UTC day**. It bounds request volume, not guaranteed USD cost; monitor actual usage separately.
 - The API requests `store:false` and does not store student tutor conversation history. Review the provider's actual retention settings and contract separately.
 - See [AI_PROVIDER_SETUP.md](AI_PROVIDER_SETUP.md).
+
+
+## Google Calendar — autorización de cuenta (2026-11-23)
+
+El flujo independiente de Better Auth ya está conectado al panel Gestión real. Se solicita únicamente `calendar.events.owned`, mediante OAuth code flow, PKCE S256, estado de un solo uso (10 minutos) vinculado al usuario y la academia, y credenciales cifradas AES-256-GCM con contexto de usuario/academia. La desconexión local elimina las credenciales y solicitudes pendientes, no revoca permisos globales en Google. La cuenta puede gestionar estos permisos desde su página de conexiones de Google. Usar un proyecto OAuth dedicado para no mezclar la revocación con el login.
+
+Configurar solo en un entorno privado: `GOOGLE_CALENDAR_ENABLED=true`, `GOOGLE_INTEGRATIONS_CLIENT_ID`, `GOOGLE_INTEGRATIONS_CLIENT_SECRET`, `INTEGRATION_ENCRYPTION_KEY` (32 bytes aleatorios en hexadecimal). Registrar la URL exacta `https://TU_DOMINIO/api/v1/integrations/google-calendar/callback` en el cliente OAuth web. Mantener la clave de cifrado estable y respaldada por separado. No activar antes de validar HTTPS, callback, scope, expiración y consentimiento. El flujo no crea eventos, no sincroniza cambios ni genera enlaces Meet todavía; faltan refresh, revocación remota controlada, recuperación y lifecycle de eventos. El proveedor sigue apagado por defecto.
+
+Referencia técnica: https://developers.google.com/identity/protocols/oauth2/web-server
