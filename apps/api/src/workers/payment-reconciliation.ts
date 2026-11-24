@@ -4,6 +4,9 @@ import {configuredWorkspaceMerchants} from '../modules/commerce/infrastructure/p
 import {PrismaPaymentReconciliation} from '../modules/commerce/infrastructure/prisma-payment-reconciliation.js';
 import {PrismaPackageCheckoutRepository} from '../modules/commerce/infrastructure/prisma-package-checkout-repository.js';
 import {ReconcilePayments} from '../modules/commerce/application/payment-reconciliation.js';
+import {PrismaPaymentEventInbox} from '../modules/commerce/infrastructure/prisma-payment-event-inbox.js';
+import {ProcessPaymentEvents} from '../modules/commerce/application/payment-event-inbox.js';
+const inbox=new PrismaPaymentEventInbox();
 const merchants=configuredWorkspaceMerchants(),gateway=merchants.legacy();
 if(process.env.ACADEMY_PAYMENT_RECONCILIATION_ENABLED!=='true'||(!gateway.config()&&process.env.ACADEMY_WORKSPACE_WOMPI_ENABLED!=='true')){
  await prisma.$disconnect();throw new Error('Payment reconciliation disabled or gateway not configured');
@@ -16,10 +19,12 @@ async function tick(){
  active=true;
  try{
   const legacy=await new ReconcilePayments(queue,repo,gateway).execute();
+  const events=await new ProcessPaymentEvents(inbox,repo,gateway).execute();
+  let eventProcessed=events.processed,eventFailed=events.failed;
   const rows=await merchants.workspaces(cursor);let checked=legacy.checked,failed=legacy.failed;
-  for(const row of rows){cursor=row.workspaceId;try{const scoped=await merchants.resolve(row.workspaceId,false);if(scoped&&scoped!==gateway){const result=await new ReconcilePayments(queue,repo,scoped).execute(1);checked+=result.checked;failed+=result.failed;}}catch{failed++;}}
+  for(const row of rows){cursor=row.workspaceId;try{const scoped=await merchants.resolve(row.workspaceId,false);if(scoped&&scoped!==gateway){const result=await new ReconcilePayments(queue,repo,scoped).execute(1);checked+=result.checked;failed+=result.failed;const events=await new ProcessPaymentEvents(inbox,repo,scoped).execute(2);eventProcessed+=events.processed;eventFailed+=events.failed;}}catch{failed++;}}
   if(rows.length<10)cursor=null;
-  console.info('Payment reconciliation scan',{checked,failed});
+  console.info('Payment reconciliation scan',{checked,failed,eventProcessed,eventFailed});
  }
  finally{active=false;}
 }
