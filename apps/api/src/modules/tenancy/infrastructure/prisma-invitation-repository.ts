@@ -1,3 +1,4 @@
+import {lockPlan,limitsFor,quotasEnabled} from '../../saas/infrastructure/plan-policy.js';
 import {prisma} from '../../../lib/prisma.js';
 import type {InvitationRole} from '../domain/invitation.js';
 import {allowedInvitationRole} from '../domain/invitation.js';
@@ -46,6 +47,14 @@ export class PrismaInvitationRepository implements InvitationRepository {
       const exists=await tx.workspaceMember.findFirst({
         where:{workspaceId:invitation.workspaceId,userId,role},select:{id:true},
       });
+      await lockPlan(tx,invitation.workspaceId);
+      if(quotasEnabled()){
+        const limits=await limitsFor(tx,invitation.workspaceId);
+        if(role==='STUDENT'&&!exists&&await tx.workspaceMember.count({where:{workspaceId:invitation.workspaceId,role:'STUDENT'}})>=limits.students)
+          throw new InvitationLimitReached('Student limit for the academy plan reached');
+        if(role==='TEACHER'&&!await tx.teacherProfile.findUnique({where:{workspaceId_userId:{workspaceId:invitation.workspaceId,userId}},select:{id:true}})&&await tx.teacherProfile.count({where:{workspaceId:invitation.workspaceId}})>=limits.teachers)
+          throw new InvitationLimitReached('Teacher limit for the academy plan reached');
+      }
       if(!exists){
         await tx.workspaceMember.create({data:{workspaceId:invitation.workspaceId,userId,role}});
       }
