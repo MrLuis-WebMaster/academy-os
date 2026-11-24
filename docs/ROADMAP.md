@@ -238,3 +238,8 @@ Cumplir [RELEASE_CHECKLIST.md](RELEASE_CHECKLIST.md). Nunca considerar CI verde 
 - Consulta autenticada por ID de Wompi desde alumno titular y gestor, retorno informativo y formulario reutilizable; verificación del servidor y entrega idempotente.
 - Worker opt-in de transacciones pendientes con ID conocido, leases, backoff, 12 intentos y estados visibles. Migración zd_checkout_reconciliation y perfil Compose. Pruebas añadidas, CI no confirmado.
 - Pendientes: inbox de eventos durables, casos sin ID, reembolsos, checkout vencido, múltiples comercios y facturación SaaS. Ver [WOMPI_CHECKOUT.md](WOMPI_CHECKOUT.md).
+
+## Hito 33 — comercios Wompi independientes (sandbox)
+- Configuración por OWNER verificado, cifrado AES-GCM ligado a academia, unicidad de llave pública, pausa de nuevas compras y continuidad de conciliación.
+- Resolución de pasarela por academia, webhook aislado, worker paginado, UI de configuración y migración ze_workspace_wompi_merchants. Piloto anterior conservado.
+- Pruebas añadidas, CI no confirmado. Solo sandbox; pendientes verificación de titularidad, rotación, reembolsos, inbox durable, producción multi-comercio y cobros SaaS. Ver [WOMPI_CHECKOUT.md](WOMPI_CHECKOUT.md).
