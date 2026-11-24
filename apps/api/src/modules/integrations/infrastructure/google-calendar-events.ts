@@ -39,7 +39,7 @@ export class GoogleCalendarEvents implements CalendarEventPort{
    throw new CalendarSyncConflict('The existing calendar event does not belong to AcademyOS');
   return event;
  }
- async sync(token:string,eventId:string,lesson:CalendarClass,createMeet:boolean):Promise<CalendarSyncResult>{
+ async sync(token:string,eventId:string,lesson:CalendarClass,createMeet:boolean,existingOnly=false):Promise<CalendarSyncResult>{
   if(!/^[a-f0-9]{64}$/.test(eventId))throw new CalendarSyncConflict('Invalid event identity');
   const body=calendarEventBody(eventId,lesson);
   const current=await this.existing(token,eventId);
@@ -51,6 +51,7 @@ export class GoogleCalendarEvents implements CalendarEventPort{
    }
    return {state:'removed',meetUrl:null,conferencePending:false};
   }
+  if(existingOnly&&!current)throw new CalendarSyncConflict('Event missing; use manual export to reconcile');
   if(current?.status==='cancelled')throw new CalendarSyncConflict('The event was deleted in Google Calendar');
   const pending=current?.conferenceData?.createRequest?.status?.statusCode==='pending';
   const hasConference=!!(current?.conferenceData?.conferenceId||safeMeetUrl(current?.hangoutLink));
