@@ -42,7 +42,7 @@ jobs:
           STAGING_DOMAIN: academy.example.invalid
           STAGING_DB_PASSWORD: github-ci-test-only
           STAGING_DATABASE_URL: postgresql://academy:github-ci-test-only@postgres:5432/academy_os
-        run: docker compose -f compose.staging.yaml config --quiet
+        run: docker compose -f compose.staging.yaml --profile reminders --profile calendar-sync config --quiet
       - run: pnpm staging:check:test
       - run: pnpm commerce:csv:test
       - run: pnpm arch:check
