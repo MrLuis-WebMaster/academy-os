@@ -190,3 +190,10 @@ pnpm typecheck && pnpm test && pnpm build
 - Exportación manual de sesiones propias (docente) o de la academia (gestores), actualización/retiro de eventos existentes, solicitud opcional de Meet y renovación de tokens. No se transmiten listas de alumnos ni notas. El título se transmite explícitamente y debe revisarse.
 - UI real de configuración y selección de clases, migración `z7_google_oauth`, tests con transporte simulado y preflight de staging.
 - Proveedor desactivado por defecto. CI no confirmado; pendientes sincronización automática, publicación de Meet en la sesión, revocación remota y pruebas reales. Ver `INTEGRATIONS.md`.
+
+
+## Hito 26 — Google Meet y Calendar, ciclo de clase
+- Publicación explícita del enlace Meet generado para clases virtuales o híbridas, con revalidación transaccional de estado, permisos y conexión; el link anterior no se reemplaza sin consentimiento.
+- Enlaces del Aula Digital restringidos a alumnos matriculados con reserva activa, actualizados tras reservar o cancelar.
+- Migración `z8_calendar_sync_links`: revisiones y cola persistente de cambios para clases autorizadas, worker con reintentos limitados y leases; controles de sincronización y detención en Gestión real.
+- Worker opcional desactivado; pruebas de aplicación y PostgreSQL codificadas. No se ha comprobado ejecución CI verde ni activado proveedor real.
