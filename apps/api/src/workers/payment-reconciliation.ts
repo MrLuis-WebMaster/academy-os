@@ -1,19 +1,26 @@
 import 'dotenv/config';
 import {prisma} from '../lib/prisma.js';
-import {configuredWompi} from '../modules/commerce/infrastructure/wompi-config.js';
+import {configuredWorkspaceMerchants} from '../modules/commerce/infrastructure/prisma-wompi-merchants.js';
 import {PrismaPaymentReconciliation} from '../modules/commerce/infrastructure/prisma-payment-reconciliation.js';
 import {PrismaPackageCheckoutRepository} from '../modules/commerce/infrastructure/prisma-package-checkout-repository.js';
 import {ReconcilePayments} from '../modules/commerce/application/payment-reconciliation.js';
-const gateway=configuredWompi();
-if(process.env.ACADEMY_PAYMENT_RECONCILIATION_ENABLED!=='true'||!gateway.config()){
+const merchants=configuredWorkspaceMerchants(),gateway=merchants.legacy();
+if(process.env.ACADEMY_PAYMENT_RECONCILIATION_ENABLED!=='true'||(!gateway.config()&&process.env.ACADEMY_WORKSPACE_WOMPI_ENABLED!=='true')){
  await prisma.$disconnect();throw new Error('Payment reconciliation disabled or gateway not configured');
 }
-const job=new ReconcilePayments(new PrismaPaymentReconciliation(),new PrismaPackageCheckoutRepository(),gateway);
+const queue=new PrismaPaymentReconciliation(),repo=new PrismaPackageCheckoutRepository();
+let cursor:string|null=null;
 let active=false,stopping=false;
 async function tick(){
  if(active||stopping)return;
  active=true;
- try{const result=await job.execute();console.info('Payment reconciliation scan',result);}
+ try{
+  const legacy=await new ReconcilePayments(queue,repo,gateway).execute();
+  const rows=await merchants.workspaces(cursor);let checked=legacy.checked,failed=legacy.failed;
+  for(const row of rows){cursor=row.workspaceId;try{const scoped=await merchants.resolve(row.workspaceId,false);if(scoped&&scoped!==gateway){const result=await new ReconcilePayments(queue,repo,scoped).execute(1);checked+=result.checked;failed+=result.failed;}}catch{failed++;}}
+  if(rows.length<10)cursor=null;
+  console.info('Payment reconciliation scan',{checked,failed});
+ }
  finally{active=false;}
 }
 if(process.argv.includes('--once')){
