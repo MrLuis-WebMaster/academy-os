@@ -8,8 +8,8 @@ CREATE TABLE "PackageOrder" (
  CONSTRAINT "PackageOrder_pkey" PRIMARY KEY ("id"),
  CONSTRAINT "PackageOrder_values_check" CHECK ("priceCOP">0 AND "credits">0 AND "validDays">0),
  CONSTRAINT "PackageOrder_workspaceId_fkey" FOREIGN KEY ("workspaceId") REFERENCES "Workspace"("id") ON DELETE CASCADE ON UPDATE CASCADE,
- CONSTRAINT "PackageOrder_packageId_fkey" FOREIGN KEY ("packageId") REFERENCES "ClassPackage"("id") ON DELETE RESTRICT ON UPDATE CASCADE,
- CONSTRAINT "PackageOrder_studentUserId_fkey" FOREIGN KEY ("studentUserId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE,
+ CONSTRAINT "PackageOrder_packageId_fkey" FOREIGN KEY ("packageId") REFERENCES "ClassPackage"("id") ON DELETE CASCADE ON UPDATE CASCADE,
+ CONSTRAINT "PackageOrder_studentUserId_fkey" FOREIGN KEY ("studentUserId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE,
  CONSTRAINT "PackageOrder_reviewedByUserId_fkey" FOREIGN KEY ("reviewedByUserId") REFERENCES "User"("id") ON DELETE SET NULL ON UPDATE CASCADE,
  CONSTRAINT "PackageOrder_entitlementId_fkey" FOREIGN KEY ("entitlementId") REFERENCES "ClassPackageEntitlement"("id") ON DELETE SET NULL ON UPDATE CASCADE
 );
