@@ -22,6 +22,7 @@ export class PrismaPackageCheckoutRepository implements CheckoutRepository{
   return prisma.$transaction(async tx=>{
    await lock(tx,id);
    if(config.workspaceId!==w||!await student(tx,w,u))throw new CheckoutUnavailable('Checkout not available');
+   if(config.environment==='prod'&&(!config.issuerId||!await tx.workspaceMember.findFirst({where:{workspaceId:w,userId:config.issuerId,role:'OWNER',user:{emailVerified:true}},select:{id:true}})))throw new CheckoutUnavailable('Merchant owner not available');
    const order=await tx.packageOrder.findFirst({where:{id,workspaceId:w,studentUserId:u,status:'PENDING',package:{workspaceId:w,active:true}},include:{checkout:true,package:{select:{courseId:true,courseRestricted:true}}}});
    if(!order)throw new CheckoutUnavailable('Order not available');
    if(order.package.courseId!==order.courseIdSnapshot||order.package.courseRestricted!==Boolean(order.courseIdSnapshot))throw new CheckoutConflict('Package changed');
@@ -47,6 +48,7 @@ export class PrismaPackageCheckoutRepository implements CheckoutRepository{
     await tx.packageCheckout.update({where:{orderId:row.orderId},data:{providerStatus:status,resolution,verifiedAt:new Date(),...(bind?{providerTransactionId:payment.id}:{})}});
     return {handled:true,resolution};
    };
+   if(await tx.packageCheckout.findFirst({where:{providerTransactionId:payment.id,orderId:{not:row.orderId}},select:{orderId:true}}))return update('REVIEW_REQUIRED',row.providerStatus as VerifiedTransaction['status'],false);
    if(row.providerTransactionId&&row.providerTransactionId!==payment.id)return update('REVIEW_REQUIRED',row.providerStatus as VerifiedTransaction['status'],false);
    if(row.amountInCents!==BigInt(payment.amountInCents)||payment.currency!=='COP')return update('REVIEW_REQUIRED');
    if(row.providerStatus==='APPROVED'){
