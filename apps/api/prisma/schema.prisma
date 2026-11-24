@@ -113,6 +113,8 @@ model User {
   revokedPackageEntitlements ClassPackageEntitlement[] @relation("PackageRevoker")
   createdLearningAssets LearningAsset[]
   connections ExternalConnection[]
+  packageOrders PackageOrder[] @relation("PackageOrderStudent")
+  reviewedPackageOrders PackageOrder[] @relation("PackageOrderReviewer")
 }
 
 model Workspace {
@@ -157,6 +159,7 @@ model Workspace {
   sosReferrals SosReferral[]
   classPackages ClassPackage[]
   packageEntitlements ClassPackageEntitlement[]
+  packageOrders PackageOrder[]
 }
 
 model WorkspaceMember {
@@ -797,6 +800,7 @@ model ClassPackage {
  workspace Workspace @relation(fields:[workspaceId],references:[id],onDelete:Cascade)
  course Course? @relation(fields:[courseId],references:[id])
  entitlements ClassPackageEntitlement[]
+ orders PackageOrder[]
  @@index([workspaceId,active])
 }
 
@@ -820,6 +824,7 @@ model ClassPackageEntitlement {
  issuer User @relation("PackageIssuer",fields:[issuedByUserId],references:[id])
  revoker User? @relation("PackageRevoker",fields:[revokedByUserId],references:[id],onDelete:SetNull)
  redemptions ClassPackageRedemption[]
+ purchaseOrder PackageOrder?
  @@index([workspaceId,studentUserId,expiresAt])
 }
 
@@ -892,4 +897,38 @@ model PrivateMaterialFile {
   content Bytes
   createdAt DateTime @default(now())
   resource Resource @relation(fields:[resourceId], references:[id], onDelete:Cascade)
+}
+
+enum PackageOrderStatus {
+ PENDING
+ FULFILLED
+ CANCELLED
+ REJECTED
+}
+model PackageOrder {
+ id String @id @default(cuid())
+ workspaceId String
+ packageId String
+ studentUserId String
+ requestId String
+ title String
+ priceCOP Int
+ credits Int
+ validDays Int
+ courseIdSnapshot String?
+ status PackageOrderStatus @default(PENDING)
+ paymentReference String?
+ reviewedByUserId String?
+ reviewNote String?
+ reviewedAt DateTime?
+ entitlementId String? @unique
+ createdAt DateTime @default(now())
+ workspace Workspace @relation(fields:[workspaceId],references:[id],onDelete:Cascade)
+ package ClassPackage @relation(fields:[packageId],references:[id],onDelete:Restrict)
+ student User @relation("PackageOrderStudent",fields:[studentUserId],references:[id],onDelete:Restrict)
+ reviewer User? @relation("PackageOrderReviewer",fields:[reviewedByUserId],references:[id],onDelete:SetNull)
+ entitlement ClassPackageEntitlement? @relation(fields:[entitlementId],references:[id],onDelete:SetNull)
+ @@unique([workspaceId,studentUserId,requestId])
+ @@unique([workspaceId,paymentReference])
+ @@index([workspaceId,status,createdAt])
 }
