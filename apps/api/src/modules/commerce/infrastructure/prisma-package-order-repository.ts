@@ -37,7 +37,7 @@ export class PrismaPackageOrderRepository implements PackageOrderRepository{
    if(!plan)throw new OrderMissing('Package not available');
    if(plan.priceCOP!==input.expectedPriceCOP)throw new OrderConflict('Price changed; refresh the catalog');
    const pending=await tx.packageOrder.findFirst({where:{workspaceId:w,studentUserId:u,packageId:plan.id,status:'PENDING'},select});
-   if(pending)return pending;
+   if(pending)throw new OrderConflict('A pending request already exists for this package');
    if(await tx.packageOrder.count({where:{workspaceId:w,studentUserId:u,status:'PENDING'}})>=10)throw new OrderConflict('Too many pending orders');
    return tx.packageOrder.create({data:{workspaceId:w,studentUserId:u,packageId:plan.id,requestId:input.requestId,title:plan.title,priceCOP:plan.priceCOP,credits:plan.sessionCredits,validDays:plan.validDays,courseIdSnapshot:plan.courseId},select});
   });
