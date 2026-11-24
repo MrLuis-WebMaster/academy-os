@@ -924,8 +924,8 @@ model PackageOrder {
  entitlementId String? @unique
  createdAt DateTime @default(now())
  workspace Workspace @relation(fields:[workspaceId],references:[id],onDelete:Cascade)
- package ClassPackage @relation(fields:[packageId],references:[id],onDelete:Restrict)
- student User @relation("PackageOrderStudent",fields:[studentUserId],references:[id],onDelete:Restrict)
+ package ClassPackage @relation(fields:[packageId],references:[id],onDelete:Cascade)
+ student User @relation("PackageOrderStudent",fields:[studentUserId],references:[id],onDelete:Cascade)
  reviewer User? @relation("PackageOrderReviewer",fields:[reviewedByUserId],references:[id],onDelete:SetNull)
  entitlement ClassPackageEntitlement? @relation(fields:[entitlementId],references:[id],onDelete:SetNull)
  @@unique([workspaceId,studentUserId,requestId])
