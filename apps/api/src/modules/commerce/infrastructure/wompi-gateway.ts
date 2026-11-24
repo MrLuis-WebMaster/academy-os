@@ -29,11 +29,11 @@ export function verifyWompiSignature(raw:unknown,secret:string,environment:Payme
  return transaction(data.transaction);
 }
 export class WompiGateway implements PaymentGateway{
- constructor(private readonly settings:{enabled:boolean;workspaceId:string;environment:string;publicKey:string;privateKey:string;integrityKey:string;eventsKey:string;issuerId:string;webOrigin:string},private readonly request:typeof fetch=fetch){}
+ constructor(private readonly settings:{enabled:boolean;workspaceId:string;environment:string;publicKey:string;privateKey:string;integrityKey:string;eventsKey:string;issuerId:string;webOrigin:string;workspaceConfigured?:boolean},private readonly request:typeof fetch=fetch){}
  config():CheckoutConfig|null{
   const s=this.settings,e=s.environment;
   if(!s.enabled||!s.workspaceId||(e!=='test'&&e!=='prod')||!s.publicKey.startsWith('pub_'+e+'_')||!s.privateKey.startsWith('prv_'+e+'_')||!s.integrityKey.startsWith(e+'_integrity_')||!s.eventsKey.startsWith(e+'_events_')||(e==='prod'&&!s.issuerId))return null;
-  return {workspaceId:s.workspaceId,environment:e,merchantKeyHash:sha(s.publicKey),issuerId:s.issuerId||null};
+  return {workspaceId:s.workspaceId,environment:e,merchantKeyHash:sha(s.publicKey),issuerId:s.issuerId||null,workspaceConfigured:s.workspaceConfigured};
  }
  reference(){return 'AO-'+randomUUID();}
  url(row:CheckoutRecord){
