@@ -3,7 +3,7 @@ import {onMounted,ref,watch} from 'vue';
 import {ClipboardCheck,RefreshCw} from 'lucide-vue-next';
 import {UiAlert,UiButton,UiCard} from '@academy-os/ui';
 import {apiJson,workspacePath} from '../shared/api-client';
-type Order={id:string;title:string;priceCOP:number;credits:number;validDays:number;status:string;createdAt:string;student:{name:string};paymentReference:string|null;reviewNote:string|null;reviewer:{name:string}|null};
+type Order={id:string;title:string;priceCOP:number;credits:number;validDays:number;status:string;createdAt:string;student:{name:string};paymentReference:string|null;reviewNote:string|null;reviewer:{name:string}|null;checkout?:{environment:string;providerStatus:string;resolution:string;reference:string;providerTransactionId:string|null}|null};
 const props=defineProps<{workspaceId:string}>();
 const orders=ref<Order[]>([]),loading=ref(false),busy=ref(false),error=ref(''),notice=ref('');
 const selected=ref<Order|null>(null),action=ref<'fulfill'|'reject'>('fulfill'),reference=ref(''),amount=ref<number|null>(null),note=ref(''),verified=ref(false);
@@ -11,7 +11,7 @@ let version=0;
 const path=(w:string,suffix='')=>workspacePath(w,'/package-orders'+suffix);
 const money=(v:number)=>new Intl.NumberFormat('es-CO',{style:'currency',currency:'COP',maximumFractionDigits:0}).format(v);
 const labels:Record<string,string>={PENDING:'Pendiente',FULFILLED:'Entregada',CANCELLED:'Cancelada',REJECTED:'Rechazada'};
-function choose(row:Order){selected.value=row;action.value='fulfill';reference.value='';amount.value=null;note.value='';verified.value=false;}
+function choose(row:Order){selected.value=row;action.value=row.checkout?'reject':'fulfill';reference.value='';amount.value=null;note.value='';verified.value=false;}
 async function load(){
  const w=props.workspaceId,n=++version;loading.value=true;orders.value=[];error.value='';
  try{const rows=await apiJson<Order[]>(path(w));if(n===version&&w===props.workspaceId)orders.value=rows;}
@@ -42,11 +42,12 @@ watch(()=>props.workspaceId,()=>{selected.value=null;notice.value='';void load()
   <p v-else-if="!orders.length" class="text-xs text-muted">Sin solicitudes registradas.</p>
   <article v-for="row in orders" :key="row.id" class="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-outline p-3">
    <div><p class="text-sm font-bold">{{row.title}} · {{row.student.name}}</p><p class="text-xs text-muted">{{money(row.priceCOP)}} · {{row.credits}} créditos · {{labels[row.status]||row.status}}</p><p v-if="row.paymentReference" class="break-all text-xs text-muted">Referencia: {{row.paymentReference}} · {{row.reviewer?.name}}</p><p v-if="row.reviewNote" class="text-xs text-muted">{{row.reviewNote}}</p></div>
-   <UiButton v-if="row.status==='PENDING'" size="sm" variant="secondary" :disabled="busy" @click="choose(row)">Revisar</UiButton>
+   <div v-if="row.checkout" class="text-xs text-muted"><p>Wompi · {{row.checkout.environment==='test'?'Pruebas':'Producción'}} · {{row.checkout.providerStatus}}</p><p class="break-all">{{row.checkout.resolution}} · {{row.checkout.reference}}</p><p v-if="row.checkout.providerTransactionId" class="break-all">Transacción: {{row.checkout.providerTransactionId}}</p><p v-if="row.checkout.resolution==='REVIEW_REQUIRED'" class="text-warning">Requiere conciliación externa. No asignar créditos manualmente.</p></div>
+   <UiButton v-if="row.status==='PENDING'&&(!row.checkout||row.checkout.environment==='test'||row.checkout.resolution==='NOT_PAID')" size="sm" variant="secondary" :disabled="busy" @click="choose(row)">Revisar</UiButton>
   </article>
   <form v-if="selected" class="mt-4 space-y-3 rounded-xl border border-outline p-4" @submit.prevent="review">
    <h3 class="text-sm font-extrabold">{{selected.student.name}} · {{money(selected.priceCOP)}}</h3>
-   <label class="block text-xs font-semibold">Acción<select v-model="action" class="mt-2 w-full rounded-lg border border-outline bg-surface p-2"><option value="fulfill">Registrar pago externo y entregar créditos</option><option value="reject">Rechazar solicitud</option></select></label>
+   <label class="block text-xs font-semibold">Acción<select v-model="action" class="mt-2 w-full rounded-lg border border-outline bg-surface p-2"><option v-if="!selected.checkout" value="fulfill">Registrar pago externo y entregar créditos</option><option value="reject">Rechazar solicitud</option></select></label>
    <template v-if="action==='fulfill'">
     <label class="block text-xs font-semibold">Referencia comprobada<input v-model="reference" required maxlength="120" class="mt-2 w-full rounded-lg border border-outline bg-surface p-2"/></label>
     <label class="block text-xs font-semibold">Importe recibido en COP<input v-model.number="amount" type="number" min="1" step="1" required class="mt-2 w-full rounded-lg border border-outline bg-surface p-2"/></label>
