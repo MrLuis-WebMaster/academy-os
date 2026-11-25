@@ -164,6 +164,7 @@ model Workspace {
   paymentEvents PaymentEventInbox[]
   saasSubscription SaasSubscription?
   saasPlanChanges SaasPlanChange[]
+  saasBillingOrders SaasBillingOrder[]
 }
 
 model WorkspaceMember {
@@ -1043,4 +1044,26 @@ model PackagePaymentCaseEntry {
  paymentCase PackagePaymentCase @relation(fields:[orderId],references:[orderId],onDelete:Cascade)
  @@unique([orderId,externalReference])
  @@index([orderId,createdAt,id])
+}
+
+model SaasBillingOrder {
+ id String @id @default(cuid())
+ workspaceId String
+ requestedByUserId String
+ requestId String @unique
+ plan SaasPlanCode
+ interval String
+ amountCOP Int
+ status String @default("PENDING")
+ expiresAt DateTime
+ paymentReference String? @unique
+ paidByUserId String?
+ paidAt DateTime?
+ periodStart DateTime?
+ periodEnd DateTime?
+ resolutionNote String?
+ createdAt DateTime @default(now())
+ workspace Workspace @relation(fields:[workspaceId],references:[id],onDelete:Cascade)
+ @@index([workspaceId,createdAt,id])
+ @@index([workspaceId,status,periodEnd])
 }
