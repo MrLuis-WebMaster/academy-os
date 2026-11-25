@@ -933,6 +933,7 @@ model PackageOrder {
  reviewer User? @relation("PackageOrderReviewer",fields:[reviewedByUserId],references:[id],onDelete:SetNull)
  entitlement ClassPackageEntitlement? @relation(fields:[entitlementId],references:[id],onDelete:SetNull)
  checkout PackageCheckout?
+ paymentCase PackagePaymentCase?
  @@unique([workspaceId,studentUserId,requestId])
  @@unique([workspaceId,paymentReference])
  @@index([workspaceId,status,createdAt])
@@ -1017,4 +1018,29 @@ model PaymentEventInbox {
  @@unique([workspaceId,environment,merchantKeyHash,eventKey])
  @@index([workspaceId,state,nextAttemptAt])
  @@index([workspaceId,createdAt,id])
+}
+
+model PackagePaymentCase {
+ orderId String @id
+ status String @default("OPEN")
+ category String
+ openedByUserId String
+ openedAt DateTime @default(now())
+ closedAt DateTime?
+ order PackageOrder @relation(fields:[orderId],references:[id],onDelete:Cascade)
+ entries PackagePaymentCaseEntry[]
+}
+model PackagePaymentCaseEntry {
+ id String @id @default(cuid())
+ orderId String
+ requestId String @unique
+ actorUserId String
+ kind String
+ note String
+ amountCOP Int?
+ externalReference String?
+ createdAt DateTime @default(now())
+ paymentCase PackagePaymentCase @relation(fields:[orderId],references:[orderId],onDelete:Cascade)
+ @@unique([orderId,externalReference])
+ @@index([orderId,createdAt,id])
 }
