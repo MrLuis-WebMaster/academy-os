@@ -116,6 +116,11 @@ export function validateStagingConfig(env) {
     for(const k of keys)if(env[k]&&!valid(k))errors.push(k+': invalid positive integer COP price');
     if(!env.ACADEMY_PLATFORM_OPERATOR_IDS?.trim())errors.push('SaaS billing requires platform operators');
   }
+  if (env.ACADEMY_EMAIL_NOTICES_ENABLED && !['true','false'].includes(env.ACADEMY_EMAIL_NOTICES_ENABLED)) errors.push('ACADEMY_EMAIL_NOTICES_ENABLED: must be true or false');
+  if (env.ACADEMY_EMAIL_NOTICES_ENABLED==='true') {
+    if(!/^re_[A-Za-z0-9_-]+$/.test(env.RESEND_API_KEY||''))errors.push('RESEND_API_KEY: required for email worker');
+    if(!env.ACADEMY_EMAIL_FROM?.trim()||/[\r\n]/.test(env.ACADEMY_EMAIL_FROM)||env.ACADEMY_EMAIL_FROM.length>254)errors.push('ACADEMY_EMAIL_FROM: verified sender required');
+  }
   return errors;
 }
 
