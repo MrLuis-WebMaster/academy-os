@@ -51,6 +51,10 @@ test('PostgreSQL: partial refunds serialize, replay is idempotent and cases are 
   const final=await apply({action:'reopen',requestId:randomUUID(),note:'Follow-up case reopened'});
   assert.equal(final.caseStatus,'OPEN');assert.equal(final.recordedRefundCOP,100000);assert.equal(final.entitlementRevoked,false);
   assert.equal(await prisma.classPackageEntitlement.count({where:{workspaceId:w.id,revokedAt:null}}),1);
+  const sandbox=await orders.create(w.id,student.id,{packageId:plan.id,requestId:randomUUID(),expectedPriceCOP:100000});
+  await prisma.packageCheckout.create({data:{orderId:sandbox.id,reference:'sandbox-'+nonce,merchantKeyHash:'fixture',environment:'test',amountInCents:10000000n,expiresAt:new Date(Date.now()+60000),providerStatus:'APPROVED',resolution:'REVIEW_REQUIRED'}});
+  await repo.apply(w.id,owner.id,sandbox.id,parseCaseAction({...open,requestId:randomUUID()}));
+  await assert.rejects(()=>repo.apply(w.id,owner.id,sandbox.id,parseCaseAction(refund(1000,'SANDBOX-REF'))),CheckoutConflict);
  }finally{
   await prisma.workspace.deleteMany({where:{id:{in:ids}}});
   await prisma.user.deleteMany({where:{id:{in:[owner.id,student.id,other.id]}}});
