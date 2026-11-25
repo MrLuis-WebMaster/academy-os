@@ -61,15 +61,13 @@ async function assign(){
  }catch(e){error.value=e instanceof Error?e.message:'No se pudo completar la operación.';}
  finally{busy.value=false;}
 }
-async function billingUpdated(id:string){
+async function billingUpdated(id:string,order:{status:string;plan:string;periodEnd:string|null}){
  if(selected.value!==id)return;
  try{
-  const [stats,rows]=await Promise.all([apiJson<Overview>(base+'/overview'),apiJson<Academy[]>(base+'/academies')]);
-  overview.value=stats;
-  const latest=rows.find(a=>a.id===id);
   const current=academies.value.find(a=>a.id===id);
-  if(latest&&current){current.assignment=latest.assignment;plan.value=latest.assignment?.plan??'STARTER';expiration.value=latest.assignment?.validUntil?.slice(0,10)??'';}
-  await loadAudit();
+  if(current&&order.status==='PAID'&&order.periodEnd&&(order.plan==='PRO'||order.plan==='ACADEMY')){current.assignment={plan:order.plan,validUntil:order.periodEnd};plan.value=order.plan;expiration.value=order.periodEnd.slice(0,10);}
+  overview.value=await apiJson<Overview>(base+'/overview');
+  if(selected.value===id)await loadAudit();
  }catch(e){error.value=e instanceof Error?e.message:'No se pudo actualizar la asignación.';}
 }
 onMounted(()=>void load());
