@@ -33,6 +33,7 @@ services:
       BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET:?Provide a secure random value}
       GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
       GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
+      ACADEMY_EMAIL_NOTICES_ENABLED: ${ACADEMY_EMAIL_NOTICES_ENABLED:-false}
       ACADEMY_AI_ENABLED: ${ACADEMY_AI_ENABLED:-false}
       ACADEMY_AI_MODEL: ${ACADEMY_AI_MODEL:-gpt-5-mini}
       OPENAI_API_KEY: ${OPENAI_API_KEY:-}
@@ -132,6 +133,24 @@ services:
       ACADEMY_WOMPI_EVENTS_KEY: ${ACADEMY_WOMPI_EVENTS_KEY:-}
       ACADEMY_WOMPI_ISSUER_ID: ${ACADEMY_WOMPI_ISSUER_ID:-}
     command: ["pnpm", "--filter", "@academy-os/api", "worker:payment-reconciliation"]
+
+  email-notices:
+    profiles: ["email-notices"]
+    build:
+      context: .
+      dockerfile: deploy/staging/Dockerfile.api
+    restart: unless-stopped
+    depends_on:
+      api:
+        condition: service_healthy
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: ${STAGING_DATABASE_URL:?Set a URL with host postgres and the encoded password}
+      WEB_ORIGIN: https://${STAGING_DOMAIN}
+      ACADEMY_EMAIL_NOTICES_ENABLED: ${ACADEMY_EMAIL_NOTICES_ENABLED:-false}
+      ACADEMY_EMAIL_FROM: ${ACADEMY_EMAIL_FROM:-}
+      RESEND_API_KEY: ${RESEND_API_KEY:-}
+    command: ["pnpm", "--filter", "@academy-os/api", "worker:email-notices"]
 
   web:
     build:
