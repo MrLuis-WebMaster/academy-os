@@ -108,6 +108,14 @@ export function validateStagingConfig(env) {
   }
   if (env.ACADEMY_PAYMENT_INBOX_ENABLED && !['true','false'].includes(env.ACADEMY_PAYMENT_INBOX_ENABLED)) errors.push('ACADEMY_PAYMENT_INBOX_ENABLED: must be true or false');
   if (env.ACADEMY_PAYMENT_INBOX_ENABLED==='true' && env.ACADEMY_PAYMENT_RECONCILIATION_ENABLED!=='true') errors.push('ACADEMY_PAYMENT_INBOX_ENABLED: requires the reconciliation worker');
+  if (env.ACADEMY_SAAS_BILLING_ENABLED && !['true','false'].includes(env.ACADEMY_SAAS_BILLING_ENABLED)) errors.push('ACADEMY_SAAS_BILLING_ENABLED: must be true or false');
+  if (env.ACADEMY_SAAS_BILLING_ENABLED==='true') {
+    const keys=['ACADEMY_PRO_MONTHLY_COP','ACADEMY_PRO_YEARLY_COP','ACADEMY_ACADEMY_MONTHLY_COP','ACADEMY_ACADEMY_YEARLY_COP'];
+    const valid=k=>/^\d{1,9}$/.test(env[k]||'')&&Number(env[k])>0&&Number(env[k])<=500000000;
+    if (!keys.some(valid)) errors.push('SaaS billing requires at least one configured price');
+    for(const k of keys)if(env[k]&&!valid(k))errors.push(k+': invalid positive integer COP price');
+    if(!env.ACADEMY_PLATFORM_OPERATOR_IDS?.trim())errors.push('SaaS billing requires platform operators');
+  }
   return errors;
 }
 
