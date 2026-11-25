@@ -2,6 +2,7 @@
 import { apiRequest, workspacePath } from '../shared/api-client';
 import { computed, onMounted, ref, watch } from 'vue';
 import { UiButton, UiCard, UiEmptyState } from '@academy-os/ui';
+import SaasBillingPanel from './SaasBillingPanel.vue';
 import SaasPlanPanel from './SaasPlanPanel.vue';
 import WompiMerchantPanel from './WompiMerchantPanel.vue';
 import PaymentCasesManager from './PaymentCasesManager.vue';
@@ -50,6 +51,7 @@ watch(sessionRoomId,roomId=>{
 });
 
 const enrollmentCourse=ref(''),enrollmentStudent=ref('');
+const billingRefresh=ref(0);
 const status=ref<'loading'|'ready'|'error'>('loading'), busy=ref(false), message=ref(''), error=ref('');
 const subjectName=ref(''), courseTitle=ref(''), courseSubjectId=ref('');
 const sessionTitle=ref(''), sessionTeacherId=ref(''), sessionCourseId=ref('');
@@ -369,7 +371,8 @@ const input='mt-2 w-full rounded-xl border border-outline bg-surface p-3 text-sm
     <StudioEditor v-if="status==='ready' && ['OWNER','ADMIN'].includes(role)" :workspace="workspace" :courses="courses" />
     <StaffAttendance v-if="status==='ready'" :workspace-id="workspace.id" />
     <FinanceLedger v-if="status==='ready' && ['OWNER','ADMIN'].includes(role)" :workspace-id="workspace.id" :role="role" :students="members" :courses="courses" />
-    <SaasPlanPanel v-if="status==='ready' && ['OWNER','ADMIN'].includes(role)" :workspace-id="workspace.id" />
+    <SaasPlanPanel v-if="status==='ready' && ['OWNER','ADMIN'].includes(role)" :workspace-id="workspace.id" :key="workspace.id+':'+billingRefresh" />
+    <SaasBillingPanel v-if="status==='ready' && ['OWNER','ADMIN'].includes(role)" :workspace-id="workspace.id" :can-request="role==='OWNER'" @updated="billingRefresh++" />
     <WompiMerchantPanel v-if="status==='ready' && role==='OWNER'" :workspace-id="workspace.id" />
     <PaymentEventInbox v-if="status==='ready' && ['OWNER','ADMIN'].includes(role)" :workspace-id="workspace.id" />
     <PaymentCasesManager v-if="status==='ready' && ['OWNER','ADMIN'].includes(role)" :workspace-id="workspace.id" />
