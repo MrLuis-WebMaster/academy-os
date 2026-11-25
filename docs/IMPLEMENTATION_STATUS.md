@@ -249,3 +249,8 @@ pnpm typecheck && pnpm test && pnpm build
 ## Hito 35 — gestión de incidencias y devoluciones externas
 - Expedientes por orden, notas y auditoría de acciones, cierre/reapertura; devoluciones externas totales/parciales registradas con confirmación, referencia e importe máximo acumulado. Panel OWNER/ADMIN y migración zg_package_payment_cases.
 - Pruebas añadidas de aislamiento, concurrencia e idempotencia, sin ejecución confirmada. No se envían fondos, no se verifican devoluciones con Wompi, no se revocan créditos automáticamente. Ver [WOMPI_CHECKOUT.md](WOMPI_CHECKOUT.md).
+
+
+## Hito 36 — facturación SaaS independiente
+- Solicitudes PRO/ACADEMY mensuales/anuales, precios configurables sin valores predeterminados, confirmación externa por operador, referencia única, periodo de vigencia/renovación y protección del periodo pagado. Panel de academia y plataforma, migración zh_saas_billing_orders.
+- Pruebas añadidas, CI no confirmado. Flag apagado por defecto; no hay checkout de plataforma ni cobros automáticos. Pendientes pasarela, facturación fiscal, cambios de plan y conciliación. Ver [SAAS_PLANS.md](SAAS_PLANS.md).
