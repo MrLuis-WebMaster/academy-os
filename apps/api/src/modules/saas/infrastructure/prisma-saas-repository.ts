@@ -1,7 +1,7 @@
 import {prisma} from '../../../lib/prisma.js';
 import type {Prisma} from '../../../generated/prisma/client.js';
 import type {SaasRepository} from '../application/ports.js';
-import {SaasDenied,SaasMissing,utcDayStart,type PlanCode} from '../domain/plan.js';
+import {SaasDenied,SaasMissing,SaasInvalid,utcDayStart,type PlanCode} from '../domain/plan.js';
 import {lockPlan} from './plan-policy.js';
 export class PrismaSaasRepository implements SaasRepository{
  constructor(private readonly operatorIds:ReadonlySet<string>){}
@@ -62,6 +62,8 @@ export class PrismaSaasRepository implements SaasRepository{
    if(!await this.operator(tx,u))throw new SaasDenied('Platform operator required');
    if(!await tx.workspace.findUnique({where:{id:w},select:{id:true}}))throw new SaasMissing('Academy not found');
    const old=await tx.saasSubscription.findUnique({where:{workspaceId:w}});
+   const paid=await tx.saasBillingOrder.findFirst({where:{workspaceId:w,status:'PAID',periodEnd:{gt:new Date()}},orderBy:{periodEnd:'desc'},select:{plan:true,periodEnd:true}});
+   if(paid&&(!paid.periodEnd||input.plan!==paid.plan||!input.validUntil||input.validUntil<paid.periodEnd))throw new SaasInvalid('Manual changes cannot shorten or replace a recorded paid period');
    const data={plan:input.plan,validUntil:input.validUntil};
    const row=await tx.saasSubscription.upsert({where:{workspaceId:w},create:{workspaceId:w,...data},update:data,select:{plan:true,validUntil:true}});
    await tx.saasPlanChange.create({data:{workspaceId:w,actorUserId:u,previousPlan:old?.plan??'STARTER',nextPlan:row.plan,validUntil:row.validUntil,reason:input.reason}});
