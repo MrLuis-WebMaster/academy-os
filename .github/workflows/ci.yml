@@ -25,7 +25,7 @@ jobs:
       WEB_ORIGIN: http://localhost:5173
       BETTER_AUTH_SECRET: github-ci-only-test-secret-32-chars-or-longer
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: actions/setup-node@v4
         with:
           node-version: '26'
