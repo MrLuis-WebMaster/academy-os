@@ -258,3 +258,8 @@ Cumplir [RELEASE_CHECKLIST.md](RELEASE_CHECKLIST.md). Nunca considerar CI verde 
 ## Hito 36 — facturación SaaS independiente
 - Solicitudes PRO/ACADEMY mensuales/anuales, precios configurables sin valores predeterminados, confirmación externa por operador, referencia única, periodo de vigencia/renovación y protección del periodo pagado. Panel de academia y plataforma, migración zh_saas_billing_orders.
 - Pruebas añadidas, CI no confirmado. Flag apagado por defecto; no hay checkout de plataforma ni cobros automáticos. Pendientes pasarela, facturación fiscal, cambios de plan y conciliación. Ver [SAAS_PLANS.md](SAAS_PLANS.md).
+
+
+## Hito 37 — correo transaccional opt-in
+- Cola durable derivada de avisos internos, preferencias por alumno/academia, revalidación antes de envío, deduplicación, leases y reintentos; adaptador Resend y panel de preferencias. Migración zi_email_notice_delivery y perfil Compose email-notices.
+- Mensajes genéricos sin detalles académicos sensibles; flag apagado por defecto. Pruebas añadidas, CI y proveedor real sin confirmar. Pendientes rebotes/quejas, supervisión, límites, comunicación docente, push/WhatsApp. Ver [REMINDER_DELIVERY.md](REMINDER_DELIVERY.md).
