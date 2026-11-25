@@ -15,7 +15,7 @@ CREATE TABLE "SaasBillingOrder" (
  "periodEnd" TIMESTAMP(3),
  "resolutionNote" TEXT,
  "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
- CHECK ("status"<>'PAID' OR ("paymentReference" IS NOT NULL AND "paidByUserId" IS NOT NULL AND "paidAt" IS NOT NULL AND "periodStart" IS NOT NULL AND "periodEnd" > "periodStart"))
+ CHECK ("status"<>'PAID' OR ("paymentReference" IS NOT NULL AND "paidByUserId" IS NOT NULL AND "paidAt" IS NOT NULL AND "periodStart" IS NOT NULL AND "periodEnd" IS NOT NULL AND "periodEnd" > "periodStart"))
 );
 CREATE INDEX "SaasBillingOrder_workspaceId_createdAt_id_idx" ON "SaasBillingOrder"("workspaceId","createdAt","id");
 CREATE INDEX "SaasBillingOrder_workspaceId_status_periodEnd_idx" ON "SaasBillingOrder"("workspaceId","status","periodEnd");
