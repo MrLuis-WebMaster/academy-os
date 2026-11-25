@@ -5,7 +5,7 @@ import {UiCard,UiButton,UiAlert} from '@academy-os/ui';
 import {apiJson} from '../shared/api-client';
 type Order={id:string;plan:string;interval:string;amountCOP:number;status:string;expiresAt:string;paidAt:string|null;periodStart:string|null;periodEnd:string|null;createdAt:string;paymentReference:string|null;resolutionNote:string|null};
 const props=defineProps<{workspaceId:string}>();
-const emit=defineEmits<{updated:[workspaceId:string]}>();
+const emit=defineEmits<{updated:[workspaceId:string,order:Order]}>();
 const rows=ref<Order[]>([]),selected=ref<Order|null>(null),enabled=ref(false),loading=ref(false),busy=ref(false),more=ref(false),error=ref(''),notice=ref('');
 const action=ref<'confirm'|'reject'>('confirm'),reference=ref(''),amount=ref<number|null>(null),note=ref(''),confirmed=ref(false);
 let version=0;
@@ -26,7 +26,7 @@ async function review(){
  if(action.value==='confirm'&&(!enabled.value||expired(o)||!confirmed.value||amount.value!==o.amountCOP||reference.value.trim().length<4))return;
  if(!window.confirm(action.value==='confirm'?'¿Registrar el pago externo ya comprobado y activar el periodo? No se realizará ningún cobro.':'¿Rechazar la solicitud? No se realizará devolución automática.'))return;
  busy.value=true;error.value='';notice.value='';
- try{await apiJson(path(w)+'/'+encodeURIComponent(o.id)+'/review','POST',action.value==='confirm'?{action:'confirm',amountCOP:amount.value,paymentReference:reference.value,note:note.value,confirmedExternalPayment:true}:{action:'reject',note:note.value});if(w===props.workspaceId){selected.value=null;await load();notice.value='Solicitud resuelta y auditada.';emit('updated',w);}}
+ try{const result=await apiJson<Order>(path(w)+'/'+encodeURIComponent(o.id)+'/review','POST',action.value==='confirm'?{action:'confirm',amountCOP:amount.value,paymentReference:reference.value,note:note.value,confirmedExternalPayment:true}:{action:'reject',note:note.value});if(w===props.workspaceId){selected.value=null;await load();notice.value='Solicitud resuelta y auditada.';emit('updated',w,result);}}
  catch(e){if(w===props.workspaceId)error.value=e instanceof Error?e.message:'No se pudo registrar la operación.';}
  finally{busy.value=false;}
 }
