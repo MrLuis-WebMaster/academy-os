@@ -35,6 +35,7 @@ export class PrismaPaymentCases implements PaymentCaseRepository{
    await tx.$queryRaw`SELECT pg_advisory_xact_lock(hashtext(${'academy-os:order:id:'+id}))::text`;
    await allow(tx,w,u);
    const row=await tx.packageOrder.findFirst({where:{...scope(w),id},select});if(!row)throw new CheckoutUnavailable('Payment case unavailable');
+   await tx.$queryRaw`SELECT pg_advisory_xact_lock(hashtext(${'academy-os:payment-case-request:'+input.requestId}))::text`;
    const prior=await tx.packagePaymentCaseEntry.findUnique({where:{requestId:input.requestId}});
    const kind=({open:'OPEN',note:'NOTE',close:'CLOSE',reopen:'REOPEN',recordRefund:'REFUND_RECORDED'} as const)[input.action];
    const amount=input.action==='recordRefund'?input.amountCOP:null;
