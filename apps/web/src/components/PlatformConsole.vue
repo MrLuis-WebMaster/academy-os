@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import PlatformBillingPanel from './PlatformBillingPanel.vue';
 import {onMounted,ref,computed,watch} from 'vue';
 import {Building2,ShieldCheck,RefreshCw,History,UsersRound} from 'lucide-vue-next';
 import {UiCard,UiButton,UiAlert} from '@academy-os/ui';
@@ -60,6 +61,17 @@ async function assign(){
  }catch(e){error.value=e instanceof Error?e.message:'No se pudo completar la operación.';}
  finally{busy.value=false;}
 }
+async function billingUpdated(id:string){
+ if(selected.value!==id)return;
+ try{
+  const [stats,rows]=await Promise.all([apiJson<Overview>(base+'/overview'),apiJson<Academy[]>(base+'/academies')]);
+  overview.value=stats;
+  const latest=rows.find(a=>a.id===id);
+  const current=academies.value.find(a=>a.id===id);
+  if(latest&&current){current.assignment=latest.assignment;plan.value=latest.assignment?.plan??'STARTER';expiration.value=latest.assignment?.validUntil?.slice(0,10)??'';}
+  await loadAudit();
+ }catch(e){error.value=e instanceof Error?e.message:'No se pudo actualizar la asignación.';}
+}
 onMounted(()=>void load());
 </script>
 <template>
@@ -104,5 +116,6 @@ onMounted(()=>void load());
     </template>
    </UiCard>
   </div>
+  <PlatformBillingPanel v-if="academy" :key="academy.id" :workspace-id="academy.id" @updated="billingUpdated" />
  </main>
 </template>
