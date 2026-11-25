@@ -92,6 +92,7 @@ model User {
   sessionChanges SessionChange[]
   notifications Notification[]
   classReminderPreferences ClassReminderPreference[]
+  emailNoticePreferences EmailNoticePreference[]
   aiGenerations AiGeneration[]
   memberships WorkspaceMember[]
   teaching    TeacherProfile[]
@@ -146,6 +147,7 @@ model Workspace {
   paymentReceipts PaymentReceipt[]
   notifications Notification[]
   classReminderPreferences ClassReminderPreference[]
+  emailNoticePreferences EmailNoticePreference[]
   availabilitySlots WeeklyAvailability[]
   timeOffPeriods TeacherTimeOff[]
   classSeries ClassSeries[]
@@ -553,6 +555,7 @@ model Notification {
   body String
   createdAt DateTime @default(now())
   readAt DateTime?
+  emailDelivery EmailNoticeDelivery?
   workspace Workspace @relation(fields:[workspaceId],references:[id],onDelete:Cascade)
   user User @relation(fields:[userId],references:[id],onDelete:Cascade)
   @@unique([workspaceId,userId,eventKey])
@@ -1066,4 +1069,29 @@ model SaasBillingOrder {
  workspace Workspace @relation(fields:[workspaceId],references:[id],onDelete:Cascade)
  @@index([workspaceId,createdAt,id])
  @@index([workspaceId,status,periodEnd])
+}
+
+model EmailNoticePreference {
+ workspaceId String
+ userId String
+ enabled Boolean @default(false)
+ enabledSince DateTime?
+ updatedAt DateTime @updatedAt
+ workspace Workspace @relation(fields:[workspaceId],references:[id],onDelete:Cascade)
+ user User @relation(fields:[userId],references:[id],onDelete:Cascade)
+ @@id([workspaceId,userId])
+}
+model EmailNoticeDelivery {
+ notificationId String @id
+ state String @default("QUEUED")
+ attempts Int @default(0)
+ nextAttemptAt DateTime @default(now())
+ leaseToken String?
+ leaseUntil DateTime?
+ providerId String?
+ errorCode String?
+ createdAt DateTime @default(now())
+ finishedAt DateTime?
+ notification Notification @relation(fields:[notificationId],references:[id],onDelete:Cascade)
+ @@index([state,nextAttemptAt])
 }
