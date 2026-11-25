@@ -4,6 +4,7 @@ import { computed, onMounted, ref, watch } from 'vue';
 import { UiButton, UiCard, UiEmptyState } from '@academy-os/ui';
 import SaasPlanPanel from './SaasPlanPanel.vue';
 import WompiMerchantPanel from './WompiMerchantPanel.vue';
+import PaymentCasesManager from './PaymentCasesManager.vue';
 import PaymentEventInbox from './PaymentEventInbox.vue';
 import PackageOrdersManager from './PackageOrdersManager.vue';
 import PrivateMaterialsManager from './PrivateMaterialsManager.vue';
@@ -371,6 +372,7 @@ const input='mt-2 w-full rounded-xl border border-outline bg-surface p-3 text-sm
     <SaasPlanPanel v-if="status==='ready' && ['OWNER','ADMIN'].includes(role)" :workspace-id="workspace.id" />
     <WompiMerchantPanel v-if="status==='ready' && role==='OWNER'" :workspace-id="workspace.id" />
     <PaymentEventInbox v-if="status==='ready' && ['OWNER','ADMIN'].includes(role)" :workspace-id="workspace.id" />
+    <PaymentCasesManager v-if="status==='ready' && ['OWNER','ADMIN'].includes(role)" :workspace-id="workspace.id" />
     <PackageOrdersManager v-if="status==='ready' && ['OWNER','ADMIN'].includes(role)" :workspace-id="workspace.id" />
     <ClassPackagesManager v-if="status==='ready' && ['OWNER','ADMIN'].includes(role)" :workspace-id="workspace.id" :students="members" :courses="courses" />
     <CurriculumManager v-if="status==='ready'" :workspace-id="workspace.id" :role="role" :courses="courses" :teachers="teachers" />
