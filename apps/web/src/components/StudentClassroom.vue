@@ -3,6 +3,7 @@ import {onMounted,ref,watch} from 'vue';
 import {UiAlert,UiEmptyState} from '@academy-os/ui';
 import {apiJson,workspacePath} from '../shared/api-client';
 import {BookOpen,CalendarDays,ExternalLink,FolderOpen,GraduationCap,MapPin,Video} from 'lucide-vue-next';
+import EmailNoticePreferences from './EmailNoticePreferences.vue';
 import StudentPractice from './StudentPractice.vue';
 import LearningAssetsStudent from './LearningAssetsStudent.vue';
 import PackageOrdersStudent from './PackageOrdersStudent.vue';
@@ -73,6 +74,7 @@ watch(()=>props.workspace.id,()=>void load());
  enrollment.course.sessions.map(session=>({
   ...session,requiresPackage:enrollment.course.requiresPackage,
  })))" @updated="refreshMeetingLinks" />
+<EmailNoticePreferences :workspace-id="workspace.id" />
 <PackageOrdersStudent :workspace-id="workspace.id" />
 <StudentPractice :workspace-id="workspace.id" />
 <LearningAssetsStudent :workspace-id="workspace.id" />
