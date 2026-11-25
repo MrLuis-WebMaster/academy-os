@@ -248,3 +248,8 @@ Cumplir [RELEASE_CHECKLIST.md](RELEASE_CHECKLIST.md). Nunca considerar CI verde 
 - Recepción firmada, huella única por comercio/academia/ambiente, persistencia mínima antes de respuesta y worker con leases y reintentos.
 - Historial paginado y reintento de fallidos por OWNER/ADMIN; reutiliza verificación y entrega idempotente. Flag apagado por defecto, requiere worker. Migración zf_payment_event_inbox y pruebas añadidas.
 - Pendientes CI/sandbox, rate limiting, retención, alertas operativas, disputas/reembolsos y facturación SaaS. Ver [WOMPI_CHECKOUT.md](WOMPI_CHECKOUT.md).
+
+
+## Hito 35 — gestión de incidencias y devoluciones externas
+- Expedientes por orden, notas y auditoría de acciones, cierre/reapertura; devoluciones externas totales/parciales registradas con confirmación, referencia e importe máximo acumulado. Panel OWNER/ADMIN y migración zg_package_payment_cases.
+- Pruebas añadidas de aislamiento, concurrencia e idempotencia, sin ejecución confirmada. No se envían fondos, no se verifican devoluciones con Wompi, no se revocan créditos automáticamente. Ver [WOMPI_CHECKOUT.md](WOMPI_CHECKOUT.md).
