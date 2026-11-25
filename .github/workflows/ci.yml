@@ -26,7 +26,7 @@ jobs:
       BETTER_AUTH_SECRET: github-ci-only-test-secret-32-chars-or-longer
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version: '26'
       - uses: pnpm/action-setup@v4
