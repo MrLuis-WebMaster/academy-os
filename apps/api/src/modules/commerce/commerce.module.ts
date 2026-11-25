@@ -1,4 +1,7 @@
 import {Module} from '@nestjs/common';
+import {PaymentCasesController} from './presentation/payment-cases.controller.js';
+import {PaymentCaseUseCases} from './application/payment-case-use-cases.js';
+import {PrismaPaymentCases} from './infrastructure/prisma-payment-cases.js';
 import {PaymentEventsController} from './presentation/payment-events.controller.js';
 import {PaymentEventManagement} from './application/payment-event-inbox.js';
 import {PrismaPaymentEventInbox} from './infrastructure/prisma-payment-event-inbox.js';
@@ -20,8 +23,11 @@ import {PrismaStudioRepository} from './infrastructure/prisma-studio-repository.
 import {StudioController} from './presentation/studio.controller.js';
 
 @Module({
-  controllers:[StudioController,ClassPackagesController,PackageOrdersController,CheckoutController,MerchantController,PaymentEventsController],
+  controllers:[StudioController,ClassPackagesController,PackageOrdersController,CheckoutController,MerchantController,PaymentEventsController,PaymentCasesController],
   providers:[{
+    provide:PaymentCaseUseCases,
+    useFactory:()=>new PaymentCaseUseCases(new PrismaPaymentCases(),new PrismaMembershipAdapter()),
+  },{
     provide:CheckoutUseCases,
     useFactory:()=>{const merchants=configuredWorkspaceMerchants();return new CheckoutUseCases(new PrismaPackageCheckoutRepository(),merchants.legacy(),new PrismaMembershipAdapter(),merchants,process.env.ACADEMY_PAYMENT_INBOX_ENABLED==='true'?new PrismaPaymentEventInbox():undefined);},
   },{
