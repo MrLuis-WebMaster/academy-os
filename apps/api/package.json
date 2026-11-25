@@ -13,7 +13,8 @@
     "db:migrate": "prisma migrate dev",
     "worker:reminders": "node dist/workers/reminders.js",
     "worker:calendar-sync": "node dist/workers/calendar-sync.js",
-    "worker:payment-reconciliation": "node dist/workers/payment-reconciliation.js"
+    "worker:payment-reconciliation": "node dist/workers/payment-reconciliation.js",
+    "worker:email-notices": "node dist/workers/email-notices.js"
   },
   "dependencies": {
     "@nestjs/common": "12.6.0",
